@@ -4,7 +4,28 @@
 
 ## Canonical Git Workflow
 
-The canonical Card-branch and integration workflow is defined in `AGENTS.md` §21. `main` is the latest approved integrated state; each newly authorized Card begins on a branch created from dynamically verified current `main` after confirming local `main` equals `github/main`, GitHub's default branch is `main`, and the tracked working tree is clean. PROJECT_CONTROL records the verification rule, not a self-referential exact current `main` SHA; exact SHAs remain historical Git/Card-Evidence/commit-report evidence. Card integration remains gated by validation, Evidence Map and Project Control updates, exact Exit Gate proof, diff/status review, and explicit user approval. This protocol does not authorize commits, pushes, merges, history rewriting, or starting a subsequent Card.
+The canonical Card-branch and integration workflow is defined in `AGENTS.md` §21. `main` is the latest approved integrated state; each newly authorized Card begins on a branch created from dynamically verified current `main` after confirming local `main` equals `github/main`, GitHub's default branch is `main`, and the tracked working tree is clean. PROJECT_CONTROL records the verification rule, not a self-referential exact current `main` SHA; exact SHAs remain historical Git/Card-Evidence/commit-report evidence.
+
+The required ordered lifecycle is:
+
+```text
+Card authorization
+→ Card branch creation
+→ implementation
+→ validation
+→ Final Card Closure Gate
+→ explicit commit authorization → commit
+→ explicit push authorization → Card branch push
+→ explicit integration authorization
+→ fast-forward integration into main when valid → main push
+→ Post-Integration Reconciliation Gate
+→ PROJECT_CONTROL reconciliation
+→ required control-only reconciliation commit/push when the integration authorization explicitly covers completion of this lifecycle
+→ STOP
+→ separate explicit authorization before the next Card starts
+```
+
+The Post-Integration Reconciliation Gate is mandatory before a next-Card branch can be created. It dynamically verifies canonical main, remote/default-branch consistency, approved-commit containment, Card-branch preservation, clean tracked state, completed-Card/closure status, absence of unexpected history changes, and PROJECT_CONTROL's semantic integration checkpoint. If the integration authorization does not explicitly cover the reconciliation commit/push, STOP after the gate verification and request that approval. This protocol does not authorize application changes, a subsequent Card, history rewriting, force-push, or branch deletion.
 
 
 ## Modernization Decision — Harness, Validated Checkpoints, Evaluation Baseline

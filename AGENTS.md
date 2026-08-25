@@ -593,6 +593,24 @@ Rules:
 - Before starting a Card, verify dynamically that local `main` equals `github/main`, GitHub's default branch is `main`, the tracked working tree is clean, the prior Card is COMPLETE, and the active-Card state is correct. Do not require PROJECT_CONTROL to store an exact current `main` SHA: a control-document commit necessarily changes that SHA. Use Git, Card Evidence, commit reports, and history for exact commit evidence.
 - Trigger `PROJECT_STATE_CONFLICT` only for meaningful disagreement between repository/Git reality and project authority, not because a control-document commit advanced `main` after dynamic verification.
 
+### Post-Integration Reconciliation Gate
+
+After every approved Card integration into `main`, and before the next Card branch may be created, run this mandatory gate. Verify dynamically that:
+
+1. local `main` exists and equals `github/main`;
+2. GitHub's default branch is `main`;
+3. the approved Card commit is contained in `main`;
+4. the completed Card branch is preserved and still points to its approved commit;
+5. the tracked working tree is clean except explicitly recognized artifacts;
+6. the completed Card remains COMPLETE and its Final Card Closure Gate remains PASS;
+7. Active Card is NONE and the next Card remains NOT_STARTED;
+8. no unexpected merge commit, rebase, or history rewrite occurred; and
+9. PROJECT_CONTROL's semantic integration checkpoint agrees with Git truth.
+
+The next Card MUST NOT start until this gate passes. PROJECT_CONTROL records semantic lifecycle state and the dynamic-verification rule; it must not present pre-commit snapshots or an exact current `main` SHA as permanent live Git authority. Card Evidence may retain clearly historical closure evidence.
+
+An explicit user authorization to integrate a Card may also explicitly authorize the control-only reconciliation needed to complete this gate: post-integration verification, PROJECT_CONTROL update, and its commit/push. It never authorizes application changes, next-Card work, history rewriting, force-push, or branch deletion. If that authorization does not explicitly cover the reconciliation commit/push, STOP after verification and request it.
+
 Commit meaningful validated steps only and only after user approval.
 
 Never commit:

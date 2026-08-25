@@ -10,7 +10,7 @@ This file is the live operational state. Repository reality and approved project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
 **Implementation Status:** V1-C04 COMPLETE
-**Current Phase:** CARD COMPLETE — WAITING FOR USER AUTHORIZATION FOR V1-C05
+**Current Phase:** C04 POST-INTEGRATION RECONCILIATION — WAITING FOR CONTROL-ONLY GIT FINALIZATION
 **Active Card:** NONE
 **Last Completed Card:** V1-C04 — Provider Foundation
 **Next Card Candidate:** V1-C05 — Case Input and Validation
@@ -39,20 +39,20 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED; C01 and C02 COMMITTED AND PUSHED
+**Git Repository:** INITIALIZED; C01–C04 Card commits are committed and pushed
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
 **Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
-**Current Branch:** `card/v1-c04-provider-foundation`
-**C04 Base:** dynamically verified `main` at `734aa45a36d8ddd8965b772e493ebed48afef342`
-**Working Tree:** uncommitted C04 provider-foundation changes; untracked `REPAIR_INSTRUCTIONS.md` remains outside Card scope
+**Live Operational Git State:** dynamically verify current branch, upstream, local/remote `main` equality, and tracked-worktree cleanliness from Git before every state-changing action; `REPAIR_INSTRUCTIONS.md` is a recognized untracked artifact outside Card scope
+**Last Completed / Integrated Card:** V1-C04 — Provider Foundation; approved commit `8da3f527c1f095bdd2e9a9ec237018bf745bca22` is integrated into canonical `main`
+**C04 Card Branch:** `card/v1-c04-provider-foundation` is preserved at approved commit `8da3f527c1f095bdd2e9a9ec237018bf745bca22`
 **C01 Card Branch:** `card/v1-c01-repository-baseline` → `61de4a96178ad227d7ede26ea75252d8ec7db7c0`
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
 **Main Upstream:** `github/main` — verify local/remote HEAD equality dynamically before Card work
-**C01/C02/Main Push:** SUCCESSFUL — remote branches match their local references
+**C01–C04 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
 
-Follow the canonical workflow in `AGENTS.md` §21: every new Card branch starts from dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
+Follow the canonical workflow and Post-Integration Reconciliation Gate in `AGENTS.md` §21: every new Card branch starts only after that gate passes against dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
 
 ## Mandatory Authority Read Order
 
@@ -88,7 +88,7 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C04 is complete. Do not start V1-C05 without explicit user approval.
+V1-C04 is complete and integrated. Do not start V1-C05 without explicit user approval, and only after the Post-Integration Reconciliation Gate has been finalized on canonical `main`.
 
 Safe next sequence after approval:
 
@@ -101,16 +101,16 @@ Safe next sequence after approval:
 ## Last Execution Checkpoint
 
 **Card:** V1-C04 — Provider Foundation
-**Step:** Exit Gate and closure validation completed
+**Step:** Approved Card branch pushed and fast-forward integrated into canonical `main`; post-integration reconciliation recorded
 **Status:** COMPLETE
 **Implementation Files Changed:** provider contracts, Ollama/search adapters, factory, fakes, provider configuration, C04 tests, Evidence Map, Project Control
-**Project-State Change:** C04 completed locally on `card/v1-c04-provider-foundation`; no commit or push created
+**Project-State Change:** C04 approved commit `8da3f527c1f095bdd2e9a9ec237018bf745bca22` pushed on its preserved Card branch, then fast-forward integrated and pushed to `main`; live reference equality remains dynamically verified
 **Tests Run:** C04 provider tests (7 passed); full suite (25 passed); `pip check`; compile/import; Git diff/status checks
-**Result:** C04 Exit Gate PASS
+**Result:** C04 Exit Gate PASS; Final Card Closure Gate PASS; Post-Integration Reconciliation Gate awaits control-only commit/push to reach a clean canonical state
 **Evidence Updated:** V1-C04 evidence recorded; V1-C05–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
 **Safe Resume Point:** PRE-V1-C05
-**Next Action:** Explicit user approval to start V1-C05
+**Next Action:** Explicit user approval to commit and push this control-only post-integration reconciliation; V1-C05 still requires separate authorization after that gate passes
 
 ## Guiding Rule
 

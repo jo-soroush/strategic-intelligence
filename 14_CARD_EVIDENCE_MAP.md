@@ -8,6 +8,8 @@ Evidence is written only from actual repository execution. `TBD` and `PENDING` a
 
 A Card may be COMPLETE only when its mandatory requirements, tests/evaluation, regressions, exact Exit Gate, diff/status review, Evidence Map and PROJECT_CONTROL all agree.
 
+Card-level `Git Status Review` entries are historical closure evidence captured at the time of the Card's final pre-commit review. They do not replace dynamically verified live Git state or PROJECT_CONTROL's post-integration semantic checkpoint.
+
 ## Status Values
 
 NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
