@@ -10,7 +10,7 @@ This file is the live operational state. Repository reality and approved project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
 **Implementation Status:** V1-C04 COMPLETE
-**Current Phase:** C04 POST-INTEGRATION RECONCILIATION — WAITING FOR CONTROL-ONLY GIT FINALIZATION
+**Current Phase:** CARD COMPLETE — READY FOR SEPARATE V1-C05 AUTHORIZATION AFTER DYNAMIC GATE VERIFICATION
 **Active Card:** NONE
 **Last Completed Card:** V1-C04 — Provider Foundation
 **Next Card Candidate:** V1-C05 — Case Input and Validation
@@ -88,7 +88,7 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C04 is complete and integrated. Do not start V1-C05 without explicit user approval, and only after the Post-Integration Reconciliation Gate has been finalized on canonical `main`.
+V1-C04 is complete and integrated. Do not start V1-C05 without separate explicit user approval and a passing dynamically verified Post-Integration Reconciliation Gate on canonical `main`.
 
 Safe next sequence after approval:
 
@@ -106,11 +106,11 @@ Safe next sequence after approval:
 **Implementation Files Changed:** provider contracts, Ollama/search adapters, factory, fakes, provider configuration, C04 tests, Evidence Map, Project Control
 **Project-State Change:** C04 approved commit `8da3f527c1f095bdd2e9a9ec237018bf745bca22` pushed on its preserved Card branch, then fast-forward integrated and pushed to `main`; live reference equality remains dynamically verified
 **Tests Run:** C04 provider tests (7 passed); full suite (25 passed); `pip check`; compile/import; Git diff/status checks
-**Result:** C04 Exit Gate PASS; Final Card Closure Gate PASS; Post-Integration Reconciliation Gate awaits control-only commit/push to reach a clean canonical state
+**Result:** C04 Exit Gate PASS; Final Card Closure Gate PASS; durable post-integration semantic state recorded—Git dynamically verifies reconciliation commit/push and current canonical state
 **Evidence Updated:** V1-C04 evidence recorded; V1-C05–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
 **Safe Resume Point:** PRE-V1-C05
-**Next Action:** Explicit user approval to commit and push this control-only post-integration reconciliation; V1-C05 still requires separate authorization after that gate passes
+**Next Action:** Separate explicit user approval to start V1-C05, only after the dynamically verified Post-Integration Reconciliation Gate passes
 
 ## Guiding Rule
 
