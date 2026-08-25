@@ -9,12 +9,13 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C01 COMPLETE
-**Current Phase:** CARD COMPLETE — WAITING FOR USER AUTHORIZATION FOR V1-C02
+**Implementation Status:** V1-C02 COMPLETE
+**Current Phase:** CARD COMPLETE — WAITING FOR USER AUTHORIZATION FOR V1-C03
 **Active Card:** NONE
-**Last Completed Card:** V1-C01 — Repository Baseline
-**Next Card Candidate:** V1-C02 — Domain Models
-**V1-C02 Status:** NOT_STARTED
+**Last Completed Card:** V1-C02 — Domain Models
+**Next Card Candidate:** V1-C03 — Persistence Foundation
+**V1-C02 Status:** COMPLETE
+**V1-C03 Status:** NOT_STARTED
 **Next Card Start Approval:** REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
@@ -36,12 +37,12 @@ These facts must be re-inspected by Codex before changing project state.
 ## Current Git State
 
 **Git Repository:** INITIALIZED, C01 COMMITTED AND PUSHED
-**Branch:** `card/v1-c01-repository-baseline`
-**Working Tree:** no tracked modifications; untracked `REPAIR_INSTRUCTIONS.md` remains outside C01
+**Branch:** `card/v1-c02-domain-models`
+**Working Tree:** uncommitted C02 domain-model changes; untracked `REPAIR_INSTRUCTIONS.md` remains outside C02
 **Last Relevant Commit:** `cb0e42893235e18b69834ae07c6d50c3965d473b` — `chore(c01): establish repository baseline`
-**Card Branch:** `card/v1-c01-repository-baseline`
+**Card Branch:** `card/v1-c02-domain-models`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
-**Upstream:** `github/card/v1-c01-repository-baseline`
+**Upstream:** none — C02 branch is local and uncommitted
 **C01 Push:** SUCCESSFUL — remote branch matches local C01 commit
 
 Git initialization was completed under the explicit V1-C01 authorization. Commit, push, PR, merge, and deployment remain unauthorized.
@@ -80,29 +81,29 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C01 is complete. Do not start V1-C02 without explicit user approval.
+V1-C02 is complete. Do not start V1-C03 without explicit user approval.
 
 Safe next sequence after approval:
 
 1. re-read all project authorities and inspect repository/Git state;
-2. activate `V1-C02 — Domain Models`;
+2. activate `V1-C03 — Persistence Foundation`;
 3. perform its inspect-only Contract / Risk Map and Roadmap Alignment Gate;
-4. execute only bounded C02 scope if the gate passes;
-5. STOP after C02; do not begin C03.
+4. execute only bounded C03 scope if the gate passes;
+5. STOP after C03; do not begin C04.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C01 — Repository Baseline
-**Step:** Git state reconciled after C01 commit and GitHub push
+**Card:** V1-C02 — Domain Models
+**Step:** Exit Gate and closure validation completed
 **Status:** COMPLETE
-**Implementation Files Changed:** Git metadata; Python package/config/logging/test foundation; ignore/env/example; README; fixture/evaluation conventions
-**Project-State Change:** V1-C01 completed, committed, and pushed; Project Control Git state reconciled
-**Tests Run:** `pytest` (2 passed); package/config import; `pip check`; Git ignore/status/diff checks
-**Result:** C01 Exit Gate PASS
-**Evidence Updated:** V1-C01 evidence recorded; V1-C02–V1-C22 remain NOT_STARTED
+**Implementation Files Changed:** Pydantic dependency; typed domain contracts/enums; C02 contract tests; Evidence Map; Project Control
+**Project-State Change:** V1-C02 completed; no commit or push created
+**Tests Run:** `pytest` (11 passed); `pip check`; domain JSON serialization/import; Git diff/status checks
+**Result:** C02 Exit Gate PASS
+**Evidence Updated:** V1-C02 evidence recorded; V1-C03–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C02
-**Next Action:** Explicit user approval to start V1-C02
+**Safe Resume Point:** PRE-V1-C03
+**Next Action:** Explicit user approval to start V1-C03
 
 ## Guiding Rule
 

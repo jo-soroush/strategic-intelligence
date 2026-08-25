@@ -17,7 +17,7 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | Card | Name | Status | Exit Gate |
 |---|---|---|---|
 | V1-C01 | Repository Baseline | COMPLETE | PASS |
-| V1-C02 | Domain Models | NOT_STARTED | PENDING |
+| V1-C02 | Domain Models | COMPLETE | PASS |
 | V1-C03 | Persistence Foundation | NOT_STARTED | PENDING |
 | V1-C04 | Provider Foundation | NOT_STARTED | PENDING |
 | V1-C05 | Case Input and Validation | NOT_STARTED | PENDING |
@@ -66,27 +66,27 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 
 # V1-C02 — Domain Models
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C01
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Typed domain models | TBD | TBD | PENDING | TBD |
-| Enums/IDs/timestamps | TBD | TBD | PENDING | TBD |
-| Serialization | TBD | TBD | PENDING | TBD |
-| Provider-independent contracts | TBD | TBD | PENDING | TBD |
+| Typed domain models | `src/strategic_intelligence/domain/models.py` | `.venv/bin/python -m pytest` | PASS — 11 passed | Pydantic contracts cover Case through WorkflowError, plus typed supporting/state models |
+| Enums/IDs/timestamps | `src/strategic_intelligence/domain/models.py` | Construction/invariant tests | PASS | Opaque UUID IDs, timezone-aware timestamps, and explicit domain enums |
+| Serialization | `src/strategic_intelligence/domain/models.py`; `tests/unit/test_domain_models.py` | JSON model dump/validate round trips | PASS | Nested research, traceability, analysis/brief, audit, run, context, and workflow-state round trips |
+| Provider-independent contracts | `src/strategic_intelligence/domain/` | Source and dependency review | PASS | No provider SDK objects or provider-specific dependencies; Pydantic is the typed validation/serialization dependency |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** N/A — C02 introduces no model, prompt, provider, routing, trust, or recovery behavior.
+**Candidate After:** N/A — contract-only Card.
+**Regression Decision:** N/A — no quality-affecting runtime baseline applies to C02.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — C02 changes are limited to the Pydantic dependency, domain contracts, contract tests, Evidence Map, and Project Control.
+**Git Status Review:** PASS — branch `card/v1-c02-domain-models`; C02 changes are uncommitted; `REPAIR_INSTRUCTIONS.md` remains untracked and outside Card scope.
+**PROJECT_CONTROL Updated:** YES
+**Exit Gate Evidence:** PASS — later Cards can exchange explicit application-owned, provider-independent typed contracts with IDs, timestamps, enums, relationship IDs, deterministic validation, and JSON-compatible serialization.
 
 
 # V1-C03 — Persistence Foundation
