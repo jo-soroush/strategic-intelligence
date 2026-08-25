@@ -555,13 +555,31 @@ Never continue from memory.
 
 ## 21. Git / GitHub Discipline
 
-Do not implement directly on `main`.
+`main` is the canonical latest approved integrated project state. Do not implement directly on it.
 
-Prefer one branch per Card.
+Canonical Card workflow:
+
+```text
+updated approved main
+→ create one Card branch from main
+→ implement exactly one authorized Card on that branch
+→ test/evaluate and update Evidence Map + PROJECT_CONTROL
+→ prove the exact Exit Gate and review diff/status
+→ user approves commit/push/integration
+→ integrate the approved Card state into main
+→ create the next Card branch from updated main
+```
+
+Rules:
+
+- Only one Card may be active; its implementation stays on its Card branch.
+- A Card cannot be integrated into `main` until tests/evaluation, Evidence Map, PROJECT_CONTROL, exact Exit Gate, and diff/status review all pass, and the user explicitly approves integration.
+- Commit, push, PR, merge, and force-push remain explicit user-approved actions.
+- No Card branch may be based on an older completed Card branch once `main` has advanced; every new Card starts from the updated approved `main`.
+- Do not force-push or rewrite history unless separately and explicitly authorized.
+- Completed Card branches may remain for traceability. Deletion requires explicit project policy or user approval.
 
 Commit meaningful validated steps only and only after user approval.
-
-Push / PR / merge / force push require explicit approval.
 
 Never commit:
 

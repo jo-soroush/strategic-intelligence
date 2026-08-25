@@ -2,6 +2,10 @@
 
 ## Modernized Execution Policy
 
+## Canonical Git Workflow
+
+The canonical Card-branch and integration workflow is defined in `AGENTS.md` §21. `main` is the latest approved integrated state; each newly authorized Card begins on a branch created from current `main`. Card integration remains gated by validation, Evidence Map and Project Control updates, exact Exit Gate proof, diff/status review, and explicit user approval. This protocol does not authorize commits, pushes, merges, history rewriting, or starting a subsequent Card.
+
 
 ## Modernization Decision — Harness, Validated Checkpoints, Evaluation Baseline
 

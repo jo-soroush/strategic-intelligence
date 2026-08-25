@@ -14,6 +14,7 @@ This file is the live operational state. Repository reality and approved project
 **Active Card:** NONE
 **Last Completed Card:** V1-C02 — Domain Models
 **Next Card Candidate:** V1-C03 — Persistence Foundation
+**V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** NOT_STARTED
 **Next Card Start Approval:** REQUIRED
@@ -36,16 +37,19 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED, C01 COMMITTED AND PUSHED
-**Branch:** `card/v1-c02-domain-models`
-**Working Tree:** uncommitted C02 domain-model changes; untracked `REPAIR_INSTRUCTIONS.md` remains outside C02
-**Last Relevant Commit:** `cb0e42893235e18b69834ae07c6d50c3965d473b` — `chore(c01): establish repository baseline`
-**Card Branch:** `card/v1-c02-domain-models`
+**Git Repository:** INITIALIZED; C01 and C02 COMMITTED AND PUSHED
+**Canonical Branch:** `main`
+**GitHub Default Branch:** `main`
+**Latest Approved Integrated State:** `17bb25c5b22d27087fa649ed57abf20d36e2e3c9` — `feat(c02): add typed domain models`
+**Current Branch:** `main`
+**Working Tree:** no tracked modifications; untracked `REPAIR_INSTRUCTIONS.md` remains outside Card scope
+**C01 Card Branch:** `card/v1-c01-repository-baseline` → `61de4a96178ad227d7ede26ea75252d8ec7db7c0`
+**C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
-**Upstream:** none — C02 branch is local and uncommitted
-**C01 Push:** SUCCESSFUL — remote branch matches local C01 commit
+**Main Upstream:** `github/main` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
+**C01/C02/Main Push:** SUCCESSFUL — remote branches match their local references
 
-Git initialization was completed under the explicit V1-C01 authorization. Commit, push, PR, merge, and deployment remain unauthorized.
+Follow the canonical workflow in `AGENTS.md` §21: every new Card branch starts from updated approved `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved.
 
 ## Mandatory Authority Read Order
 
@@ -97,7 +101,7 @@ Safe next sequence after approval:
 **Step:** Exit Gate and closure validation completed
 **Status:** COMPLETE
 **Implementation Files Changed:** Pydantic dependency; typed domain contracts/enums; C02 contract tests; Evidence Map; Project Control
-**Project-State Change:** V1-C02 completed; no commit or push created
+**Project-State Change:** V1-C02 committed and pushed; `main` created at the approved C02 SHA and pushed
 **Tests Run:** `pytest` (11 passed); `pip check`; domain JSON serialization/import; Git diff/status checks
 **Result:** C02 Exit Gate PASS
 **Evidence Updated:** V1-C02 evidence recorded; V1-C03–V1-C22 remain NOT_STARTED
