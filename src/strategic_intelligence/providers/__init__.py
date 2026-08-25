@@ -1,1 +1,1 @@
-"""Provider capability contracts and adapters (implemented in V1-C04)."""
+"""Application-owned provider contracts and isolated adapters."""

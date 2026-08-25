@@ -19,7 +19,7 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | V1-C01 | Repository Baseline | COMPLETE | PASS |
 | V1-C02 | Domain Models | COMPLETE | PASS |
 | V1-C03 | Persistence Foundation | COMPLETE | PASS |
-| V1-C04 | Provider Foundation | NOT_STARTED | PENDING |
+| V1-C04 | Provider Foundation | COMPLETE | PASS |
 | V1-C05 | Case Input and Validation | NOT_STARTED | PENDING |
 | V1-C06 | Research Planner | NOT_STARTED | PENDING |
 | V1-C07 | Company Research | NOT_STARTED | PENDING |
@@ -116,28 +116,28 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 
 # V1-C04 — Provider Foundation
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C01, V1-C02
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| LLM/Search provider contracts | TBD | TBD | PENDING | TBD |
-| Adapters/factory/fakes | TBD | TBD | PENDING | TBD |
-| Narrow capability injection | TBD | TBD | PENDING | TBD |
-| Timeout/error normalization | TBD | TBD | PENDING | TBD |
-| No silent cloud fallback | TBD | TBD | PENDING | TBD |
+| LLM/Search provider contracts | `providers/contracts.py` | `tests/unit/test_providers.py` | PASS — 7 passed | Application-owned request/response/result contracts and protocols contain no vendor objects |
+| Adapters/factory/fakes | `providers/ollama.py`; `providers/search.py`; `providers/factory.py`; `providers/fakes.py` | factory/fake tests | PASS | Ollama and DuckDuckGo details remain isolated; construction is explicit; deterministic fakes require no live service |
+| Narrow capability injection | `providers/contracts.py`; `providers/factory.py` | protocol/factory review | PASS | Consumers receive only LLMProvider/SearchProvider protocols through composition |
+| Timeout/error normalization | `providers/ollama.py`; `providers/search.py` | timeout/unavailable tests | PASS | External failure becomes a secret-safe ProviderError with normalized code and retryability; workflow retry remains future orchestrator ownership |
+| No silent cloud fallback | `config.py`; `providers/factory.py` | cloud/unknown-provider tests | PASS | Default is explicit local Ollama; unapproved cloud/unknown selections fail rather than falling back |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** N/A — C04 establishes deterministic provider boundaries, not a quality/routing change.
+**Candidate After:** N/A — no live provider evaluation is required; fakes cover contracts deterministically.
+**Regression Decision:** PASS — full suite remains green (25 passed).
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — provider contracts/adapters/configuration/tests/control evidence only; no future workflow behavior.
+**Git Status Review:** PASS — branch `card/v1-c04-provider-foundation`; C04 work is uncommitted; `REPAIR_INSTRUCTIONS.md` remains outside Card scope.
+**PROJECT_CONTROL Updated:** YES
+**Exit Gate Evidence:** PASS — provider consumers can depend on stable application protocols while vendor HTTP details remain isolated and cloud use cannot occur silently.
 
 
 # V1-C05 — Case Input and Validation
