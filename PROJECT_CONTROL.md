@@ -9,8 +9,8 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C04 COMPLETE — REPAIR VALIDATED, NOT YET INTEGRATED
-**Current Phase:** C04 REPAIR COMPLETE — WAITING FOR EXPLICIT USER REVIEW
+**Implementation Status:** V1-C04 COMPLETE — REPAIR INTEGRATED
+**Current Phase:** CARD COMPLETE — READY FOR SEPARATE V1-C05 AUTHORIZATION AFTER DYNAMIC GATE VERIFICATION
 **Active Card:** NONE
 **Last Completed Card:** V1-C04 — Provider Foundation Repair
 **Next Card Candidate:** V1-C05 — Case Input and Validation
@@ -46,7 +46,7 @@ These facts must be re-inspected by Codex before changing project state.
 **Live Operational Git State:** dynamically verify current branch, upstream, local/remote `main` equality, and tracked-worktree cleanliness from Git before every state-changing action; `REPAIR_INSTRUCTIONS.md` is a recognized untracked artifact outside Card scope
 **Last Completed / Integrated Card:** V1-C04 — Provider Foundation; approved commit `8da3f527c1f095bdd2e9a9ec237018bf745bca22` is integrated into canonical `main`
 **C04 Card Branch:** `card/v1-c04-provider-foundation` is preserved at approved commit `8da3f527c1f095bdd2e9a9ec237018bf745bca22`
-**C04 Repair Integration State:** validated repair is on `card/v1-c04-provider-foundation-repair` and awaits separate explicit Git finalization/integration approval; live branch/commit state remains dynamically verified
+**C04 Repair Integration State:** approved repair commit `cb882e2` is integrated into canonical `main`; `card/v1-c04-provider-foundation-repair` is preserved; live branch/commit state remains dynamically verified
 **C01 Card Branch:** `card/v1-c01-repository-baseline` → `61de4a96178ad227d7ede26ea75252d8ec7db7c0`
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
@@ -89,7 +89,7 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C04 repair is validated locally. Do not start V1-C05; the repair requires separate explicit Git finalization/integration approval.
+V1-C04 repair is integrated. Do not start V1-C05 without separate explicit user approval and a passing dynamically verified Post-Integration Reconciliation Gate on canonical `main`.
 
 Safe next sequence after approval:
 
@@ -105,13 +105,13 @@ Safe next sequence after approval:
 **Step:** Default local provider composition defect repaired and revalidated
 **Status:** COMPLETE
 **Implementation Files Changed:** centralized Ollama base-URL configuration, `.env.example`, deterministic C04 regression tests, Evidence Map, Project Control
-**Project-State Change:** C04 approved commit remains integrated in `main`; validated repair awaits separate explicit Git finalization/integration approval
+**Project-State Change:** C04 repair commit `cb882e2` was pushed on its preserved repair branch, fast-forward integrated, and pushed to `main`; live reference equality remains dynamically verified
 **Tests Run:** pre-fix composition check reproduced the missing `Settings.ollama_base_url`; C04 provider tests (9 passed); full suite (27 passed); `pip check`; compile/import; default factory composition; Git diff/status checks
-**Result:** C04 Exit Gate PASS; Final Card Closure Gate PASS; default local provider construction is now centrally configured and network-free
+**Result:** C04 Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS; default local provider construction is centrally configured and network-free
 **Evidence Updated:** C04 repair evidence recorded; V1-C05–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
 **Safe Resume Point:** PRE-V1-C05
-**Next Action:** Explicit user approval for C04 repair Git finalization/integration; do not start V1-C05
+**Next Action:** Separate explicit user approval to start V1-C05, only after the dynamically verified Post-Integration Reconciliation Gate passes
 
 ## Guiding Rule
 
