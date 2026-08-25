@@ -26,6 +26,16 @@ class Settings:
     data_dir: Path
     log_dir: Path
 
+    @property
+    def database_path(self) -> Path:
+        """Configured local SQLite location; infrastructure resolves it."""
+        return self.data_dir / "strategic_intelligence.db"
+
+    @property
+    def artifact_root(self) -> Path:
+        """Configured root for case-owned local artifacts."""
+        return self.data_dir / "cases"
+
     @classmethod
     def from_environment(cls) -> "Settings":
         log_level = os.getenv("LOG_LEVEL", "INFO").upper()

@@ -1,1 +1,1 @@
-"""Persistence and infrastructure adapters (implemented in V1-C03)."""
+"""Persistence and infrastructure adapters."""

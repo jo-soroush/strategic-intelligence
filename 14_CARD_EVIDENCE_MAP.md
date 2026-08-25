@@ -18,7 +18,7 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 |---|---|---|---|
 | V1-C01 | Repository Baseline | COMPLETE | PASS |
 | V1-C02 | Domain Models | COMPLETE | PASS |
-| V1-C03 | Persistence Foundation | NOT_STARTED | PENDING |
+| V1-C03 | Persistence Foundation | COMPLETE | PASS |
 | V1-C04 | Provider Foundation | NOT_STARTED | PENDING |
 | V1-C05 | Case Input and Validation | NOT_STARTED | PENDING |
 | V1-C06 | Research Planner | NOT_STARTED | PENDING |
@@ -91,27 +91,27 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 
 # V1-C03 — Persistence Foundation
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C02
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Repository/SQLite/ArtifactStore | TBD | TBD | PENDING | TBD |
-| Transactions | TBD | TBD | PENDING | TBD |
-| Safe paths | TBD | TBD | PENDING | TBD |
-| Validated checkpoint persistence/acceptance | TBD | TBD | PENDING | TBD |
+| Repository/SQLite/ArtifactStore | `application/persistence.py`; `infrastructure/sqlite_repository.py`; `infrastructure/artifacts.py` | `tests/unit/test_persistence.py` | PASS — 7 passed | Application protocols isolate SQLite/files; SQLite schema migration table and LocalArtifactStore are local-first adapters |
+| Transactions | `SqliteRepository.save_claim_with_links` | rollback test | PASS | Claim and exact ClaimEvidenceLinks execute in one SQLite transaction; missing referenced Evidence rolls back the Claim |
+| Safe paths | `LocalArtifactStore` | artifact path/read/delete tests | PASS | Configured root containment, generated IDs, traversal rejection, structured missing-artifact failure, and case deletion |
+| Validated checkpoint persistence/acceptance | `SqliteRepository.accept_checkpoint` | checkpoint acceptance/rejection test | PASS | Accepted checkpoint row is written only after required persisted records are verified; rejected input leaves no accepted checkpoint |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** N/A — C03 establishes storage infrastructure, not an AI/research/trust-quality baseline.
+**Candidate After:** N/A — deterministic local persistence foundation.
+**Regression Decision:** PASS — full suite remains green (18 passed).
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — scope is application persistence interfaces, SQLite/local artifact adapters, safe configuration properties, C03 tests, and control evidence only.
+**Git Status Review:** PASS — branch `card/v1-c03-persistence-foundation`; C03 work is uncommitted; `REPAIR_INSTRUCTIONS.md` remains untracked and outside Card scope.
+**PROJECT_CONTROL Updated:** YES
+**Exit Gate Evidence:** PASS — Case and WorkflowRun survive repository reopen; Source/Evidence/Claim traceability persists; Claim+links are atomic; artifact storage is path-safe; accepted checkpoints require persisted records.
 
 
 # V1-C04 — Provider Foundation

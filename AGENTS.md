@@ -465,6 +465,18 @@ Before COMPLETE:
 11. verify architecture boundaries;
 12. STOP if anything mandatory fails.
 
+### Final Card Closure Gate
+
+Do not report a Card as COMPLETE until this final reconciliation passes. Derive the verdict from repository evidence, not a narrative summary. For the active Card, mechanically verify:
+
+1. implementation, mandatory Card tests/evaluation, required regression, exact Exit Gate, and required security/secret/path/dependency/static checks are PASS;
+2. Evidence Map summary status, Card-section status, and Card-section Exit Gate are consistently COMPLETE/PASS;
+3. completed requirements contain real execution evidence and no unresolved `PENDING`, `TODO`, `BLOCKED`, `UNKNOWN`, or `UNPROVEN` placeholder remains in the active Card's closure record;
+4. PROJECT_CONTROL agrees with the Evidence Map, closes the Active Card correctly, and leaves the next Card NOT_STARTED;
+5. Git diff/status, scope, architecture, and future-Card leakage reviews pass with no unrelated files.
+
+Evaluate stale-state search results in context: intentionally retained future-Card states are not defects. If any applicable condition disagrees, set `CARD STATUS = BLOCKED`; identify it and do not commit, push, integrate, or start the next Card.
+
 Failure:
 
 ```text

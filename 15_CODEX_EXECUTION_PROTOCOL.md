@@ -137,6 +137,8 @@ Regression comparison: PASS / N/A with reason
 
 All previous Card tests, evidence, Git diff/status, security, Governance, and STOP rules remain mandatory.
 
+The final completeness verdict is additionally governed by the canonical Final Card Closure Gate in `AGENTS.md` §17. A summary cannot override tests, exact Exit Gate, Evidence Map, PROJECT_CONTROL, Git, or scope/architecture evidence.
+
 ## Guiding Rule
 
 **Harness controls execution. Persistence + validation create safe checkpoints. Evaluation proves improvement. Complexity requires evidence.**
