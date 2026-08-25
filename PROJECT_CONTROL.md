@@ -14,6 +14,7 @@ This file is the live operational state. Repository reality and approved project
 **Active Card:** NONE
 **Last Completed Card:** V1-C01 — Repository Baseline
 **Next Card Candidate:** V1-C02 — Domain Models
+**V1-C02 Status:** NOT_STARTED
 **Next Card Start Approval:** REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
@@ -34,11 +35,14 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED IN V1-C01
+**Git Repository:** INITIALIZED, C01 COMMITTED AND PUSHED
 **Branch:** `card/v1-c01-repository-baseline`
-**Working Tree:** foundation and existing project-control files are uncommitted
-**Last Relevant Commit:** NONE — no commit created
+**Working Tree:** no tracked modifications; untracked `REPAIR_INSTRUCTIONS.md` remains outside C01
+**Last Relevant Commit:** `cb0e42893235e18b69834ae07c6d50c3965d473b` — `chore(c01): establish repository baseline`
 **Card Branch:** `card/v1-c01-repository-baseline`
+**GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
+**Upstream:** `github/card/v1-c01-repository-baseline`
+**C01 Push:** SUCCESSFUL — remote branch matches local C01 commit
 
 Git initialization was completed under the explicit V1-C01 authorization. Commit, push, PR, merge, and deployment remain unauthorized.
 
@@ -89,15 +93,15 @@ Safe next sequence after approval:
 ## Last Execution Checkpoint
 
 **Card:** V1-C01 — Repository Baseline
-**Step:** Exit Gate and closure validation completed
+**Step:** Git state reconciled after C01 commit and GitHub push
 **Status:** COMPLETE
 **Implementation Files Changed:** Git metadata; Python package/config/logging/test foundation; ignore/env/example; README; fixture/evaluation conventions
-**Project-State Change:** V1-C01 completed; Git repository initialized; no commit created
+**Project-State Change:** V1-C01 completed, committed, and pushed; Project Control Git state reconciled
 **Tests Run:** `pytest` (2 passed); package/config import; `pip check`; Git ignore/status/diff checks
 **Result:** C01 Exit Gate PASS
 **Evidence Updated:** V1-C01 evidence recorded; V1-C02–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** POST-V1-C01 / PRE-V1-C02
+**Safe Resume Point:** PRE-V1-C02
 **Next Action:** Explicit user approval to start V1-C02
 
 ## Guiding Rule
