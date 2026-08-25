@@ -40,16 +40,16 @@ These facts must be re-inspected by Codex before changing project state.
 **Git Repository:** INITIALIZED; C01 and C02 COMMITTED AND PUSHED
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
-**Latest Approved Integrated State:** `a5fdc48379f7097043b9db3c254c31508271cb48` — `docs(git): define canonical card workflow`
+**Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
 **Current Branch:** `main`
 **Working Tree:** no tracked modifications; untracked `REPAIR_INSTRUCTIONS.md` remains outside Card scope
 **C01 Card Branch:** `card/v1-c01-repository-baseline` → `61de4a96178ad227d7ede26ea75252d8ec7db7c0`
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
-**Main Upstream:** `github/main` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
+**Main Upstream:** `github/main` — verify local/remote HEAD equality dynamically before Card work
 **C01/C02/Main Push:** SUCCESSFUL — remote branches match their local references
 
-Follow the canonical workflow in `AGENTS.md` §21: every new Card branch starts from updated approved `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved.
+Follow the canonical workflow in `AGENTS.md` §21: every new Card branch starts from dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
 
 ## Mandatory Authority Read Order
 

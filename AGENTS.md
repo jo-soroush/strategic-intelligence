@@ -578,6 +578,8 @@ Rules:
 - No Card branch may be based on an older completed Card branch once `main` has advanced; every new Card starts from the updated approved `main`.
 - Do not force-push or rewrite history unless separately and explicitly authorized.
 - Completed Card branches may remain for traceability. Deletion requires explicit project policy or user approval.
+- Before starting a Card, verify dynamically that local `main` equals `github/main`, GitHub's default branch is `main`, the tracked working tree is clean, the prior Card is COMPLETE, and the active-Card state is correct. Do not require PROJECT_CONTROL to store an exact current `main` SHA: a control-document commit necessarily changes that SHA. Use Git, Card Evidence, commit reports, and history for exact commit evidence.
+- Trigger `PROJECT_STATE_CONFLICT` only for meaningful disagreement between repository/Git reality and project authority, not because a control-document commit advanced `main` after dynamic verification.
 
 Commit meaningful validated steps only and only after user approval.
 

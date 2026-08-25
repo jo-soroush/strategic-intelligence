@@ -4,7 +4,7 @@
 
 ## Canonical Git Workflow
 
-The canonical Card-branch and integration workflow is defined in `AGENTS.md` §21. `main` is the latest approved integrated state; each newly authorized Card begins on a branch created from current `main`. Card integration remains gated by validation, Evidence Map and Project Control updates, exact Exit Gate proof, diff/status review, and explicit user approval. This protocol does not authorize commits, pushes, merges, history rewriting, or starting a subsequent Card.
+The canonical Card-branch and integration workflow is defined in `AGENTS.md` §21. `main` is the latest approved integrated state; each newly authorized Card begins on a branch created from dynamically verified current `main` after confirming local `main` equals `github/main`, GitHub's default branch is `main`, and the tracked working tree is clean. PROJECT_CONTROL records the verification rule, not a self-referential exact current `main` SHA; exact SHAs remain historical Git/Card-Evidence/commit-report evidence. Card integration remains gated by validation, Evidence Map and Project Control updates, exact Exit Gate proof, diff/status review, and explicit user approval. This protocol does not authorize commits, pushes, merges, history rewriting, or starting a subsequent Card.
 
 
 ## Modernization Decision — Harness, Validated Checkpoints, Evaluation Baseline
