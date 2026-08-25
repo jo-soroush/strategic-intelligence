@@ -40,7 +40,7 @@ These facts must be re-inspected by Codex before changing project state.
 **Git Repository:** INITIALIZED; C01 and C02 COMMITTED AND PUSHED
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
-**Latest Approved Integrated State:** `17bb25c5b22d27087fa649ed57abf20d36e2e3c9` — `feat(c02): add typed domain models`
+**Latest Approved Integrated State:** `a5fdc48379f7097043b9db3c254c31508271cb48` — `docs(git): define canonical card workflow`
 **Current Branch:** `main`
 **Working Tree:** no tracked modifications; untracked `REPAIR_INSTRUCTIONS.md` remains outside Card scope
 **C01 Card Branch:** `card/v1-c01-repository-baseline` → `61de4a96178ad227d7ede26ea75252d8ec7db7c0`
