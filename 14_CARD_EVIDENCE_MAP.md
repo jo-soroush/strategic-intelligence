@@ -126,20 +126,22 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| LLM/Search provider contracts | `providers/contracts.py` | `tests/unit/test_providers.py` | PASS — 7 passed | Application-owned request/response/result contracts and protocols contain no vendor objects |
-| Adapters/factory/fakes | `providers/ollama.py`; `providers/search.py`; `providers/factory.py`; `providers/fakes.py` | factory/fake tests | PASS | Ollama and DuckDuckGo details remain isolated; construction is explicit; deterministic fakes require no live service |
+| LLM/Search provider contracts | `providers/contracts.py` | `tests/unit/test_providers.py` | PASS — 9 passed | Application-owned request/response/result contracts and protocols contain no vendor objects |
+| Adapters/factory/fakes | `providers/ollama.py`; `providers/search.py`; `providers/factory.py`; `providers/fakes.py` | factory/fake/default-composition tests | PASS | Ollama and DuckDuckGo details remain isolated; construction is explicit; deterministic fakes require no live service |
 | Narrow capability injection | `providers/contracts.py`; `providers/factory.py` | protocol/factory review | PASS | Consumers receive only LLMProvider/SearchProvider protocols through composition |
 | Timeout/error normalization | `providers/ollama.py`; `providers/search.py` | timeout/unavailable tests | PASS | External failure becomes a secret-safe ProviderError with normalized code and retryability; workflow retry remains future orchestrator ownership |
 | No silent cloud fallback | `config.py`; `providers/factory.py` | cloud/unknown-provider tests | PASS | Default is explicit local Ollama; unapproved cloud/unknown selections fail rather than falling back |
 
 **Baseline Before:** N/A — C04 establishes deterministic provider boundaries, not a quality/routing change.
 **Candidate After:** N/A — no live provider evaluation is required; fakes cover contracts deterministically.
-**Regression Decision:** PASS — full suite remains green (25 passed).
-**Known Issues / Blockers:** None.
-**Diff Review:** PASS — provider contracts/adapters/configuration/tests/control evidence only; no future workflow behavior.
-**Git Status Review:** PASS — branch `card/v1-c04-provider-foundation`; C04 work is uncommitted; `REPAIR_INSTRUCTIONS.md` remains outside Card scope.
+**Regression Decision:** PASS — full suite remains green (27 passed).
+**Known Issues / Blockers:** Resolved — an independent audit reproduced `build_providers(Settings.from_environment())` failing with `AttributeError` because the factory expected `Settings.ollama_base_url` while centralized Settings did not provide it.
+**Repair Evidence:** Added documented `OLLAMA_BASE_URL` parsing with local default `http://127.0.0.1:11434` and basic HTTP(S) base-URL validation, plus deterministic default-composition and invalid-scheme tests. Construction does not call the provider network.
+**Critical Path:** `Settings.from_environment()` → `build_providers(...)` → default local provider → `OllamaAdapter` construction. `test_default_settings_construct_local_ollama_provider_without_network` passes without mocking the Settings/factory/adapter boundary or making a provider network call.
+**Diff Review:** PASS — repair is limited to centralized provider configuration, `.env.example`, C04 tests, and control/evidence records; no future workflow behavior.
+**Git Status Review:** Historical closure evidence: repair branch `card/v1-c04-provider-foundation-repair` contains the validated, uncommitted C04 repair; `REPAIR_INSTRUCTIONS.md` remains outside Card scope.
 **PROJECT_CONTROL Updated:** YES
-**Exit Gate Evidence:** PASS — provider consumers can depend on stable application protocols while vendor HTTP details remain isolated and cloud use cannot occur silently.
+**Exit Gate Evidence:** PASS — provider consumers can depend on stable application protocols while vendor HTTP details remain isolated and cloud use cannot occur silently. `.venv/bin/python -m pytest tests/unit/test_providers.py` passed 9 tests; full suite passed 27 tests; `pip check`, compile/import checks, and `build_providers(Settings.from_environment())` passed.
 
 
 # V1-C05 — Case Input and Validation

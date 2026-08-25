@@ -465,15 +465,26 @@ Before COMPLETE:
 11. verify architecture boundaries;
 12. STOP if anything mandatory fails.
 
+### Critical-Path Validation Gate
+
+Before a Card can be COMPLETE, identify and execute its Card Critical Path: the smallest realistic end-to-end execution path within that Card's owned scope that proves its primary capability works when its owned components are composed as intended. It is not automatically every runtime path, a full-system test, a live external-service test, future-Card workflow, or a duplicate of every unit test.
+
+Derive the path from the Card Specification, architecture ownership, exact Exit Gate, and actual implementation. Map every step to current-Card or completed-prerequisite ownership; use the real composition/configuration boundary wherever practical; fake only necessary external systems for deterministic/offline execution; and never mock away the owned integration boundary being proved. Record the exact path, test/check, and PASS result in Card Evidence.
+
+All tests passing is not sufficient completeness evidence by itself. Closure requires both required unit/contract/invariant validation and a passing Critical Path. If no executable Critical Path is appropriate, explicitly justify that from the Card contract. Missing, failing, unproven, over-mocked, or future-scope-dependent Critical Paths fail closed: `CARD STATUS = BLOCKED`.
+
+New Cards must use this gate. Revalidate a completed Card only when a concrete defect or audit finding shows its claimed primary capability was not actually exercised; do not reopen historical Cards solely for documentation busywork.
+
 ### Final Card Closure Gate
 
 Do not report a Card as COMPLETE until this final reconciliation passes. Derive the verdict from repository evidence, not a narrative summary. For the active Card, mechanically verify:
 
-1. implementation, mandatory Card tests/evaluation, required regression, exact Exit Gate, and required security/secret/path/dependency/static checks are PASS;
+1. implementation, mandatory Card tests/evaluation, Critical-Path Validation, required regression, exact Exit Gate, and required security/secret/path/dependency/static checks are PASS;
 2. Evidence Map summary status, Card-section status, and Card-section Exit Gate are consistently COMPLETE/PASS;
 3. completed requirements contain real execution evidence and no unresolved `PENDING`, `TODO`, `BLOCKED`, `UNKNOWN`, or `UNPROVEN` placeholder remains in the active Card's closure record;
 4. PROJECT_CONTROL agrees with the Evidence Map, closes the Active Card correctly, and leaves the next Card NOT_STARTED;
-5. Git diff/status, scope, architecture, and future-Card leakage reviews pass with no unrelated files.
+5. Critical Path evidence identifies the primary composed capability, proves its owned boundary without mocking it away, and introduces no future-Card scope; and
+6. Git diff/status, scope, architecture, and future-Card leakage reviews pass with no unrelated files.
 
 Evaluate stale-state search results in context: intentionally retained future-Card states are not defects. If any applicable condition disagrees, set `CARD STATUS = BLOCKED`; identify it and do not commit, push, integrate, or start the next Card.
 

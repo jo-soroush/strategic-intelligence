@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 _VALID_LOG_LEVELS = frozenset({"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"})
@@ -15,6 +16,13 @@ def _relative_directory(name: str, value: str) -> Path:
     if path.is_absolute() or ".." in path.parts:
         raise ValueError(f"{name} must be a relative path inside the project")
     return path
+
+
+def _http_base_url(name: str, value: str) -> str:
+    parsed = urlsplit(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.query or parsed.fragment:
+        raise ValueError(f"{name} must be an absolute http(s) base URL without query or fragment")
+    return value.rstrip("/")
 
 
 @dataclass(frozen=True)
@@ -28,6 +36,7 @@ class Settings:
     llm_provider: str
     llm_model: str
     llm_timeout_seconds: float
+    ollama_base_url: str
     search_provider: str
     cloud_providers_enabled: bool
 
@@ -55,6 +64,7 @@ class Settings:
             llm_provider=os.getenv("LLM_PROVIDER", "ollama").lower(),
             llm_model=os.getenv("LLM_MODEL", "llama3.2"),
             llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "30")),
+            ollama_base_url=_http_base_url("OLLAMA_BASE_URL", os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")),
             search_provider=os.getenv("SEARCH_PROVIDER", "fake").lower(),
             cloud_providers_enabled=os.getenv("CLOUD_PROVIDERS_ENABLED", "false").lower() == "true",
         )

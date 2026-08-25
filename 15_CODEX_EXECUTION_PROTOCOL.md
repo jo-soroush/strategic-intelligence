@@ -156,7 +156,7 @@ Relevant evaluation baseline: PASS / N/A with reason
 Regression comparison: PASS / N/A with reason
 ```
 
-All previous Card tests, evidence, Git diff/status, security, Governance, and STOP rules remain mandatory.
+They must also pass the canonical Critical-Path Validation Gate in `AGENTS.md` §17: a Card-specific, minimum realistic composed path proving its primary owned capability at the real composition boundary, with external systems faked only when necessary. This is pre-commit closure validation, not a full-system test and not the post-integration Git/control gate. All previous Card tests, evidence, Git diff/status, security, Governance, and STOP rules remain mandatory.
 
 The final completeness verdict is additionally governed by the canonical Final Card Closure Gate in `AGENTS.md` §17. A summary cannot override tests, exact Exit Gate, Evidence Map, PROJECT_CONTROL, Git, or scope/architecture evidence.
 

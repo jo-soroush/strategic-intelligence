@@ -16,7 +16,7 @@ class Response(BaseModel):
 
 
 def _settings(monkeypatch, **values: str) -> Settings:
-    for name in ("LLM_PROVIDER", "LLM_MODEL", "LLM_TIMEOUT_SECONDS", "SEARCH_PROVIDER", "CLOUD_PROVIDERS_ENABLED"):
+    for name in ("LLM_PROVIDER", "LLM_MODEL", "LLM_TIMEOUT_SECONDS", "OLLAMA_BASE_URL", "SEARCH_PROVIDER", "CLOUD_PROVIDERS_ENABLED"):
         monkeypatch.delenv(name, raising=False)
     for name, value in values.items():
         monkeypatch.setenv(name, value)
@@ -33,6 +33,17 @@ def test_fake_providers_are_deterministic_and_application_owned() -> None:
 def test_factory_selects_explicit_fake_providers(monkeypatch) -> None:
     providers = build_providers(_settings(monkeypatch, LLM_PROVIDER="fake", SEARCH_PROVIDER="fake"))
     assert providers.llm.generate(LLMRequest("x")).provider == "fake"
+
+
+def test_default_settings_construct_local_ollama_provider_without_network(monkeypatch) -> None:
+    providers = build_providers(_settings(monkeypatch))
+    assert isinstance(providers.llm, OllamaAdapter)
+    assert _settings(monkeypatch).ollama_base_url == "http://127.0.0.1:11434"
+
+
+def test_ollama_base_url_rejects_non_http_scheme(monkeypatch) -> None:
+    with pytest.raises(ValueError, match="OLLAMA_BASE_URL"):
+        _settings(monkeypatch, OLLAMA_BASE_URL="file:///tmp/ollama")
 
 
 def test_cloud_selection_is_rejected_without_explicit_enablement(monkeypatch) -> None:
