@@ -10,7 +10,7 @@ This file is the live operational state. Repository reality and approved project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
 **Implementation Status:** V1-C09 COMPLETE — EVIDENCE LAYER
-**Current Phase:** CARD COMPLETE — AWAITING SEPARATE DELIVERY AUTHORIZATION
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C10 AUTHORIZATION
 **Active Card:** NONE
 **Last Completed Card:** V1-C09 — Evidence Layer
 **Next Card Candidate:** V1-C10 — Source Quality and Freshness (NOT AUTHORIZED)
@@ -43,12 +43,13 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED; C01–C06 Card commits are committed and pushed
+**Git Repository:** INITIALIZED; C01–C09 Card commits are committed and pushed
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
 **Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
 **Live Operational Git State:** dynamically verify current branch, upstream, local/remote `main` equality, and tracked-worktree cleanliness from Git before every state-changing action; `REPAIR_INSTRUCTIONS.md` is a recognized untracked artifact outside Card scope
-**Last Completed / Integrated Card:** V1-C08 — Executive Research; approved commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347` is integrated into canonical `main`
+**Last Completed / Integrated Card:** V1-C09 — Evidence Layer; approved commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66` is integrated into canonical `main`
+**C09 Card Branch:** `card/v1-c09-evidence-layer` is preserved at approved commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66`
 **C08 Card Branch:** `card/v1-c08-executive-research` is preserved at approved commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347`
 **C07 Card Branch:** `card/v1-c07-company-research` is preserved at approved commit `4c6dcd4d80273269d3790fb5b67522d3d012e3c8`
 **C06 Card Branch:** `card/v1-c06-research-planner` is preserved at approved commit `d784694ec1665dd8660a0d882db672d70c88d45e`
@@ -59,7 +60,7 @@ These facts must be re-inspected by Codex before changing project state.
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
 **Main Upstream:** `github/main` — verify local/remote HEAD equality dynamically before Card work
-**C01–C08 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
+**C01–C09 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
 
 Follow the canonical workflow and Post-Integration Reconciliation Gate in `AGENTS.md` §21: every new Card branch starts only after that gate passes against dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
 
@@ -97,22 +98,22 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C09 is complete on `card/v1-c09-evidence-layer`. Keep C10 and later Cards
-NOT_STARTED; do not commit, push, or merge without separate approval.
+V1-C09 is complete and integrated into canonical `main`. Keep C10 and later
+Cards NOT_STARTED; do not start C10 without separate explicit authorization.
 
 ## Last Execution Checkpoint
 
 **Card:** V1-C09 — Evidence Layer
-**Step:** C09 implementation, Critical-Path Validation, and Final Card Closure Gate completed
+**Step:** C09 Card commit pushed and fast-forward integrated into canonical `main`; post-integration reconciliation completed
 **Status:** COMPLETE
 **Implementation Files Changed:** `application/evidence_layer.py`; `tests/unit/test_evidence_layer.py`; canonical C09 Evidence; `PROJECT_CONTROL.md`
-**Project-State Change:** C09 work is uncommitted on `card/v1-c09-evidence-layer`; no commit, push, merge, rebase, or force-push was authorized or performed.
+**Project-State Change:** approved C09 commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, or force-push occurred.
 **Tests Run:** focused C09 tests — 4 passed; full suite — 52 passed; `pip check`; `compileall -q src`; evidence-layer import; `git diff --check`; scope/ignore/secret review.
 **Result:** C09 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A valid source-linked RawFinding produces persisted Source and Evidence plus an unverified candidate Claim and explicit link; duplicates are deterministic and contradictory evidence is retained.
 **Evidence Updated:** C09 closure evidence completed; C10–V1-C22 remain NOT_STARTED.
 **Blocker:** NONE
-**Safe Resume Point:** V1-C09 COMPLETE — AWAIT EXPLICIT DELIVERY AUTHORIZATION
-**Next Action:** STOP and await explicit authorization to commit/push/integrate C09; do not start C10
+**Safe Resume Point:** PRE-V1-C10
+**Next Action:** STOP and await explicit authorization for a dynamically gated V1-C10 start
 
 ## Guiding Rule
 

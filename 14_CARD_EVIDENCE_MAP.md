@@ -1142,12 +1142,15 @@ an AI-quality change.
 **Known Issues / Blockers:** None.
 **Diff Review:** PASS — C09-only application service, focused tests, Evidence,
 and Project Control; no C10+ runtime behavior.
-**Git Status Review:** PASS — C09 changes are uncommitted on
-`card/v1-c09-evidence-layer`; recognized `REPAIR_INSTRUCTIONS.md` and
-`eference/` remain untracked and outside scope.
+**Git Status Review:** PASS — historical final pre-commit review found only C09
+changes on `card/v1-c09-evidence-layer`; recognized
+`REPAIR_INSTRUCTIONS.md` and `eference/` were untracked and outside scope.
 **PROJECT_CONTROL Updated:** YES
 **Historical Git Evidence:** C09 branch was created from integrated `main` at
-`c5ff36c`; no C09 commit or push is authorized or performed.
+`c5ff36c`; approved commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66`
+(`feat(c09): add traceable evidence layer`) was pushed on the preserved Card
+branch and fast-forward integrated into canonical `main` without a merge
+commit, rebase, or force-push.
 **Exact Exit Gate Proof:** PASS — important RawFindings enter a real typed,
 persisted Source → Evidence → candidate Claim/link chain and are traceable to
 their Sources, with the fidelity and verification inputs retained for later
