@@ -505,7 +505,27 @@ Never continue to the next Card.
 1. engineering evidence;
 2. professional learning journal.
 
-Completed Card evidence should explain:
+Each Card has exactly one canonical Evidence record: its section in
+`14_CARD_EVIDENCE_MAP.md`. Technical proof, engineering history, and learning
+evidence belong together in that same record. Retrospective enrichment modifies
+the existing record and must be labelled as such; supplemental logs or
+artifacts may support it but are not competing Evidence authorities.
+
+For V1-C05 and later Cards, use the compact forward-only Card contract in
+`13_CARD_SPECIFICATIONS.md` and the closure-evidence model in
+`14_CARD_EVIDENCE_MAP.md`. The Card Specification records the intended
+engineering contract, including its expected Critical Path. The Evidence Map
+records only what repository execution actually proved, including the actual
+Critical-Path result. Do not rewrite C01-C04 merely to make their historical
+records match this later format.
+
+Update Evidence at meaningful validated milestones when a new fact becomes
+proven: the Contract / Risk Map, a validated implementation milestone, a
+Critical-Path run, a defect diagnosis or validated repair, the Exit Gate, or
+approved Git delivery/integration. Do not update it for every trivial command
+or edit, and never reconstruct unobserved history from memory.
+
+Completed Card closure evidence must concisely explain:
 
 - what was built;
 - why;
@@ -520,7 +540,15 @@ Completed Card evidence should explain:
 - professional lesson;
 - student takeaway;
 - exact Exit Gate proof;
-- what the Card enables next.
+- what the Card enables next;
+- known limitations or deferrals, with a future owner when known; and
+- historical Card branch/commit/delivery evidence when available.
+
+Record actual problems and failed assumptions, or explicit `N/A` where no
+meaningful issue occurred; do not rewrite history to make implementation look
+frictionless. Git evidence in the Evidence Map is historical traceability only.
+Live branch, SHA, upstream, push, integration, and worktree facts remain Git
+authority and must be dynamically verified under §21.
 
 Never invent evidence.
 

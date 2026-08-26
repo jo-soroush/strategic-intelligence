@@ -23,6 +23,62 @@ For every Card:
 
 Status values: NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE.
 
+## V1-C05+ Forward Card Contract
+
+V1-C05 onward uses this compact contract in addition to the existing bounded
+requirements below. The existing `Goal` is the **Engineering Goal**; it, Scope,
+Out of Scope, Dependencies, Tests / Evaluation, and Exit Gate remain the
+authoritative Card requirements and are not broadened by this format.
+
+Before the first implementation write, the active Card must make explicit:
+
+1. **Engineering Goal** — the existing Card Goal.
+2. **Learning Goal** — the specific engineering, AI, or software practice the
+   Card will teach through its bounded work.
+3. **Why It Exists** — the problem or prerequisite the Card resolves.
+4. **Architecture Concept / Ownership Boundary** — the responsible component
+   boundary; this references approved architecture and does not redefine it.
+5. **Current System Before Card** — repository facts established by the
+   mandatory Contract / Risk Map, not pre-filled assumptions.
+6. **Design Decision** — the minimal in-scope decision selected after mapping;
+   alternatives outside the Card remain deferred.
+7. **Implementation Scope** and **Out of Scope** — the existing sections.
+8. **Dependencies**, **Tests / Evaluation**, and **Exit Gate** — the existing
+   sections.
+9. **Critical-Path Expectation** — the smallest expected composed path that
+   proves the Card's primary owned capability. It must be derived from actual
+   implementation at closure and must not create a second Critical-Path gate.
+
+The following forward-looking map defines the intended learning, rationale,
+ownership boundary, and Critical-Path expectation without asserting current
+implementation state. It applies only when the named Card is authorized.
+
+| Card | Learning Goal / Why It Exists | Architecture Concept / Ownership Boundary | Critical-Path Expectation |
+|---|---|---|---|
+| C05 | Learn deterministic input and identity gates; prevent unsafe or ambiguous cases from entering research. | Case validation and entity-resolution boundary before research, with persistence through the repository owner. | Case input → validation → entity-resolution decision → persistence or blocked research entry. |
+| C06 | Learn bounded, coverage-aware planning; turn a valid Case into explicit research work rather than ad hoc requests. | ResearchPlanner owns plan/task/coverage construction; providers only support its approved boundary. | Valid Case → bounded ResearchPlan → task/coverage validation. |
+| C07 | Learn source-grounded company research; establish company findings without inventing later evidence/verification behavior. | Company-research component produces bounded findings through approved research/provider boundaries. | Company task → approved source/finding handling → typed research output or explicit gap. |
+| C08 | Learn public, professional executive research with privacy limits. | Executive-research component owns executive findings and privacy filtering. | Executive task → public/professional boundary → typed output or explicit gap. |
+| C09 | Learn Source → Evidence → Claim traceability. | Evidence layer owns evidence fidelity and claim linkage, not provider or governance authority. | Finding/source → evidence validation → claim linkage or rejection. |
+| C10 | Learn deterministic source-quality and freshness assessment. | Source-quality/freshness component owns classifications used by later verification. | Source → quality/freshness assessment → typed classification. |
+| C11 | Learn claim verification without conflating it with research or governance. | Verification component owns support/conflict/unknown outcomes. | Claim plus evidence → verification result → supported, restricted, or gap outcome. |
+| C12 | Learn bounded correction research that terminates safely. | Follow-up orchestration owns attempt limits and terminal routing; research remains bounded. | Verification gap → bounded follow-up attempt → verified result, gap, or terminal limit. |
+| C13 | Learn deterministic governance as a non-overridable trust boundary. | Governance owns PASS/RESTRICT/BLOCK decisions over verified inputs. | Candidate content → deterministic governance checks → allowed, restricted, or blocked output. |
+| C14 | Learn enforcement of security/privacy boundaries around external input, providers, and artifacts. | Security controls own validation, redaction, permissions, and fail-closed outcomes. | Unsafe boundary input → deterministic rejection/redaction without unsafe downstream access. |
+| C15 | Learn evidence-bounded strategic synthesis. | Strategic-analysis component consumes trusted compressed context, not raw uncontrolled sources. | Verified context → typed FACT/INFERENCE/RECOMMENDATION analysis with gaps preserved. |
+| C16 | Learn brief generation that preserves governance, provenance, restrictions, and gaps. | Brief generator formats only approved governed material. | Governed analysis → brief generation → restriction/BLOCK visibility validation. |
+| C17 | Learn a thin local UI boundary over validated application services. | UI adapts user input/output and owns no research, verification, or governance logic. | Valid local request → application boundary → safe Quick/Full/partial display. |
+| C18 | Learn recovery from accepted persistence checkpoints only. | Recovery/orchestration owns resume selection; repository proves accepted state. | Interrupted run → accepted-checkpoint lookup → validated resume or safe fallback. |
+| C19 | Learn safe, structured observability across the harness. | Observability/audit boundary records content-minimized events without altering authority. | Case/run/stage event → redacted structured audit trace. |
+| C20 | Learn evaluation against owned Golden Case evidence rather than subjective quality claims. | Evaluation contract owns fixtures, rubric, and comparison results. | Golden Case input → measured pipeline outputs → rubric/traceability verdict. |
+| C21 | Learn disciplined defect hardening and regression protection. | Each defect is repaired at its owning boundary with regression evidence. | Reproduced defect → bounded owning-boundary fix → focused and regression proof. |
+| C22 | Learn reproducible engineering closure and accurate project communication. | Documentation/demo boundary reports verified behavior without changing runtime authority. | Clean setup/review path → documented commands/evidence → reproducibility verdict. |
+
+The Card-specific **Current System Before Card** and **Design Decision** are
+recorded from the active Card's inspect-first evidence; they cannot be inferred
+or marked complete before that inspection. The actual Critical-Path execution,
+commands, and result belong in `14_CARD_EVIDENCE_MAP.md`.
+
 # V1-C01 — Repository Baseline
 
 ## Goal

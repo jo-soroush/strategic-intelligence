@@ -41,6 +41,41 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | V1-C21 | Hardening and Regression | NOT_STARTED | PENDING |
 | V1-C22 | Documentation and Demo Readiness | NOT_STARTED | PENDING |
 
+## V1-C05+ Evidence Model
+
+For V1-C05 onward, each active Card updates this ledger at meaningful validated
+milestones: completed Contract / Risk Map, validated implementation milestone,
+Critical-Path execution, defect diagnosis or validated repair, Exit Gate proof,
+and approved Git delivery/integration. It is not a chronological command diary.
+Every entry remains repository-execution evidence only; record `N/A` where a
+required field has no meaningful applicable fact.
+
+At closure, the Card's evidence must concisely contain:
+
+1. **Implementation Evidence** — exact files/components and actual behavior.
+2. **Validation Evidence** — exact commands, results, and relevant regressions.
+3. **Contract / Risk Map Outcome** — concise inspected outcome, without copying
+   the full map.
+4. **Critical-Path Evidence** — expected and actual path, owned composition
+   boundary, exact command/test, and result.
+5. **Architecture Before → After** — the actual ownership/boundary change.
+6. **Problem → Diagnosis → Fix** — actual issue/failed assumption, diagnosis,
+   and solution; explicit `N/A` if no meaningful issue occurred.
+7. **Known Limitations / Deferrals** — remaining facts and future Card owner
+   where known.
+8. **Professional Engineering Lesson** and **Learner Takeaway** — concise,
+   Card-grounded lessons rather than generic theory.
+9. **What This Enables Next** — one concise next-capability explanation.
+10. **Historical Git Evidence** — Card branch, relevant Card commit(s), and
+    completed push/integration status when known. This is historical evidence,
+    never live Git authority.
+11. **Exact Exit Gate Proof** — requirement-to-actual-proof mapping.
+
+The existing per-Card requirement table remains the authoritative detailed
+requirement map. Do not duplicate architecture documents, copy raw test logs,
+or use this section to store live branch, current `main` SHA, upstream, pending
+delivery, or worktree state; Git proves those facts dynamically.
+
 # V1-C01 — Repository Baseline
 
 **Status:** COMPLETE
@@ -64,6 +99,62 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 **Git Status Review:** PASS — repository initialized on `card/v1-c01-repository-baseline`; no commit created.
 **PROJECT_CONTROL Updated:** YES
 **Exit Gate Evidence:** PASS — reproducible Python 3.11 virtual environment, package/config/test foundation, safe ignore rules, documented Harness ownership, and documented evaluation conventions are present and validated.
+
+### Retrospective Enrichment
+
+This section was reconstructed on 2026-08-26 from the preserved Card record,
+commit history, current repository files, and approved authorities. It is not
+an assertion that these learning fields were recorded during C01 execution.
+
+**Engineering Goal / Why It Existed:** C01 established the repository,
+installable package, non-secret configuration, test layout, ignore rules, and
+Harness/documentation placement needed before any bounded runtime Card could be
+implemented safely.
+
+**Architecture Before → After:** Before C01, the pre-C01 audit records a
+documentation-only directory without a Git repository, application package,
+tests, or configuration. Commit `cb0e428` established the project-owned
+package boundaries and the configuration/test/evaluation conventions; it did
+not add product workflow behavior.
+
+**Implementation / Validation Evidence:** `pyproject.toml`, `.gitignore`,
+`.env.example`, `src/strategic_intelligence/config.py`, package boundary
+directories, `tests/unit/test_foundation.py`, and fixture/artifact `.gitkeep`
+files are introduced by `cb0e428`. The contemporaneous evidence records
+`.venv/bin/python -m pytest` passing 2 tests, package/config validation,
+`pip check`, ignore-rule review, and `git diff --check`.
+
+**Critical Path / Real Execution Evidence:** Not evidenced as a distinct
+Critical-Path run. C01 closed before the later Critical-Path gate; its recorded
+foundation checks are not retrospectively relabelled as that gate.
+
+**Problem → Diagnosis → Fix:** No meaningful implementation defect is
+evidenced. The only recorded environmental observation was a disabled user pip
+cache caused by ownership; installation and validation still succeeded.
+
+**Known Limitations / Deferrals:** C01 intentionally left domain contracts,
+persistence, providers, and application workflow to later Cards. Runtime
+behavior was not proven by this foundation-only Card.
+
+**Professional Engineering Lesson:** A usable AI system begins with explicit
+package, configuration, test, artifact, and ignore boundaries; otherwise later
+runtime proof is difficult to reproduce or review.
+
+**Learner Takeaway:** Before building intelligence behavior, make the project
+safe to install, test, configure, and inspect. That foundation is an
+engineering capability, not administrative overhead.
+
+**What This Enabled Next:** C02 could define application-owned typed contracts
+inside an installable, tested package rather than inventing structures ad hoc.
+
+**Historical Git Evidence:** C01 implementation commit `cb0e428` (`chore(c01):
+establish repository baseline`) is preserved in Git history. The retained C01
+branch later received control reconciliation commit `61de4a9`; these are
+historical references, not live Git-state assertions.
+
+**Exact Exit Gate Proof:** The preserved Exit Gate evidence remains PASS: the
+repository contains the reproducible foundation, safe ignore policy, documented
+Harness ownership, and evaluation conventions validated during C01.
 
 
 # V1-C02 — Domain Models
@@ -90,6 +181,59 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 **PROJECT_CONTROL Updated:** YES
 **Exit Gate Evidence:** PASS — later Cards can exchange explicit application-owned, provider-independent typed contracts with IDs, timestamps, enums, relationship IDs, deterministic validation, and JSON-compatible serialization.
 
+### Retrospective Enrichment
+
+This section was reconstructed on 2026-08-26 from the preserved Card record,
+commit `17bb25c`, current domain code/tests, and approved architecture. It is
+not a contemporaneous C02 learning record.
+
+**Engineering Goal / Why It Existed:** C02 established typed,
+application-owned data contracts so subsequent storage, providers, research,
+verification, governance, and briefs could exchange validated state instead of
+free-form or vendor-specific objects.
+
+**Architecture Before → After:** C01 supplied package boundaries but no domain
+model layer. C02 added `domain/models.py` and domain exports as the shared
+contract boundary, with Pydantic validation/JSON serialization and no provider
+SDK objects in the domain layer.
+
+**Implementation / Validation Evidence:** Commit `17bb25c` adds the 447-line
+model module and `tests/unit/test_domain_models.py`. The preserved evidence
+records `.venv/bin/python -m pytest` passing 11 tests, covering required and
+unknown fields, enum/non-negative invariants, evidence requirements, aware
+timestamps, nested contracts, and JSON round trips.
+
+**Critical Path / Real Execution Evidence:** Not evidenced as a separately
+recorded composed Critical-Path run. The documented construction and JSON
+round-trip tests prove contract behavior but are not retroactively claimed as
+the later Critical-Path gate.
+
+**Problem → Diagnosis → Fix:** N/A — no meaningful C02 defect, failed
+assumption, or repair is recorded in the preserved Evidence or commit history.
+
+**Known Limitations / Deferrals:** The contracts define data, not persistence,
+provider execution, research, verification, governance, or UI behavior. Those
+owners remain with C03 and later Cards.
+
+**Professional Engineering Lesson:** Shared contracts should be owned by the
+application and validated at boundaries before adapters or workflows depend on
+them; this prevents vendor coupling from becoming a domain concern.
+
+**Learner Takeaway:** Typed models make important system state explicit. IDs,
+enums, validation, and serialization let independent components communicate
+without guessing at strings or provider response shapes.
+
+**What This Enabled Next:** C03 could persist Case, Source, Evidence, Claim,
+and WorkflowRun values using stable application-owned schemas.
+
+**Historical Git Evidence:** C02 implementation commit `17bb25c`
+(`feat(c02): add typed domain models`) is preserved on the retained C02 branch
+and in the linear project history. This is historical traceability only.
+
+**Exact Exit Gate Proof:** The existing PASS proof is preserved: later Cards
+have provider-independent typed data with deterministic validation and
+JSON-compatible serialization.
+
 
 # V1-C03 — Persistence Foundation
 
@@ -114,6 +258,64 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 **Git Status Review:** PASS — branch `card/v1-c03-persistence-foundation`; C03 work is uncommitted; `REPAIR_INSTRUCTIONS.md` remains untracked and outside Card scope.
 **PROJECT_CONTROL Updated:** YES
 **Exit Gate Evidence:** PASS — Case and WorkflowRun survive repository reopen; Source/Evidence/Claim traceability persists; Claim+links are atomic; artifact storage is path-safe; accepted checkpoints require persisted records.
+
+### Retrospective Enrichment
+
+This section was reconstructed on 2026-08-26 from the preserved Card record,
+commit `734aa45`, current persistence code/tests, and approved storage
+architecture. It is not a contemporaneous C03 learning record.
+
+**Engineering Goal / Why It Existed:** C03 created the local persistence
+foundation needed for durable Cases/runs, traceability records, artifacts, and
+accepted checkpoints before later workflow stages can safely resume or audit
+their work.
+
+**Architecture Before → After:** C02 supplied serializable domain values but
+no storage adapter. C03 added application persistence protocols, a SQLite
+repository behind that boundary, and a local artifact store; domain models do
+not issue SQLite queries or own filesystem paths.
+
+**Implementation / Validation Evidence:** Commit `734aa45` adds
+`application/persistence.py`, `infrastructure/sqlite_repository.py`,
+`infrastructure/artifacts.py`, configuration support, and
+`tests/unit/test_persistence.py`. The preserved evidence records 7 focused
+persistence tests, 18 full-suite tests, transaction rollback, artifact
+read/write/delete/traversal checks, checkpoint rejection, `pip check`,
+compile/import, and diff/status review.
+
+**Critical Path / Real Execution Evidence:** Not evidenced as a separately
+recorded Critical-Path execution. The reopen, atomic-link, artifact, and
+checkpoint tests demonstrate persistence invariants, but this enrichment does
+not relabel them as a later gate.
+
+**Problem → Diagnosis → Fix:** N/A — no meaningful C03 defect or repair is
+recorded. The checkpoint-rejection and rollback cases are intentional safety
+tests, not evidence of a production failure.
+
+**Known Limitations / Deferrals:** C03 establishes accepted-checkpoint storage,
+not the later workflow recovery/resume behavior owned by C18. It also does not
+implement research, verification, governance, or cloud database behavior.
+
+**Professional Engineering Lesson:** Persistence is a boundary, not a side
+effect. Transactional linkage, path containment, and explicit checkpoint
+acceptance make durable state trustworthy enough for later recovery.
+
+**Learner Takeaway:** Saving data is not the same as creating a safe resume
+point. A checkpoint becomes usable only after the required data exists and its
+invariants have passed.
+
+**What This Enabled Next:** C05 and later Cards can persist validated Cases and
+traceability records; C18 can later build recovery on accepted checkpoint
+evidence rather than partial execution state.
+
+**Historical Git Evidence:** C03 implementation commit `734aa45`
+(`feat(c03): add persistence foundation`) is preserved on the retained C03
+branch and in linear project history. This is historical traceability only.
+
+**Exact Exit Gate Proof:** The existing PASS proof is preserved: Case and
+WorkflowRun reopen successfully; traceability persists; Claim/evidence links
+are atomic; artifacts remain contained; and checkpoints require persisted
+records.
 
 
 # V1-C04 — Provider Foundation
@@ -142,6 +344,78 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 **Git Status Review:** Historical closure evidence: repair branch `card/v1-c04-provider-foundation-repair` contains the validated, uncommitted C04 repair; `REPAIR_INSTRUCTIONS.md` remains outside Card scope.
 **PROJECT_CONTROL Updated:** YES
 **Exit Gate Evidence:** PASS — provider consumers can depend on stable application protocols while vendor HTTP details remain isolated and cloud use cannot occur silently. `.venv/bin/python -m pytest tests/unit/test_providers.py` passed 9 tests; full suite passed 27 tests; `pip check`, compile/import checks, and `build_providers(Settings.from_environment())` passed.
+
+### Retrospective Enrichment
+
+This section was reconstructed on 2026-08-26 from the preserved C04 Evidence,
+commits `8da3f52` and `cb882e2`, current provider code/tests, PROJECT_CONTROL,
+and Git history. It preserves the original implementation and the later repair
+as distinct phases.
+
+**Engineering Goal / Why It Existed:** C04 established application-owned LLM
+and search capability boundaries so later components can use local providers
+without vendor objects, credentials, or silent cloud fallback entering domain
+or application contracts.
+
+**Architecture Before → After:** Before C04, C01–C03 had package, domain, and
+persistence foundations but no provider implementation. Original commit
+`8da3f52` introduced provider contracts, factory composition, Ollama and
+DuckDuckGo adapters, deterministic fakes, normalized errors, and explicit
+local-first selection. Repair commit `cb882e2` completed the centralized
+configuration path needed by the factory.
+
+**Implementation / Validation Evidence:** Original C04 files are
+`providers/contracts.py`, `factory.py`, `fakes.py`, `ollama.py`, `search.py`,
+configuration, `.env.example`, and `tests/unit/test_providers.py`. The repair
+added `Settings.ollama_base_url`, HTTP(S) base-URL validation, documented
+`OLLAMA_BASE_URL`, and two deterministic regression tests. The preserved C04
+record documents 9 focused provider tests, 27 full-suite tests, `pip check`,
+compile/import checks, and no-network default factory construction after repair.
+
+**Critical Path / Real Execution Evidence:** This is later repair validation,
+not a claim about the original C04 closure. The independently exercised path is
+`Settings.from_environment()` → `build_providers(...)` → default local provider
+→ `OllamaAdapter` construction. Test
+`test_default_settings_construct_local_ollama_provider_without_network` proves
+that composition boundary without mocking Settings/factory/adapter or contacting
+the provider network.
+
+**Problem → Diagnosis → Fix:** The original factory accessed
+`settings.ollama_base_url`, but original `Settings` did not define it. An
+independent audit reproduced `AttributeError` for the real default composition
+path, showing that passing provider unit tests had not proven that path. Repair
+commit `cb882e2` centralized the missing setting and URL validation, then added
+the default-composition and invalid-scheme regressions. The preserved Evidence
+and PROJECT_CONTROL record the repaired validation result.
+
+**Known Limitations / Deferrals:** C04 owns the provider boundary, not provider
+orchestration, retries, research behavior, verification, governance, UI, or
+concrete cloud adapters. Live provider quality evaluation is not evidenced by
+this deterministic construction-focused repair.
+
+**Professional Engineering Lesson:** Unit tests can validate isolated adapters
+while still missing the real composition path. Exercise default configuration
+through the factory before declaring an integration boundary complete.
+
+**Learner Takeaway:** A provider boundary is more than an interface. It also
+includes the configuration and factory path that creates the provider safely;
+test that composed path without requiring a live network call.
+
+**What This Enabled Next:** C05+ components can receive provider capabilities
+through application-owned contracts, with deterministic fakes and explicit
+local-first construction available at the composition boundary.
+
+**Historical Git Evidence:** Original provider implementation commit `8da3f52`
+(`feat(c04): add provider foundation`) remains on the preserved C04 branch.
+Repair commit `cb882e2` (`fix(c04): repair provider composition and closure
+validation`) remains on the preserved repair branch; subsequent project history
+records its approved integration. These are historical references, not live Git
+state assertions.
+
+**Exact Exit Gate Proof:** The existing PASS proof is preserved and clarified:
+provider consumers use stable application protocols; vendor HTTP details stay
+in adapters; unapproved cloud/unknown selection fails; and the later real
+default-composition regression closes the configuration/factory evidence gap.
 
 
 # V1-C05 — Case Input and Validation

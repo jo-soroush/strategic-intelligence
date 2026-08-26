@@ -27,6 +27,34 @@ Card authorization
 
 The Post-Integration Reconciliation Gate is mandatory before a next-Card branch can be created. It dynamically verifies canonical main, remote/default-branch consistency, approved-commit containment, Card-branch preservation, clean tracked state, completed-Card/closure status, absence of unexpected history changes, and PROJECT_CONTROL's durable semantic integration checkpoint. PROJECT_CONTROL must not state that its own reconciliation commit or push is pending; Git proves those transient facts dynamically. If the integration authorization does not explicitly cover the reconciliation commit/push, STOP after the gate verification and request that approval. This protocol does not authorize application changes, a subsequent Card, history rewriting, force-push, or branch deletion.
 
+## V1-C05+ Card Evidence Lifecycle
+
+The canonical C05+ Card contract is in `13_CARD_SPECIFICATIONS.md`; the actual
+evidence model is in `14_CARD_EVIDENCE_MAP.md`. Do not create another quality,
+Critical-Path, Closure, or Post-Integration gate.
+
+The pre-delivery execution sequence is:
+
+```text
+Card authorization
+→ inspect / Contract-Risk Map
+→ Card contract confirmation
+→ implementation
+→ focused validation
+→ meaningful incremental Evidence update
+→ Critical-Path Validation
+→ regression validation
+→ final Evidence/Learning reconciliation
+→ exact Exit Gate
+→ Final Card Closure Gate
+→ STOP
+```
+
+Evidence updates occur only when validated execution proves a meaningful new
+fact. Card Specifications state the expected Critical Path; Evidence records
+the actual proof. Historical Git traceability may be recorded in Evidence, but
+Git remains the dynamic authority for operational state.
+
 
 ## Modernization Decision — Harness, Validated Checkpoints, Evaluation Baseline
 
