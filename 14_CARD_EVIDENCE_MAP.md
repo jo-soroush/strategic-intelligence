@@ -994,10 +994,12 @@ of excluded personal detail.
 normalized Sources, Evidence, and candidate Claims without inheriting an
 unbounded or privacy-blind discovery step.
 
-**Historical Git Evidence:** C08 is currently uncommitted and unpushed on
-`card/v1-c08-executive-research`, created linearly from verified `main` at
-`70e278e`. No delivery action was authorized or performed; Git remains the
-live authority for branch and worktree state.
+**Historical Git Evidence:** After closure approval, commit `89712a7`
+(`feat(c08): add privacy-bounded executive research`) was pushed on preserved
+branch `card/v1-c08-executive-research` and fast-forward integrated into `main`
+without a merge commit or history rewrite. These are historical delivery facts;
+Git remains the live authority for branch, reference equality, and worktree
+state.
 
 **Baseline Before:** N/A — C08 establishes deterministic privacy and identity
 controls, not a model, prompt, live-provider, routing, or recovery baseline.

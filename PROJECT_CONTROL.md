@@ -10,7 +10,7 @@ This file is the live operational state. Repository reality and approved project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
 **Implementation Status:** V1-C08 COMPLETE — EXECUTIVE RESEARCH
-**Current Phase:** CARD COMPLETE — AWAITING SEPARATE DELIVERY AUTHORIZATION
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C09 AUTHORIZATION
 **Active Card:** NONE
 **Last Completed Card:** V1-C08 — Executive Research
 **Next Card Candidate:** V1-C09 — Evidence Layer (NOT AUTHORIZED)
@@ -48,7 +48,8 @@ These facts must be re-inspected by Codex before changing project state.
 **GitHub Default Branch:** `main`
 **Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
 **Live Operational Git State:** dynamically verify current branch, upstream, local/remote `main` equality, and tracked-worktree cleanliness from Git before every state-changing action; `REPAIR_INSTRUCTIONS.md` is a recognized untracked artifact outside Card scope
-**Last Completed / Integrated Card:** V1-C07 — Company Research; approved commit `4c6dcd4d80273269d3790fb5b67522d3d012e3c8` is integrated into canonical `main`
+**Last Completed / Integrated Card:** V1-C08 — Executive Research; approved commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347` is integrated into canonical `main`
+**C08 Card Branch:** `card/v1-c08-executive-research` is preserved at approved commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347`
 **C07 Card Branch:** `card/v1-c07-company-research` is preserved at approved commit `4c6dcd4d80273269d3790fb5b67522d3d012e3c8`
 **C06 Card Branch:** `card/v1-c06-research-planner` is preserved at approved commit `d784694ec1665dd8660a0d882db672d70c88d45e`
 **C05 Card Branch:** `card/v1-c05-case-input-validation` is preserved at approved commit `46e857a4e6d3ca0e04a0f6a3c645bc455f706b37`
@@ -58,7 +59,7 @@ These facts must be re-inspected by Codex before changing project state.
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
 **Main Upstream:** `github/main` — verify local/remote HEAD equality dynamically before Card work
-**C01–C07 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
+**C01–C08 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
 
 Follow the canonical workflow and Post-Integration Reconciliation Gate in `AGENTS.md` §21: every new Card branch starts only after that gate passes against dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
 
@@ -96,24 +97,24 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C08 is complete on `card/v1-c08-executive-research` and awaits separate
-explicit delivery authorization. Do not start C09 or later Cards. Do not
-commit, push, merge, or modify recognized untracked reference material without
-separate explicit approval.
+V1-C08 is complete and integrated into canonical `main`. Do not start C09 or
+later Cards without separate explicit authorization and a passing dynamically
+verified Post-Integration Reconciliation Gate. Do not modify recognized
+untracked reference material without separate explicit approval.
 
 ## Last Execution Checkpoint
 
 **Card:** V1-C08 — Executive Research
-**Step:** Implementation, privacy/data-minimization validation, Critical-Path Validation, regression, exact Exit Gate, and Final Card Closure Gate completed; no delivery action authorized
+**Step:** C08 Card branch pushed and fast-forward integrated into canonical `main`; durable post-integration reconciliation completed
 **Status:** COMPLETE
 **Implementation Files Changed:** `application/executive_research.py`; `tests/unit/test_executive_research.py`; canonical C08 Evidence; `PROJECT_CONTROL.md`
-**Project-State Change:** dynamically verified `main` and `github/main` matched at `70e278e772a3f851914f73060b0d1a8aacaa17a2` before branch creation; C07 was contained in main, its preserved Card branch remained at approved commit `4c6dcd4d80273269d3790fb5b67522d3d012e3c8`, and the C08 branch was created linearly from main
+**Project-State Change:** approved C08 commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, force-push, or C09 action occurred
 **Tests Run:** focused C08 tests — 4 passed; full suite — 48 passed; `pip check`; `compileall -q src`; executive-research import; `git diff --check`; privacy/identity/scope/ignore/secret review
 **Result:** C08 exact Exit Gate PASS; privacy/data-minimization validation PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A C06 executive task makes one bounded C04 provider call and returns identity-constrained, public-professional-meeting-relevant `RawFinding` discovery output or explicit typed gaps. No raw result becomes C09 Evidence, a verified Fact, or an inferred executive priority.
-**Evidence Updated:** C08 Contract / Risk Map, implementation, privacy proof, critical path, regression, limitations, learning evidence, and exact Exit Gate proof recorded; C09–V1-C22 remain NOT_STARTED
+**Evidence Updated:** C08 closure and historical delivery evidence reconciled; C09–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** V1-C08 COMPLETE — AWAIT EXPLICIT COMMIT/PUSH/INTEGRATION AUTHORIZATION
-**Next Action:** STOP and await explicit user direction; C09 remains unauthorized
+**Safe Resume Point:** PRE-V1-C09
+**Next Action:** STOP and await explicit user authorization for a dynamically gated V1-C09 start
 
 ## Guiding Rule
 
