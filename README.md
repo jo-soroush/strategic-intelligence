@@ -2,9 +2,19 @@
 
 Local-first, evidence-backed preparation for an important meeting with a company executive.
 
-## C01 foundation
+## Implemented foundations
 
-This repository currently provides only the V1-C01 foundation: package ownership boundaries, centralized non-secret settings, logging setup, test conventions, and deterministic evaluation locations. It does not yet implement domain models, research, providers, persistence, workflow orchestration, governance behavior, or a UI.
+The repository currently contains the implemented V1 foundations for typed
+domain models; local persistence and repository infrastructure; vendor-neutral
+provider boundaries; validated Case intake; bounded research planning; company
+and public-professional executive research; Source → Evidence → candidate Claim
+provenance; and deterministic source-quality/freshness metadata.
+
+Verification/fidelity judgment, governance, end-to-end workflow orchestration,
+brief generation, UI, recovery, and later V1 capabilities remain governed by
+their owning future Cards. The canonical Evidence Map and PROJECT_CONTROL own
+current Card delivery status; this README describes durable repository
+capabilities rather than live Card state.
 
 ### Requirements
 
@@ -26,11 +36,11 @@ The project reads non-secret settings from the process environment. `.env.exampl
 
 | Location | Ownership | Current role |
 |---|---|---|
-| `src/strategic_intelligence/application/` | application/use-case composition | Reserved for application services and composition. |
-| `src/strategic_intelligence/domain/` | domain contracts | Reserved for C02 typed models and invariants. |
-| `src/strategic_intelligence/harness/` | workflow orchestration | Reserved for controlled orchestration and routing. |
-| `src/strategic_intelligence/providers/` | provider adapters | Reserved for C04 capability contracts and adapters. |
-| `src/strategic_intelligence/infrastructure/` | persistence / external infrastructure | Reserved for repositories and artifact storage. |
+| `src/strategic_intelligence/application/` | application/use-case composition | Case intake, research planning, company/executive research, evidence provenance, and source metadata services. |
+| `src/strategic_intelligence/domain/` | domain contracts | Typed V1 models, enums, invariants, and serialization. |
+| `src/strategic_intelligence/harness/` | workflow orchestration | Reserved for the controlled orchestration/routing capability owned by future Cards. |
+| `src/strategic_intelligence/providers/` | provider adapters | Application-owned LLM/search contracts, explicit adapters, factory, and deterministic fakes. |
+| `src/strategic_intelligence/infrastructure/` | persistence / external infrastructure | Local SQLite repository and safe local artifact storage. |
 | `src/strategic_intelligence/security/` | security controls | Reserved for deterministic security boundaries. |
 | `src/strategic_intelligence/governance/` | deterministic governance | Reserved for C13 trust-policy enforcement. |
 | `src/strategic_intelligence/observability/` | logs / audit traces | Hosts the C01 logging foundation. |
@@ -46,4 +56,6 @@ Business behavior belongs in its owning component; provider SDKs, database detai
 - `evaluations/fixtures/`: versioned, deterministic evaluation inputs and labels.
 - `evaluations/artifacts/`: generated evaluation outputs; ignored except for its `.gitkeep` marker.
 
-V1 establishes its measurable evaluation baseline incrementally; C01 does not add an evaluation framework or fabricate baseline results.
+V1 establishes its measurable evaluation baseline incrementally. The canonical
+Evidence Map records Card-specific validation and evaluation evidence; this
+README does not duplicate volatile results.

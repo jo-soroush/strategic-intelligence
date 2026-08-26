@@ -27,7 +27,7 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | V1-C07 | Company Research | COMPLETE | PASS |
 | V1-C08 | Executive Research | COMPLETE | PASS |
 | V1-C09 | Evidence Layer | COMPLETE | PASS |
-| V1-C10 | Source Quality and Freshness | NOT_STARTED | PENDING |
+| V1-C10 | Source Quality and Freshness | COMPLETE | PASS |
 | V1-C11 | Verification Engine | NOT_STARTED | PENDING |
 | V1-C12 | Bounded Follow-Up Research | NOT_STARTED | PENDING |
 | V1-C13 | Governance Gate | NOT_STARTED | PENDING |
@@ -1159,27 +1159,120 @@ Cards.
 
 # V1-C10 — Source Quality and Freshness
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C09
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Source quality | TBD | TBD | PENDING | TBD |
-| Publication/retrieval dates | TBD | TBD | PENDING | TBD |
-| Freshness | TBD | TBD | PENDING | TBD |
-| Duplicate-origin signal | TBD | TBD | PENDING | TBD |
+| Source quality | `application/source_quality.py` | `test_primary_and_strong_secondary_classification_is_deterministic` | PASS | Existing SourceType maps deterministically to PRIMARY, STRONG_SECONDARY, or OTHER |
+| Publication/retrieval dates | `application/source_quality.py` | `test_publication_and_retrieval_dates_remain_distinct_with_staleness` | PASS | Publication date remains distinct from the Source's retrieval date in typed output |
+| Freshness | `application/source_quality.py` | focused C10 tests | PASS | Explicit policy returns CURRENT/AGING/STALE/UNKNOWN; missing or future publication date is UNKNOWN |
+| Duplicate-origin signal | `application/source_quality.py` | `test_duplicate_origin_signal_is_preserved_and_self_reference_fails_closed` | PASS | origin_source_id yields a duplicate-origin signal; self-origin is rejected |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+### C10 Start / Contract-Risk Map
+
+**Engineering Goal / Why It Exists:** Supply the source-quality, date, freshness,
+and origin metadata that C11 needs to evaluate evidence without allowing source
+labels to become proof of a Claim.
+
+**Learning Goal:** Separate deterministic source metadata from later trust
+judgment: classification and date arithmetic can be tested without pretending
+to verify factual support.
+
+**Contract / Risk Map:** C09's persisted `Source` is the producer and C11
+Verification is the consumer. C10 owns a deterministic application boundary
+that classifies existing `SourceType` values as PRIMARY, STRONG_SECONDARY, or
+OTHER; preserves publication and retrieval dates as distinct facts; emits
+CURRENT/AGING/STALE/UNKNOWN freshness from publication date and an explicit
+reference date; and exposes whether `origin_source_id` marks a duplicate
+origin. Inputs must be typed Sources; malformed or self-referential origin
+metadata fails closed. C10 does not fetch URLs, alter evidence/claims, assign
+VerificationStatus, judge Evidence Fidelity, resolve conflicts, or make
+Governance decisions. Persistence remains C03-owned; network and providers are
+not part of this Card's Critical Path.
+
+**C10 Critical-Path Expectation:** persisted C03 Source → real C10 metadata
+service → typed quality/freshness/origin result → read-back of the unchanged
+persisted Source, proving metadata is derived from real source provenance with
+no network or verification boundary.
+
+### C10 Closure Evidence
+
+**Implementation Evidence:** `SourceQualityService` derives typed source
+metadata without mutating a persisted Source: SourceType maps to
+PRIMARY/STRONG_SECONDARY/OTHER; `SourceFreshnessPolicy` maps publication date
+against an explicit reference date to CURRENT/AGING/STALE/UNKNOWN; and
+`origin_source_id` becomes an explicit duplicate-origin signal. A source cannot
+identify itself as its own origin, and an inverted freshness-policy window is
+rejected.
+
+**Validation / Regression Evidence:** `.venv/bin/python -m pytest
+tests/unit/test_source_quality.py` passed 6 tests; `.venv/bin/python -m pytest`
+passed 58 tests; `pip check`, `compileall -q src`, the source-quality import
+check, and `git diff --check` passed. The focused suite covers primary/strong
+secondary/other classification, date separation, CURRENT/STALE/UNKNOWN,
+duplicate-origin preservation, self-reference rejection, and policy invariants.
+
+**Contract / Risk Map Outcome:** C09 Source records are the only input, and C11
+Verification is the downstream consumer. C10 remains deterministic and
+offline: it does not acquire sources, alter Evidence or Claims, judge Evidence
+Fidelity, assign VerificationStatus, resolve conflict, or make Governance
+decisions. C03 remains the persistence owner.
+
+**Critical-Path Evidence:** Expected and actual path: real C03 SQLite
+repository saves and reads a Source → real `SourceQualityService` assesses that
+persisted typed Source → typed PRIMARY/CURRENT metadata is returned while the
+repository read-back proves the stored Source is unchanged. Persistence
+boundary: YES. Mocks/fakes: none at the owned metadata/persistence boundary;
+the test Case and Source are deterministic fixtures. Network used: NO. Command:
+`.venv/bin/python -m pytest tests/unit/test_source_quality.py`; result: PASS
+(6 passed).
+
+**Architecture Before → After:** C09 retained Source type, publication date,
+retrieval date, and origin fields but did not produce deterministic quality or
+freshness inputs. C10 adds an application-owned metadata boundary; C02 domain
+contracts and C03 persistence remain unchanged.
+
+**Problem → Diagnosis → Fix:** N/A — no implementation defect was found. The
+explicit reference-date policy and validation prevent hidden clock-dependent
+tests and inverted freshness windows.
+
+**Known Limitations / Deferrals:** C10 does not infer publisher reputation,
+fetch dates or content, prove source independence, decide whether evidence
+supports a Claim, or resolve conflicts. Those are source-acquisition or C11
+Verification/Fidelity responsibilities.
+
+**Professional Engineering Lesson:** Source quality and freshness are useful
+inputs, not truth labels. Keeping them deterministic and separate from
+Verification makes later trust decisions explainable and testable.
+
+**Learner Takeaway:** A recent official Source may be stronger metadata than an
+old supporting Source, but neither proves a Claim. First preserve dates and
+origin, then let the later Verification layer assess support.
+
+**What This Enables Next:** C11 can consume consistent quality, freshness, and
+duplicate-origin signals while evaluating Evidence Fidelity and Claim
+verification.
+
+**Baseline Before:** N/A — deterministic metadata introduces no model/provider
+quality comparison.
+**Candidate After:** N/A — no model/provider/routing evaluation applies.
+**Regression Decision:** PASS — all existing tests remain green.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — C10-only metadata service, focused tests, Evidence, and
+Project Control; no C11+ behavior.
+**Git Status Review:** PASS — C10 changes are uncommitted on
+`card/v1-c10-source-quality-freshness`; recognized
+`REPAIR_INSTRUCTIONS.md` and `eference/` remain untracked and outside scope.
+**PROJECT_CONTROL Updated:** YES
+**Historical Git Evidence:** C10 branch was created from integrated `main` at
+`8cff3c8`; no C10 commit or push is authorized or performed.
+**Exact Exit Gate Proof:** PASS — Verification now has deterministic typed
+PRIMARY/STRONG_SECONDARY/OTHER, publication/retrieval-date,
+CURRENT/AGING/STALE/UNKNOWN, and duplicate-origin inputs from Source records.
 
 
 # V1-C11 — Verification Engine

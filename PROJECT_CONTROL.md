@@ -9,11 +9,11 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C09 COMPLETE — EVIDENCE LAYER
-**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C10 AUTHORIZATION
+**Implementation Status:** V1-C10 COMPLETE — SOURCE QUALITY AND FRESHNESS
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE DELIVERY AUTHORIZATION
 **Active Card:** NONE
-**Last Completed Card:** V1-C09 — Evidence Layer
-**Next Card Candidate:** V1-C10 — Source Quality and Freshness (NOT AUTHORIZED)
+**Last Completed Card:** V1-C10 — Source Quality and Freshness
+**Next Card Candidate:** V1-C11 — Verification Engine (NOT AUTHORIZED)
 **V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** COMPLETE
@@ -23,7 +23,8 @@ This file is the live operational state. Repository reality and approved project
 **V1-C07 Status:** COMPLETE
 **V1-C08 Status:** COMPLETE
 **V1-C09 Status:** COMPLETE
-**Next Card Start Approval:** V1-C10 REQUIRED
+**V1-C10 Status:** COMPLETE
+**Next Card Start Approval:** V1-C11 REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
 **Card Specifications:** 22 — canonical complete file restored
@@ -98,22 +99,32 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C09 is complete and integrated into canonical `main`. Keep C10 and later
-Cards NOT_STARTED; do not start C10 without separate explicit authorization.
+V1-C10 is complete on `card/v1-c10-source-quality-freshness`. Keep C11 and
+later Cards NOT_STARTED; do not commit, push, or merge without separate
+approval.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C09 — Evidence Layer
-**Step:** C09 Card commit pushed and fast-forward integrated into canonical `main`; post-integration reconciliation completed
+**Card:** V1-C10 — Source Quality and Freshness
+**Step:** C10 implementation, Critical-Path Validation, and Final Card Closure Gate completed
 **Status:** COMPLETE
-**Implementation Files Changed:** `application/evidence_layer.py`; `tests/unit/test_evidence_layer.py`; canonical C09 Evidence; `PROJECT_CONTROL.md`
-**Project-State Change:** approved C09 commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, or force-push occurred.
-**Tests Run:** focused C09 tests — 4 passed; full suite — 52 passed; `pip check`; `compileall -q src`; evidence-layer import; `git diff --check`; scope/ignore/secret review.
-**Result:** C09 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A valid source-linked RawFinding produces persisted Source and Evidence plus an unverified candidate Claim and explicit link; duplicates are deterministic and contradictory evidence is retained.
-**Evidence Updated:** C09 closure evidence completed; C10–V1-C22 remain NOT_STARTED.
+**Implementation Files Changed:** `application/source_quality.py`;
+`tests/unit/test_source_quality.py`; canonical C10 Evidence;
+`PROJECT_CONTROL.md`
+**Project-State Change:** C10 work is uncommitted on
+`card/v1-c10-source-quality-freshness`; no commit, push, merge, rebase, or
+force-push was authorized or performed.
+**Tests Run:** focused C10 tests — 6 passed; full suite — 58 passed; `pip check`;
+`compileall -q src`; source-quality import; `git diff --check`; scope/ignore/
+secret review.
+**Result:** C10 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card
+Closure Gate PASS. A persisted Source deterministically yields quality,
+publication/retrieval-date, freshness, and duplicate-origin metadata without
+becoming verification or a factual-truth decision.
+**Evidence Updated:** C10 closure evidence completed; C11–V1-C22 remain NOT_STARTED.
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C10
-**Next Action:** STOP and await explicit authorization for a dynamically gated V1-C10 start
+**Safe Resume Point:** V1-C10 COMPLETE — AWAIT EXPLICIT DELIVERY AUTHORIZATION
+**Next Action:** STOP and await explicit authorization to commit/push/integrate C10; do not start C11
 
 ## Guiding Rule
 

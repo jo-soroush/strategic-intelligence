@@ -484,7 +484,8 @@ Do not report a Card as COMPLETE until this final reconciliation passes. Derive 
 3. completed requirements contain real execution evidence and no unresolved `PENDING`, `TODO`, `BLOCKED`, `UNKNOWN`, or `UNPROVEN` placeholder remains in the active Card's closure record;
 4. PROJECT_CONTROL agrees with the Evidence Map, closes the Active Card correctly, and leaves the next Card NOT_STARTED;
 5. Critical Path evidence identifies the primary composed capability, proves its owned boundary without mocking it away, and introduces no future-Card scope; and
-6. Git diff/status, scope, architecture, and future-Card leakage reviews pass with no unrelated files.
+6. Git diff/status, scope, architecture, and future-Card leakage reviews pass with no unrelated files; and
+7. review existing documentation whose current claims are materially affected by the Card, and update only durable descriptions that have become false or misleading. Reconcile compact Card contracts with detailed contracts and actual ownership boundaries. Do not create duplicate live-status authorities, copy volatile Card status/test/SHA facts into README or architecture documents, rewrite historical Evidence as current state, or rewrite future-design documents merely because their capability is not implemented.
 
 Evaluate stale-state search results in context: intentionally retained future-Card states are not defects. If any applicable condition disagrees, set `CARD STATUS = BLOCKED`; identify it and do not commit, push, integrate, or start the next Card.
 
