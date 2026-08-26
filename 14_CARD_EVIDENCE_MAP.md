@@ -695,28 +695,162 @@ count—proves every required category is covered or not relevant.
 
 # V1-C07 — Company Research
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C04, V1-C06
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Company intelligence | TBD | TBD | PENDING | TBD |
-| Project/case discovery | TBD | TBD | PENDING | TBD |
-| Source references | TBD | TBD | PENDING | TBD |
-| Relevance | TBD | TBD | PENDING | TBD |
-| Blocked/unavailable handling | TBD | TBD | PENDING | TBD |
+| Company intelligence | `application/company_research.py` (`CompanyResearchService`) | Focused tests; composed critical path | PASS | Only matching pending C06 COMPANY tasks produce typed `RawFinding` discovery output |
+| Project/case discovery | `application/company_research.py` (`research`) | Composed critical-path test | PASS | A C06 `PROJECTS` task produces source-linked project discovery output with the original task ID and category |
+| Source references | `application/company_research.py` (`_to_finding`) | Critical path; deterministic-output test | PASS | Each retained raw finding preserves a validated HTTP(S) source URL, title, snippet, topic, and discovery relevance; C09 still owns Source/Evidence records |
+| Relevance | `application/company_research.py` (`_is_relevant`) | Empty/duplicate/blocked/irrelevant-result test | PASS | Deterministic company, goal, or category term matching rejects unrelated discovery results before retention |
+| Blocked/unavailable handling | `application/company_research.py` (`research`, `_provider_failure`) | Blocked, malformed, timeout, and empty-result tests | PASS | Blocked, malformed, timeout, duplicate, and empty outcomes remain typed gaps or rejections; there is no retry or fallback |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+### C07 Start / Contract-Risk Map
+
+**Engineering Goal / Why It Exists:** Execute the C06 company portion of a
+bounded ResearchPlan and turn normalized discovery results into traceable,
+meeting-relevant raw company findings without treating discovery as verified
+evidence.
+
+**Learning Goal:** Separate planning research from executing source discovery,
+and separate discovery signals from the later evidence, claim, and verification
+decisions that make information trustworthy.
+
+**Inspected Before State:** C02 provides typed `ResearchTask` and
+`RawFinding` contracts. C04 provides the vendor-independent `SearchProvider`,
+normalized `SearchResult`, typed provider failures, a deterministic fake, and
+an optional DuckDuckGo adapter. C06 produces bounded pending company and
+executive tasks but never performs search. There is no C07 application service.
+
+**Owned Boundary and Design Decision:** C07 will consume only a pending,
+case-matching C06 COMPANY task from the existing approved company categories;
+it will call the C04 search contract once within the task's explicit attempt
+budget and retain validated, meeting-relevant discovery results as
+`RawFinding`. C07 does not fetch pages, persist records, construct C09
+`Source`/`Evidence` objects, produce claims, assess truth, update coverage, or
+orchestrate workflow recovery.
+
+**Contract / Risk Map:** Producer: a C05-validated Case and a C06 pending
+company `ResearchTask`. Provider boundary: C04 `SearchProvider`; its vendor
+objects remain outside application/domain contracts. External search snippets
+are untrusted discovery data. Invariants: case/task identity and COMPANY target
+must match; task budget allows at most one explicit call in the current C06
+plan; retained results have HTTP(S) provenance, nonblank title/snippet, unique
+URLs, and deterministic meeting-goal relevance. Failure paths: unsupported
+task, provider timeout/unavailability, malformed result, blocked access, and
+empty result return typed outcomes/gaps without retry or fallback. Persistence
+and accepted checkpoints are deferred because C03 has no RawFinding repository
+operation and C09 owns source/evidence normalization. Consumers: C09 Evidence
+Layer and later workflow orchestration. C08 executive research, page retrieval,
+verification, claims, analysis, governance, UI, and cloud behavior are
+explicitly deferred.
+
+**C07 Critical-Path Expectation:** validated C05 Case → real C06
+`ResearchPlanner` → selected pending COMPANY task → real C07 company-research
+service → C04 deterministic `FakeSearchProvider` as the necessary external
+adapter double → validated, deduplicated, relevant `RawFinding` output. This
+does not claim live internet behavior; the C07 Exit Gate does not require an
+unreliable external smoke test.
+
+### Closure Evidence
+
+**Implementation Evidence:** Added the application-owned
+`CompanyResearchService` and typed result/error contracts. The service accepts
+only a pending, case-matching COMPANY task from the approved C06 company
+categories, calls the normalized C04 `SearchProvider` once, caps retained
+results, validates public HTTP(S) provenance, filters relevance, removes
+duplicate URLs, and constructs `RawFinding` records. It deliberately imports
+neither `Evidence` nor Claim/verification/governance components and makes no
+persistence write.
+
+**Validation / Regression Evidence:** `.venv/bin/python -m pytest
+tests/unit/test_company_research.py` passed 5 tests. `.venv/bin/python -m
+pytest` passed 44 tests. `.venv/bin/python -m pip check`, `.venv/bin/python
+-m compileall -q src`, the company-research import check, and `git diff
+--check` passed.
+
+**Contract / Risk Map Outcome:** The actual path is C05 Case → C06 plan → C07
+company task service → C04 provider contract → raw discovery findings or a
+typed gap. It retains only company-task discovery data and preserves the
+untrusted-boundary distinction: a search snippet is neither C09 Evidence nor a
+FACT. C03 persistence/checkpoint ownership, C08 executive research, page
+access, coverage-state updates, C09 Source/Evidence/Claims, verification,
+analysis, governance, orchestration, UI, and cloud behavior remain deferred.
+
+**Critical-Path Evidence:**
+`test_critical_path_executes_a_real_company_service_from_c05_and_c06` composes
+the real C05 `CaseIntakeService` with local C03 SQLite, the real C06
+`ResearchPlanner`, a selected C06 `PROJECTS` task, and the real C07
+`CompanyResearchService`. `FakeSearchProvider` replaces only the external C04
+search adapter so the primary C07-owned composition boundary is not mocked
+away. It proves one bounded query, structured project finding, task linkage,
+source URL preservation, topic, and discovery-only relevance. Result: PASS.
+
+**Live External Smoke Test:** NOT_REQUIRED — C07's exact Exit Gate requires
+reliable traceable company findings, not public-network availability. The
+actual DuckDuckGo adapter remains an optional C04 external boundary; no live
+network request was made, and the deterministic fake is not presented as live
+internet proof.
+
+**Architecture Before → After:** Before C07, a C06 plan could name bounded
+company work but nothing consumed it through search. After C07, the application
+layer has a narrow company-discovery boundary that turns normalized results into
+raw, source-linked findings while Evidence Layer ownership remains untouched.
+
+**Problem → Diagnosis → Fix:** Initial malformed individual provider entries
+would be discarded without a typed error. Diagnosis: the failure was safe but
+not explicit enough for a provider-boundary contract. The service now records
+`INVALID_PROVIDER_RESULT` and returns `REJECTED` when no validated result can
+be retained; the focused test passes.
+
+**Known Limitations / Deferrals:** C07 does not retrieve pages, bypass blocked
+content, persist findings, mark plan coverage complete, create `Source` or
+`Evidence` records, create claims, assess truth, or run executive research.
+Search result snippets remain untrusted discovery signals. C08 owns executive
+research; C09 owns source/evidence/claim normalization; later Cards own
+coverage progression, verification, workflow, and presentation.
+
+**Professional Engineering Lesson:** Planning a search is not research
+execution, and a returned snippet is not verified intelligence. A narrow
+research component makes those transitions explicit, bounded, and observable
+instead of allowing a provider response to silently acquire more authority.
+
+**Learner Takeaway:** A typed plan tells the system what question is allowed;
+company research runs that question once and preserves raw provenance; only
+later source access, evidence extraction, and verification can support a fact.
+
+**What This Enables Next:** C08 can implement the separate public-professional
+executive path using the same bounded provider discipline, while C09 can later
+normalize C07 raw findings into traceable Sources and Evidence.
+
+**Historical Git Evidence:** C07 is currently uncommitted and unpushed on
+`card/v1-c07-company-research`, created linearly from verified `main` at
+`2d7599e`. No delivery action was authorized or performed; Git remains the
+live authority for branch and worktree state.
+
+**Baseline Before:** N/A — C07 establishes deterministic, provider-independent
+discovery behavior rather than an AI-quality, routing, or recovery baseline.
+**Candidate After:** N/A — no model, prompt, or live-provider quality claim was
+introduced.
+**Regression Decision:** PASS — C01–C06 regression tests remain green in the
+44-test full suite.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — C07 changes are limited to its application research
+service, focused tests, and required Evidence/Project Control updates.
+**Git Status Review:** PASS — no secret, `.env`, cache, generated artifact,
+machine-specific path, or C08+ implementation is in the C07 tracked set;
+`REPAIR_INSTRUCTIONS.md` and `eference/` remain recognized untouched untracked
+artifacts outside scope.
+**PROJECT_CONTROL Updated:** YES
+**Exit Gate Evidence:** PASS — the composed path proves that an approved C06
+company task reliably produces a bounded, traceable, meeting-relevant raw
+finding with preserved source provenance; empty, duplicate, blocked,
+irrelevant, malformed, and unavailable outcomes remain explicit rather than
+being promoted to verified Evidence.
 
 
 # V1-C08 — Executive Research

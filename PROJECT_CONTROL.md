@@ -9,19 +9,20 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C06 COMPLETE — RESEARCH PLANNER
-**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C07 AUTHORIZATION
+**Implementation Status:** V1-C07 COMPLETE — COMPANY RESEARCH
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE DELIVERY AUTHORIZATION
 **Active Card:** NONE
-**Last Completed Card:** V1-C06 — Research Planner
-**Next Card Candidate:** V1-C07 — Company Research
+**Last Completed Card:** V1-C07 — Company Research
+**Next Card Candidate:** V1-C08 — Executive Research (NOT AUTHORIZED)
 **V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** COMPLETE
 **V1-C04 Status:** COMPLETE
 **V1-C05 Status:** COMPLETE
 **V1-C06 Status:** COMPLETE
-**V1-C07 Status:** NOT_STARTED
-**Next Card Start Approval:** V1-C07 REQUIRED
+**V1-C07 Status:** COMPLETE
+**V1-C08 Status:** NOT_STARTED
+**Next Card Start Approval:** V1-C08 REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
 **Card Specifications:** 22 — canonical complete file restored
@@ -93,27 +94,24 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C06 is complete and integrated. Do not start V1-C07 without separate explicit user approval and a passing dynamically verified Post-Integration Reconciliation Gate on canonical `main`.
-
-Safe next sequence after approval:
-
-1. dynamically verify local/remote `main`, default-branch, C06 containment, preserved Card branch, clean tracked worktree, and durable control state;
-2. obtain separate authorization to start `V1-C07 — Company Research` only after that gate passes;
-3. STOP; do not begin C07 in this session.
+V1-C07 is complete on `card/v1-c07-company-research` and awaits separate
+explicit delivery authorization. Do not start C08 or later Cards. Do not
+commit, push, merge, or modify recognized untracked reference material without
+separate explicit approval.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C06 — Research Planner
-**Step:** C06 delivery completed by Card-branch push and fast-forward integration into canonical `main`; durable post-integration reconciliation completed
+**Card:** V1-C07 — Company Research
+**Step:** Implementation, Critical-Path Validation, regression, exact Exit Gate, and Final Card Closure Gate completed; no delivery action authorized
 **Status:** COMPLETE
-**Implementation Files Changed:** typed ResearchCoverage/requirements and plan budgets; application-owned ResearchPlanner; C06 planner tests; C06 Evidence and Project Control
-**Project-State Change:** approved C06 commit `d784694ec1665dd8660a0d882db672d70c88d45e` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, force-push, or C07 action occurred
-**Tests Run:** `tests/unit/test_research_planning.py` — 6 passed; full suite — 39 passed; `pip check`; `compileall -q src`; package import; diff/ignore/scope review
-**Result:** C06 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS; research receives a typed bounded plan and completion requires coverage status, not result count
-**Evidence Updated:** C06 closure and historical delivery evidence reconciled; V1-C07–V1-C22 remain NOT_STARTED
+**Implementation Files Changed:** `application/company_research.py`; `tests/unit/test_company_research.py`; canonical C07 Evidence; `PROJECT_CONTROL.md`
+**Project-State Change:** dynamically verified `main` and `github/main` matched at `2d7599e6c4f6bea982fc03dd707886c5a8a4cd25` before branch creation; C06 was contained in main, its preserved Card branch remained at approved commit `d784694ec1665dd8660a0d882db672d70c88d45e`, and the C07 branch was created linearly from main
+**Tests Run:** focused C07 tests — 5 passed; full suite — 44 passed; `pip check`; `compileall -q src`; company-research import; `git diff --check`; scope/ignore/secret review
+**Result:** C07 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A C06 company task makes one bounded C04 provider call and returns validated, deduplicated, meeting-relevant `RawFinding` discovery output or explicit typed gaps. Search discovery is never represented as C09 Evidence or a verified Fact.
+**Evidence Updated:** C07 Contract / Risk Map, implementation, critical path, regression, limitations, learning evidence, and exact Exit Gate proof recorded; C08–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C07
-**Next Action:** STOP and await explicit user approval for a dynamically gated V1-C07 start
+**Safe Resume Point:** V1-C07 COMPLETE — AWAIT EXPLICIT COMMIT/PUSH/INTEGRATION AUTHORIZATION
+**Next Action:** STOP and await explicit user direction; C08 remains unauthorized
 
 ## Guiding Rule
 
