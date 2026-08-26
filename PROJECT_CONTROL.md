@@ -9,11 +9,11 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C07 COMPLETE — COMPANY RESEARCH
-**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C08 AUTHORIZATION
+**Implementation Status:** V1-C08 COMPLETE — EXECUTIVE RESEARCH
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE DELIVERY AUTHORIZATION
 **Active Card:** NONE
-**Last Completed Card:** V1-C07 — Company Research
-**Next Card Candidate:** V1-C08 — Executive Research (NOT AUTHORIZED)
+**Last Completed Card:** V1-C08 — Executive Research
+**Next Card Candidate:** V1-C09 — Evidence Layer (NOT AUTHORIZED)
 **V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** COMPLETE
@@ -21,8 +21,9 @@ This file is the live operational state. Repository reality and approved project
 **V1-C05 Status:** COMPLETE
 **V1-C06 Status:** COMPLETE
 **V1-C07 Status:** COMPLETE
-**V1-C08 Status:** NOT_STARTED
-**Next Card Start Approval:** V1-C08 REQUIRED
+**V1-C08 Status:** COMPLETE
+**V1-C09 Status:** NOT_STARTED
+**Next Card Start Approval:** V1-C09 REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
 **Card Specifications:** 22 — canonical complete file restored
@@ -95,24 +96,24 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C07 is complete and integrated into canonical `main`. Do not start C08 or
-later Cards without separate explicit authorization and a passing dynamically
-verified Post-Integration Reconciliation Gate. Do not modify recognized
-untracked reference material without separate explicit approval.
+V1-C08 is complete on `card/v1-c08-executive-research` and awaits separate
+explicit delivery authorization. Do not start C09 or later Cards. Do not
+commit, push, merge, or modify recognized untracked reference material without
+separate explicit approval.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C07 — Company Research
-**Step:** C07 Card branch pushed and fast-forward integrated into canonical `main`; durable post-integration reconciliation completed
+**Card:** V1-C08 — Executive Research
+**Step:** Implementation, privacy/data-minimization validation, Critical-Path Validation, regression, exact Exit Gate, and Final Card Closure Gate completed; no delivery action authorized
 **Status:** COMPLETE
-**Implementation Files Changed:** `application/company_research.py`; `tests/unit/test_company_research.py`; canonical C07 Evidence; `PROJECT_CONTROL.md`
-**Project-State Change:** approved C07 commit `4c6dcd4d80273269d3790fb5b67522d3d012e3c8` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, force-push, or C08 action occurred
-**Tests Run:** focused C07 tests — 5 passed; full suite — 44 passed; `pip check`; `compileall -q src`; company-research import; `git diff --check`; scope/ignore/secret review
-**Result:** C07 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A C06 company task makes one bounded C04 provider call and returns validated, deduplicated, meeting-relevant `RawFinding` discovery output or explicit typed gaps. Search discovery is never represented as C09 Evidence or a verified Fact.
-**Evidence Updated:** C07 closure and historical delivery evidence reconciled; C08–V1-C22 remain NOT_STARTED
+**Implementation Files Changed:** `application/executive_research.py`; `tests/unit/test_executive_research.py`; canonical C08 Evidence; `PROJECT_CONTROL.md`
+**Project-State Change:** dynamically verified `main` and `github/main` matched at `70e278e772a3f851914f73060b0d1a8aacaa17a2` before branch creation; C07 was contained in main, its preserved Card branch remained at approved commit `4c6dcd4d80273269d3790fb5b67522d3d012e3c8`, and the C08 branch was created linearly from main
+**Tests Run:** focused C08 tests — 4 passed; full suite — 48 passed; `pip check`; `compileall -q src`; executive-research import; `git diff --check`; privacy/identity/scope/ignore/secret review
+**Result:** C08 exact Exit Gate PASS; privacy/data-minimization validation PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A C06 executive task makes one bounded C04 provider call and returns identity-constrained, public-professional-meeting-relevant `RawFinding` discovery output or explicit typed gaps. No raw result becomes C09 Evidence, a verified Fact, or an inferred executive priority.
+**Evidence Updated:** C08 Contract / Risk Map, implementation, privacy proof, critical path, regression, limitations, learning evidence, and exact Exit Gate proof recorded; C09–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C08
-**Next Action:** STOP and await explicit user authorization for a dynamically gated V1-C08 start
+**Safe Resume Point:** V1-C08 COMPLETE — AWAIT EXPLICIT COMMIT/PUSH/INTEGRATION AUTHORIZATION
+**Next Action:** STOP and await explicit user direction; C09 remains unauthorized
 
 ## Guiding Rule
 

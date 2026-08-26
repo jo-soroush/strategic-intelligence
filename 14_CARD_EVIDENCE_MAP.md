@@ -856,28 +856,168 @@ being promoted to verified Evidence.
 
 # V1-C08 — Executive Research
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C04, V1-C06
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Professional executive intelligence | TBD | TBD | PENDING | TBD |
-| Identity handling | TBD | TBD | PENDING | TBD |
-| Public/professional boundary | TBD | TBD | PENDING | TBD |
-| LinkedIn optionality | TBD | TBD | PENDING | TBD |
-| Fact/inference separation | TBD | TBD | PENDING | TBD |
+| Professional executive intelligence | `application/executive_research.py` (`ExecutiveResearchService`) | Focused tests; composed critical path | PASS | Only matching pending C06 EXECUTIVE tasks produce typed RawFinding discovery output |
+| Identity handling | `application/executive_research.py` (`_to_finding`) | Privacy/identity test; critical path | PASS | All normalized executive-name terms must match before a result is retained; similarly named people are explicitly rejected |
+| Public/professional boundary | `application/executive_research.py` (`_contains_excluded_personal_data`, `_is_professionally_relevant`) | Privacy/data-minimization test | PASS | Family/private and sensitive-characteristic material, unrelated personal activity, and ambiguous relevance are rejected before retention |
+| LinkedIn optionality | C05 → C06 → C08 critical path | Critical-path test | PASS | A validated current-title identity with no LinkedIn URL reaches C08; C08 performs no LinkedIn-specific fetch or scrape |
+| Fact/inference separation | `application/executive_research.py` (`ExecutiveResearchResult`) | Deterministic raw-finding test | PASS | Discovery remains raw source-linked data; the result exposes neither Evidence nor Claim construction |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+### C08 Start / Contract-Risk Map
+
+**Engineering Goal / Why It Exists:** Execute the C06 executive portion of a
+bounded ResearchPlan to discover useful public professional information for
+meeting preparation, while refusing private, sensitive, irrelevant, or
+identity-ambiguous material.
+
+**Learning Goal:** Practice data minimization as executable behavior: public
+information gains no automatic right to be collected merely because a search
+provider exposes it.
+
+**Inspected Before State:** C05 produces a confirmed Case with an executive
+identity boundary; C06 creates bounded pending EXECUTIVE tasks; C04 supplies
+the vendor-independent normalized search contract; C07 demonstrates bounded
+company discovery and raw-finding provenance. No C08 executive-research
+application service exists.
+
+**Owned Boundary and Design Decision:** C08 will consume only a pending,
+case-matching EXECUTIVE task from the approved executive categories. It will
+make one bounded C04 search call, retain only results that identify the named
+executive and are professionally relevant to the task/meeting goal, and reject
+the excluded personal-data categories explicitly named by the Security and
+Privacy policy. It will preserve validated provenance in `RawFinding` but will
+not fetch pages, scrape LinkedIn, persist records, create C09 Source/Evidence
+objects or claims, infer attributes, update coverage, or orchestrate workflow.
+
+**Contract / Risk Map:** Producer: a C05-validated Case and C06 pending
+EXECUTIVE `ResearchTask`. Identity invariant: all normalized executive-name
+terms must appear in retained discovery text; a similarly named or unrelated
+person is rejected. Privacy invariant: home/address, family/private
+relationships, routines, sensitive characteristics, and unrelated personal
+activity are excluded even if public. Trust boundary: provider results/snippets
+are untrusted discovery data, never facts or Evidence. Failure paths:
+unsupported/mismatched task, provider timeout/unavailability, malformed or
+unsafe result, identity mismatch, privacy rejection, duplicate, and empty
+result produce typed gaps/rejections without retry or fallback. C03 persistence
+does not own RawFinding storage; C09 owns Source/Evidence/Claim normalization.
+Consumers are C09 and later orchestration. C07 company research, C09+ trust
+stages, analysis, governance, UI, and cloud behavior are deferred.
+
+**C08 Critical-Path Expectation:** validated C05 Case → real C06
+`ResearchPlanner` → selected pending EXECUTIVE task → real C08
+executive-research service → C04 deterministic `FakeSearchProvider` as the
+necessary external-adapter double → privacy-filtered, identity-constrained,
+source-linked `RawFinding`. The service and privacy boundary must be real; the
+fake is not live-internet proof.
+
+### Closure Evidence
+
+**Implementation Evidence:** Added the application-owned
+`ExecutiveResearchService` with typed result/error contracts. It accepts only
+a pending, case-matching C06 EXECUTIVE task, makes one explicit C04 provider
+call, caps results, validates public HTTP(S) provenance, requires complete
+executive-name matching, applies professional-meeting relevance, removes
+duplicate URLs, and constructs only `RawFinding` discovery records.
+
+**Validation / Regression Evidence:** `.venv/bin/python -m pytest
+tests/unit/test_executive_research.py` passed 4 tests. `.venv/bin/python -m
+pytest` passed 48 tests. `.venv/bin/python -m pip check`, `.venv/bin/python
+-m compileall -q src`, the executive-research import check, and `git diff
+--check` passed.
+
+**Privacy / Data-Minimization Evidence:** The real C08 service rejects fixture
+content containing family details/children and religion/personal-routine
+material before it can become a `RawFinding`. It also rejects a different
+person with a shared first name and an identity-matching but professionally
+irrelevant cooking result. C05's current-title identity path proves that a
+missing LinkedIn URL is non-blocking; C08 has no LinkedIn fetch or scrape.
+These deterministic controls enact the public + professional + relevant rule,
+rather than treating public availability as sufficient.
+
+**Contract / Risk Map Outcome:** The implemented path is C05 confirmed
+executive identity → C06 typed executive task → C08 privacy-aware discovery
+service → C04 provider contract → raw finding or explicit gap. Discovery
+snippets remain untrusted; C08 creates neither C09 Evidence/Claims nor a fact
+or inferred priority. C03 persistence/checkpoints, C07 company research, C09
+Source/Evidence/Claim normalization, verification, analysis, governance,
+workflow, UI, and cloud behavior remain deferred.
+
+**Critical-Path Evidence:**
+`test_critical_path_uses_c05_c06_and_real_privacy_aware_executive_research`
+composes real C05 intake and local C03 SQLite with no LinkedIn URL, the real
+C06 `ResearchPlanner`, a selected C06 `EXECUTIVE_ROLE` task, and the real C08
+`ExecutiveResearchService`. `FakeSearchProvider` replaces only the external
+C04 search adapter. The actual C08 identity, professional-relevance, and
+privacy controls run before a source-linked raw finding is returned. Result:
+PASS.
+
+**Live External Smoke Test:** NOT_REQUIRED — the C08 Exit Gate requires useful
+public-professional-relevant executive research, not unreliable public-network
+availability. No live request was made; the deterministic provider fake is not
+represented as live-internet proof.
+
+**Architecture Before → After:** Before C08, C06 could plan executive work but
+there was no component to execute it under a data-minimization boundary. After
+C08, the application owns a narrow, typed executive-discovery boundary while
+the C04 provider abstraction and C09 evidence ownership remain intact.
+
+**Problem → Diagnosis → Fix:** An initial relevance heuristic treated a company
+name token shared with the executive surname as company context, allowing an
+unrelated personal result to pass. Diagnosis: identity tokens must not also
+establish professional relevance. C08 now subtracts executive-name terms from
+company-context terms; the privacy/identity regression test passes.
+
+**Known Limitations / Deferrals:** C08 does not access profile pages, scrape
+LinkedIn, persist findings, update coverage, create Source/Evidence/Claims,
+verify facts, infer priorities, or perform strategic analysis. Search snippets
+remain untrusted discovery signals. C09 owns traceable Source/Evidence/Claim
+normalization; later Cards own verification, workflow, governance, and briefs.
+
+**Professional Engineering Lesson:** Privacy is not a source filter alone. A
+safe executive-research boundary must prove identity, professional relevance,
+and data minimization independently, because a public result can still be
+about the wrong person or contain inappropriate detail.
+
+**Learner Takeaway:** “Publicly available” means a result may be visible; it
+does not mean the system should retain it. The system first asks whether it is
+about the confirmed executive, professionally relevant to the meeting, and free
+of excluded personal detail.
+
+**What This Enables Next:** C09 can later turn C07/C08 raw findings into
+normalized Sources, Evidence, and candidate Claims without inheriting an
+unbounded or privacy-blind discovery step.
+
+**Historical Git Evidence:** C08 is currently uncommitted and unpushed on
+`card/v1-c08-executive-research`, created linearly from verified `main` at
+`70e278e`. No delivery action was authorized or performed; Git remains the
+live authority for branch and worktree state.
+
+**Baseline Before:** N/A — C08 establishes deterministic privacy and identity
+controls, not a model, prompt, live-provider, routing, or recovery baseline.
+**Candidate After:** N/A — no AI model or external-network quality claim was
+introduced.
+**Regression Decision:** PASS — C01–C07 regression tests remain green in the
+48-test full suite.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — changes are limited to C08 executive discovery, focused
+tests, and required Evidence/Project Control updates.
+**Git Status Review:** PASS — no secret, `.env`, cache, generated artifact,
+machine-specific path, or C09+ implementation is in the C08 tracked set;
+`REPAIR_INSTRUCTIONS.md` and `eference/` remain recognized untouched untracked
+artifacts outside scope.
+**PROJECT_CONTROL Updated:** YES
+**Exit Gate Evidence:** PASS — a validated C06 executive task reliably produces
+a bounded, traceable, public-professional-meeting-relevant raw finding or an
+explicit gap. Privacy, identity, personal-data, malformed, duplicate, empty,
+and unavailable outcomes cannot become Evidence, a verified Claim, or an
+inferred executive priority.
 
 
 # V1-C09 — Evidence Layer
