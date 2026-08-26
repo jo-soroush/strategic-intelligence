@@ -1,0 +1,116 @@
+"""Traceable C09 Source, Evidence, and candidate-Claim construction."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from enum import Enum
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from strategic_intelligence.application.persistence import PersistenceRepository
+from strategic_intelligence.domain.models import (
+    Claim, ClaimEvidenceLink, ClaimEvidenceRelationship, ClaimType, Evidence,
+    RawFinding, Source, SourceQuality, SourceType,
+)
+
+
+class EvidenceLayerStatus(str, Enum):
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
+
+
+class EvidenceLayerErrorCode(str, Enum):
+    INVALID_FINDING = "INVALID_FINDING"
+    INVALID_CLAIM = "INVALID_CLAIM"
+    PERSISTENCE_FAILED = "PERSISTENCE_FAILED"
+
+
+class EvidenceLayerModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+
+class EvidenceLayerError(EvidenceLayerModel):
+    code: EvidenceLayerErrorCode
+    message: str
+
+
+class EvidenceLayerResult(EvidenceLayerModel):
+    status: EvidenceLayerStatus
+    source: Source | None = None
+    evidence: Evidence | None = None
+    candidate_claim: Claim | None = None
+    link: ClaimEvidenceLink | None = None
+    sources: list[Source] = Field(default_factory=list)
+    evidence_items: list[Evidence] = Field(default_factory=list)
+    links: list[ClaimEvidenceLink] = Field(default_factory=list)
+    originating_finding_id: str | None = None
+    errors: list[EvidenceLayerError] = Field(default_factory=list)
+
+
+class EvidenceLayerService:
+    """Owns C09 traceability, not fidelity or verification judgment."""
+
+    def __init__(self, repository: PersistenceRepository) -> None:
+        self._repository = repository
+
+    def create_candidate(
+        self,
+        finding: RawFinding | Sequence[RawFinding],
+        *,
+        claim_text: str,
+        claim_type: ClaimType = ClaimType.FACT,
+        relationship: ClaimEvidenceRelationship | Sequence[ClaimEvidenceRelationship] = ClaimEvidenceRelationship.SUPPORTS,
+    ) -> EvidenceLayerResult:
+        findings = (finding,) if isinstance(finding, RawFinding) else tuple(finding)
+        if not findings or not all(self._valid_finding(item) for item in findings):
+            return self._rejected(EvidenceLayerErrorCode.INVALID_FINDING, "raw finding lacks required provenance or excerpt")
+        if len({item.case_id for item in findings}) != 1:
+            return self._rejected(EvidenceLayerErrorCode.INVALID_FINDING, "raw findings for one candidate must belong to one case")
+        if not claim_text.strip():
+            return self._rejected(EvidenceLayerErrorCode.INVALID_CLAIM, "candidate claim text must not be blank")
+        relationships = self._relationships_for(relationship, len(findings))
+        if relationships is None:
+            return self._rejected(EvidenceLayerErrorCode.INVALID_CLAIM, "each evidence item requires one relationship")
+        try:
+            sources = [self._repository.save_source(Source(
+                case_id=item.case_id, url=item.source_url, title=item.title,
+                source_type=SourceType.OTHER, quality_class=SourceQuality.OTHER,
+            )) for item in findings]
+            evidence_items = [self._repository.save_evidence(Evidence(
+                case_id=item.case_id, source_id=source.source_id,
+                content=item.extracted_content, topic=item.topic, relevance=item.relevance,
+            )) for item, source in zip(findings, sources, strict=True)]
+            claim = Claim(
+                case_id=findings[0].case_id, text=claim_text.strip(), claim_type=claim_type,
+                topic=findings[0].topic, evidence_ids=[item.evidence_id for item in evidence_items],
+            )
+            links = [ClaimEvidenceLink(
+                claim_id=claim.claim_id, evidence_id=evidence.evidence_id,
+                relationship_type=item_relationship,
+            ) for evidence, item_relationship in zip(evidence_items, relationships, strict=True)]
+            claim = self._repository.save_claim_with_links(claim, links)
+        except Exception:
+            return self._rejected(EvidenceLayerErrorCode.PERSISTENCE_FAILED, "traceable evidence could not be persisted")
+        return EvidenceLayerResult(
+            status=EvidenceLayerStatus.ACCEPTED, source=sources[0], evidence=evidence_items[0],
+            candidate_claim=claim, link=links[0], sources=sources,
+            evidence_items=evidence_items, links=links,
+            originating_finding_id=findings[0].finding_id,
+        )
+
+    @staticmethod
+    def _valid_finding(finding: RawFinding) -> bool:
+        return bool(finding.case_id and finding.research_task_id and finding.source_url.startswith(("http://", "https://")) and finding.title.strip() and finding.extracted_content.strip())
+
+    @staticmethod
+    def _relationships_for(
+        relationship: ClaimEvidenceRelationship | Sequence[ClaimEvidenceRelationship], count: int,
+    ) -> tuple[ClaimEvidenceRelationship, ...] | None:
+        if isinstance(relationship, ClaimEvidenceRelationship):
+            return (relationship,) * count
+        relationships = tuple(relationship)
+        return relationships if len(relationships) == count else None
+
+    @staticmethod
+    def _rejected(code: EvidenceLayerErrorCode, message: str) -> EvidenceLayerResult:
+        return EvidenceLayerResult(status=EvidenceLayerStatus.REJECTED, errors=[EvidenceLayerError(code=code, message=message)])

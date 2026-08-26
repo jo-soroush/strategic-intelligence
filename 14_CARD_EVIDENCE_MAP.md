@@ -24,9 +24,9 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | V1-C04 | Provider Foundation | COMPLETE | PASS |
 | V1-C05 | Case Input and Validation | COMPLETE | PASS |
 | V1-C06 | Research Planner | COMPLETE | PASS |
-| V1-C07 | Company Research | NOT_STARTED | PENDING |
-| V1-C08 | Executive Research | NOT_STARTED | PENDING |
-| V1-C09 | Evidence Layer | NOT_STARTED | PENDING |
+| V1-C07 | Company Research | COMPLETE | PASS |
+| V1-C08 | Executive Research | COMPLETE | PASS |
+| V1-C09 | Evidence Layer | COMPLETE | PASS |
 | V1-C10 | Source Quality and Freshness | NOT_STARTED | PENDING |
 | V1-C11 | Verification Engine | NOT_STARTED | PENDING |
 | V1-C12 | Bounded Follow-Up Research | NOT_STARTED | PENDING |
@@ -1024,28 +1024,134 @@ inferred executive priority.
 
 # V1-C09 — Evidence Layer
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C03, V1-C07, V1-C08
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Source normalization | TBD | TBD | PENDING | TBD |
-| Evidence→Source | TBD | TBD | PENDING | TBD |
-| Claim→Evidence | TBD | TBD | PENDING | TBD |
-| Contradictions/duplicates | TBD | TBD | PENDING | TBD |
-| Evidence Fidelity input preservation | TBD | TBD | PENDING | TBD |
+| Source normalization | `application/evidence_layer.py` | `test_critical_path_persists_complete_provenance_chain` | PASS | Valid source-linked RawFinding creates and persists a Source before Evidence |
+| Evidence→Source | `application/evidence_layer.py`; C03 repository | real SQLite save/read-back | PASS | Persisted Evidence retains the saved Source ID and read-back returns the same typed records |
+| Claim→Evidence | `application/evidence_layer.py` | focused C09 tests | PASS | Candidate Claim retains one or more explicit ClaimEvidenceLinks with SUPPORTS, CONTRADICTS, and CONTEXT semantics; verification remains unset |
+| Contradictions/duplicates | `application/evidence_layer.py`; C03 repository | `test_duplicate_source_is_reused_and_conflicting_evidence_is_preserved` | PASS | Repeated URL reuses Source identity; distinct contradictory excerpts are retained as separate Evidence/links |
+| Evidence Fidelity input preservation | `application/evidence_layer.py` | focused C09 tests and code review | PASS | URL, title, Source ID, excerpt, topic, relevance, candidate claim text, and relationship context are retained for later judgment |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+### C09 Start / Contract-Risk Map
+
+**Engineering Goal / Why It Exists:** Convert raw C07/C08 discovery into a
+persistent, traceable Source → Evidence → candidate Claim foundation without
+promoting a candidate to a verified fact.
+
+**Contract / Risk Map:** Producers are source-linked `RawFinding` records from
+C07/C08. C09 owns source normalization, evidence extraction, candidate Claim
+and ClaimEvidenceLink construction, duplicate handling, and existing C03
+persistence/read-back. Invariants: a finding needs case/task/source URL/title
+and excerpt; Source is saved before Evidence; Evidence is linked to Source;
+candidate Claims retain link semantics SUPPORTS/CONTRADICTS/CONTEXT and no
+verification status. Duplicate source URLs reuse C03's Source identity;
+duplicate finding content is deterministic. Contradictions remain separate
+Evidence/links. C10 quality/freshness classification and C11 fidelity/
+verification are deferred. No network/provider, analysis, governance, UI, or
+workflow behavior belongs here.
+
+**C09 Critical-Path Expectation:** C07/C08-style `RawFinding` → real C09
+service → persisted Source → persisted Evidence → candidate Claim with explicit
+link → C03 read-back proving provenance. Network is not required.
+
+### C09 Closure Evidence
+
+**Implementation Evidence:** `EvidenceLayerService` is the C09 application
+boundary. It validates source-linked `RawFinding` provenance, normalizes and
+persists `Source`, persists `Evidence`, then creates a candidate `Claim` with
+an explicit `ClaimEvidenceLink`. Results are typed and fail closed with
+`INVALID_FINDING`, `INVALID_CLAIM`, or `PERSISTENCE_FAILED`; no candidate is
+assigned a verification status.
+
+**Validation / Regression Evidence:** `.venv/bin/python -m pytest
+tests/unit/test_evidence_layer.py` passed 4 tests; the full suite, `pip check`,
+`compileall -q src`, the evidence-layer import check, and `git diff --check`
+passed at closure. The focused suite proves the real SQLite provenance path,
+deterministic duplicate-source reuse, preserved contradictory material,
+non-conflated SUPPORTS/CONTRADICTS/CONTEXT links, a real multi-evidence
+candidate Claim, and malformed/blank input rejection.
+
+**Contract / Risk Map Outcome:** C07/C08 remain RawFinding producers; C09 owns
+only the typed traceability transformation and uses the existing C03
+persistence boundary. A valid persisted C05 Case is required by the repository
+foreign-key invariant. External content remains untrusted. C10 source
+quality/freshness and C11 Evidence Fidelity/verification are explicitly
+deferred; no provider, network, analysis, governance, UI, or workflow behavior
+was added.
+
+**Provenance / Traceability Evidence:** The critical-path test proves
+`RawFinding(case/task/source URL/title/excerpt) → Source(url/title) →
+Evidence(source ID/content/topic/relevance) → candidate Claim(text/topic,
+verification_status=None) → ClaimEvidenceLink`. It saves and reads the Source
+and Evidence through the real C03 SQLite repository, proving the persisted
+Evidence references its Source. `originating_finding_id` is retained in the C09
+typed result; the existing domain persistence contract does not add a new
+stored RawFinding foreign key.
+
+**Critical-Path Evidence:** Expected and actual path are the same: a
+C07/C08-style deterministic fixture enters the real C09 service, exercises C03
+SQLite Source/Evidence/Claim-link persistence, then reads Source and Evidence
+back. Persistence boundary: YES. Mocks/fakes: only the deterministic input
+fixture, because C09 owns no network fetch. Network used: NO. Command:
+`.venv/bin/python -m pytest tests/unit/test_evidence_layer.py`; result: PASS
+(4 passed).
+
+**Architecture Before → After:** Before C09, C07/C08 could produce
+source-linked RawFindings but had no application boundary that constructed a
+persisted evidence chain. After C09, that chain is explicit and typed while
+C02 domain ownership and C03 repository ownership remain unchanged.
+
+**Problem → Diagnosis → Fix:** The first critical-path test attempted to write
+records for an unpersisted Case and correctly hit C03's foreign-key protection.
+The test now creates the valid C05 Case first, proving C09 composes with rather
+than bypasses the existing persistence invariant.
+
+**Known Limitations / Deferrals:** C09 neither fetches sources nor classifies
+quality/freshness; it does not score fidelity, verify/adjudicate truth, resolve
+contradictions, or produce strategic/governance/UI output.
+
+**Evidence Fidelity Preparation:** Exact source reference and title, excerpt,
+topic, relevance, candidate wording, and relationship semantics survive for
+C10/C11. Later fidelity judgment—whether wording overstates the evidence,
+whether sources are independent, and whether a claim is verified—remains with
+its owning Cards.
+
+**Professional Engineering Lesson:** Provenance is a concrete system property:
+make the relationship objects and persisted references explicit before asking a
+later component to judge trust.
+
+**Learner Takeaway:** Finding something produces a RawFinding. Having evidence
+means preserving the source and excerpt in a traceable record. Proving a claim
+true requires the later Fidelity and Verification work; C09 deliberately does
+not make that leap.
+
+**What This Enables Next:** C10 can add quality/freshness metadata and C11 can
+evaluate fidelity and verification from retained, linked evidence rather than
+unstructured research output.
+
+**Baseline Before:** N/A — C09 adds a deterministic traceability boundary, not
+an AI-quality change.
+**Candidate After:** N/A — no model/provider/routing evaluation applies.
+**Regression Decision:** PASS — all existing tests remain green.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — C09-only application service, focused tests, Evidence,
+and Project Control; no C10+ runtime behavior.
+**Git Status Review:** PASS — C09 changes are uncommitted on
+`card/v1-c09-evidence-layer`; recognized `REPAIR_INSTRUCTIONS.md` and
+`eference/` remain untracked and outside scope.
+**PROJECT_CONTROL Updated:** YES
+**Historical Git Evidence:** C09 branch was created from integrated `main` at
+`c5ff36c`; no C09 commit or push is authorized or performed.
+**Exact Exit Gate Proof:** PASS — important RawFindings enter a real typed,
+persisted Source → Evidence → candidate Claim/link chain and are traceable to
+their Sources, with the fidelity and verification inputs retained for later
+Cards.
 
 
 # V1-C10 — Source Quality and Freshness

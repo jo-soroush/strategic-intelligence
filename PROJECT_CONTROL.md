@@ -9,11 +9,11 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C08 COMPLETE — EXECUTIVE RESEARCH
-**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C09 AUTHORIZATION
+**Implementation Status:** V1-C09 COMPLETE — EVIDENCE LAYER
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE DELIVERY AUTHORIZATION
 **Active Card:** NONE
-**Last Completed Card:** V1-C08 — Executive Research
-**Next Card Candidate:** V1-C09 — Evidence Layer (NOT AUTHORIZED)
+**Last Completed Card:** V1-C09 — Evidence Layer
+**Next Card Candidate:** V1-C10 — Source Quality and Freshness (NOT AUTHORIZED)
 **V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** COMPLETE
@@ -22,8 +22,8 @@ This file is the live operational state. Repository reality and approved project
 **V1-C06 Status:** COMPLETE
 **V1-C07 Status:** COMPLETE
 **V1-C08 Status:** COMPLETE
-**V1-C09 Status:** NOT_STARTED
-**Next Card Start Approval:** V1-C09 REQUIRED
+**V1-C09 Status:** COMPLETE
+**Next Card Start Approval:** V1-C10 REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
 **Card Specifications:** 22 — canonical complete file restored
@@ -97,24 +97,22 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C08 is complete and integrated into canonical `main`. Do not start C09 or
-later Cards without separate explicit authorization and a passing dynamically
-verified Post-Integration Reconciliation Gate. Do not modify recognized
-untracked reference material without separate explicit approval.
+V1-C09 is complete on `card/v1-c09-evidence-layer`. Keep C10 and later Cards
+NOT_STARTED; do not commit, push, or merge without separate approval.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C08 — Executive Research
-**Step:** C08 Card branch pushed and fast-forward integrated into canonical `main`; durable post-integration reconciliation completed
+**Card:** V1-C09 — Evidence Layer
+**Step:** C09 implementation, Critical-Path Validation, and Final Card Closure Gate completed
 **Status:** COMPLETE
-**Implementation Files Changed:** `application/executive_research.py`; `tests/unit/test_executive_research.py`; canonical C08 Evidence; `PROJECT_CONTROL.md`
-**Project-State Change:** approved C08 commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, force-push, or C09 action occurred
-**Tests Run:** focused C08 tests — 4 passed; full suite — 48 passed; `pip check`; `compileall -q src`; executive-research import; `git diff --check`; privacy/identity/scope/ignore/secret review
-**Result:** C08 exact Exit Gate PASS; privacy/data-minimization validation PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A C06 executive task makes one bounded C04 provider call and returns identity-constrained, public-professional-meeting-relevant `RawFinding` discovery output or explicit typed gaps. No raw result becomes C09 Evidence, a verified Fact, or an inferred executive priority.
-**Evidence Updated:** C08 closure and historical delivery evidence reconciled; C09–V1-C22 remain NOT_STARTED
+**Implementation Files Changed:** `application/evidence_layer.py`; `tests/unit/test_evidence_layer.py`; canonical C09 Evidence; `PROJECT_CONTROL.md`
+**Project-State Change:** C09 work is uncommitted on `card/v1-c09-evidence-layer`; no commit, push, merge, rebase, or force-push was authorized or performed.
+**Tests Run:** focused C09 tests — 4 passed; full suite — 52 passed; `pip check`; `compileall -q src`; evidence-layer import; `git diff --check`; scope/ignore/secret review.
+**Result:** C09 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS. A valid source-linked RawFinding produces persisted Source and Evidence plus an unverified candidate Claim and explicit link; duplicates are deterministic and contradictory evidence is retained.
+**Evidence Updated:** C09 closure evidence completed; C10–V1-C22 remain NOT_STARTED.
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C09
-**Next Action:** STOP and await explicit user authorization for a dynamically gated V1-C09 start
+**Safe Resume Point:** V1-C09 COMPLETE — AWAIT EXPLICIT DELIVERY AUTHORIZATION
+**Next Action:** STOP and await explicit authorization to commit/push/integrate C09; do not start C10
 
 ## Guiding Rule
 
