@@ -44,12 +44,13 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED; C01–C09 Card commits are committed and pushed
+**Git Repository:** INITIALIZED; C01–C10 Card commits are committed and pushed
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
 **Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
 **Live Operational Git State:** dynamically verify current branch, upstream, local/remote `main` equality, and tracked-worktree cleanliness from Git before every state-changing action; `REPAIR_INSTRUCTIONS.md` is a recognized untracked artifact outside Card scope
-**Last Completed / Integrated Card:** V1-C09 — Evidence Layer; approved commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66` is integrated into canonical `main`
+**Last Completed / Integrated Card:** V1-C10 — Source Quality and Freshness; approved commit `2c2868910c5bd433f76d38e7e2641dc237626220` is integrated into canonical `main`
+**C10 Card Branch:** `card/v1-c10-source-quality-freshness` is preserved at approved commit `2c2868910c5bd433f76d38e7e2641dc237626220`
 **C09 Card Branch:** `card/v1-c09-evidence-layer` is preserved at approved commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66`
 **C08 Card Branch:** `card/v1-c08-executive-research` is preserved at approved commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347`
 **C07 Card Branch:** `card/v1-c07-company-research` is preserved at approved commit `4c6dcd4d80273269d3790fb5b67522d3d012e3c8`
@@ -61,7 +62,7 @@ These facts must be re-inspected by Codex before changing project state.
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
 **Main Upstream:** `github/main` — verify local/remote HEAD equality dynamically before Card work
-**C01–C09 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
+**C01–C10 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
 
 Follow the canonical workflow and Post-Integration Reconciliation Gate in `AGENTS.md` §21: every new Card branch starts only after that gate passes against dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
 
@@ -99,21 +100,18 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C10 is complete on `card/v1-c10-source-quality-freshness`. Keep C11 and
-later Cards NOT_STARTED; do not commit, push, or merge without separate
-approval.
+V1-C10 is complete and integrated into canonical `main`. Keep C11 and later
+Cards NOT_STARTED; do not start C11 without separate explicit authorization.
 
 ## Last Execution Checkpoint
 
 **Card:** V1-C10 — Source Quality and Freshness
-**Step:** C10 implementation, Critical-Path Validation, and Final Card Closure Gate completed
+**Step:** C10 delivery commit pushed and fast-forward integrated into canonical `main`; post-integration reconciliation completed
 **Status:** COMPLETE
 **Implementation Files Changed:** `application/source_quality.py`;
 `tests/unit/test_source_quality.py`; canonical C10 Evidence;
 `PROJECT_CONTROL.md`
-**Project-State Change:** C10 work is uncommitted on
-`card/v1-c10-source-quality-freshness`; no commit, push, merge, rebase, or
-force-push was authorized or performed.
+**Project-State Change:** approved C10 commit `2c2868910c5bd433f76d38e7e2641dc237626220` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, or force-push occurred.
 **Tests Run:** focused C10 tests — 6 passed; full suite — 58 passed; `pip check`;
 `compileall -q src`; source-quality import; `git diff --check`; scope/ignore/
 secret review.
@@ -121,10 +119,10 @@ secret review.
 Closure Gate PASS. A persisted Source deterministically yields quality,
 publication/retrieval-date, freshness, and duplicate-origin metadata without
 becoming verification or a factual-truth decision.
-**Evidence Updated:** C10 closure evidence completed; C11–V1-C22 remain NOT_STARTED.
+**Evidence Updated:** C10 closure and historical delivery evidence completed; C11–V1-C22 remain NOT_STARTED.
 **Blocker:** NONE
-**Safe Resume Point:** V1-C10 COMPLETE — AWAIT EXPLICIT DELIVERY AUTHORIZATION
-**Next Action:** STOP and await explicit authorization to commit/push/integrate C10; do not start C11
+**Safe Resume Point:** PRE-V1-C11
+**Next Action:** STOP and await explicit authorization for a dynamically gated V1-C11 start
 
 ## Guiding Rule
 

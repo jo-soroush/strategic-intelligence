@@ -1269,7 +1269,10 @@ Project Control; no C11+ behavior.
 `REPAIR_INSTRUCTIONS.md` and `eference/` remain untracked and outside scope.
 **PROJECT_CONTROL Updated:** YES
 **Historical Git Evidence:** C10 branch was created from integrated `main` at
-`8cff3c8`; no C10 commit or push is authorized or performed.
+`8cff3c8`; approved commit `2c2868910c5bd433f76d38e7e2641dc237626220`
+(`feat(c10): add source quality and freshness`) was pushed on the preserved
+Card branch and fast-forward integrated into canonical `main` without a merge
+commit, rebase, or force-push.
 **Exact Exit Gate Proof:** PASS — Verification now has deterministic typed
 PRIMARY/STRONG_SECONDARY/OTHER, publication/retrieval-date,
 CURRENT/AGING/STALE/UNKNOWN, and duplicate-origin inputs from Source records.
