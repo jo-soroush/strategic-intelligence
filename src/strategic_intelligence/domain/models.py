@@ -73,6 +73,14 @@ class ResearchTaskStatus(str, Enum):
     FAILED = "FAILED"
 
 
+class ResearchCoverageStatus(str, Enum):
+    COVERED = "COVERED"
+    PARTIAL = "PARTIAL"
+    NOT_FOUND = "NOT_FOUND"
+    UNAVAILABLE = "UNAVAILABLE"
+    NOT_RELEVANT = "NOT_RELEVANT"
+
+
 class SourceType(str, Enum):
     OFFICIAL_COMPANY = "OFFICIAL_COMPANY"
     OFFICIAL_REPORT = "OFFICIAL_REPORT"
@@ -220,15 +228,65 @@ class ResearchTask(DomainModel):
     category: ResearchCategory
     query: str = Field(min_length=1)
     priority: int = Field(ge=0)
+    max_attempts: int = Field(default=1, ge=1, le=3)
     status: ResearchTaskStatus = ResearchTaskStatus.PENDING
     created_at: datetime = Field(default_factory=utc_now)
     completed_at: datetime | None = None
 
 
+class ResearchCoverageRequirement(DomainModel):
+    target_type: TargetType
+    category: ResearchCategory
+    priority: int = Field(ge=0)
+
+
+class ResearchCoverage(DomainModel):
+    case_id: str = Field(min_length=1)
+    target_type: TargetType
+    category: ResearchCategory
+    status: ResearchCoverageStatus
+    retained_source_count: int = Field(default=0, ge=0)
+    missing_reason: str | None = None
+
+    @model_validator(mode="after")
+    def _coverage_status_is_explainable(self) -> "ResearchCoverage":
+        if self.status is ResearchCoverageStatus.COVERED and self.retained_source_count == 0:
+            raise ValueError("covered research requires at least one retained source")
+        if self.status in {
+            ResearchCoverageStatus.PARTIAL,
+            ResearchCoverageStatus.NOT_FOUND,
+            ResearchCoverageStatus.UNAVAILABLE,
+        } and not self.missing_reason:
+            raise ValueError("incomplete research coverage requires a missing reason")
+        return self
+
+
 class ResearchPlan(DomainModel):
     case_id: str = Field(min_length=1)
     tasks: list[ResearchTask] = Field(default_factory=list)
+    required_coverage: list[ResearchCoverageRequirement] = Field(default_factory=list)
+    coverage: list[ResearchCoverage] = Field(default_factory=list)
+    task_budget: int = Field(default=13, ge=1, le=13)
+    attempt_budget_per_task: int = Field(default=1, ge=1, le=3)
     created_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def _plan_is_consistent(self) -> "ResearchPlan":
+        if len(self.tasks) > self.task_budget:
+            raise ValueError("research task count exceeds plan budget")
+        task_keys = [(task.target_type, task.category) for task in self.tasks]
+        if len(task_keys) != len(set(task_keys)):
+            raise ValueError("research plan cannot contain duplicate target/category tasks")
+        if any(task.case_id != self.case_id for task in self.tasks):
+            raise ValueError("research task case_id must match research plan")
+        if any(task.max_attempts > self.attempt_budget_per_task for task in self.tasks):
+            raise ValueError("research task attempt budget exceeds research plan")
+        coverage_keys = [(coverage.target_type, coverage.category) for coverage in self.coverage]
+        if len(coverage_keys) != len(set(coverage_keys)):
+            raise ValueError("research coverage cannot contain duplicate target/category records")
+        if any(coverage.case_id != self.case_id for coverage in self.coverage):
+            raise ValueError("research coverage case_id must match research plan")
+        return self
 
 
 class RawFinding(DomainModel):

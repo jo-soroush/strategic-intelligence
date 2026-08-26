@@ -23,7 +23,7 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | V1-C03 | Persistence Foundation | COMPLETE | PASS |
 | V1-C04 | Provider Foundation | COMPLETE | PASS |
 | V1-C05 | Case Input and Validation | COMPLETE | PASS |
-| V1-C06 | Research Planner | NOT_STARTED | PENDING |
+| V1-C06 | Research Planner | COMPLETE | PASS |
 | V1-C07 | Company Research | NOT_STARTED | PENDING |
 | V1-C08 | Executive Research | NOT_STARTED | PENDING |
 | V1-C09 | Evidence Layer | NOT_STARTED | PENDING |
@@ -561,29 +561,134 @@ unresolved/unsafe Case can enter the later unrestricted-research path.
 
 # V1-C06 — Research Planner
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C04, V1-C05
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Bounded ResearchPlan | TBD | TBD | PENDING | TBD |
-| Company/executive separation | TBD | TBD | PENDING | TBD |
-| Coverage statuses | TBD | TBD | PENDING | TBD |
-| High-priority gap behavior | TBD | TBD | PENDING | TBD |
-| Privacy boundary | TBD | TBD | PENDING | TBD |
+| Bounded ResearchPlan | `domain/models.py` (`ResearchPlan`, `ResearchTask`); `application/research_planning.py` (`ResearchPlanner`) | Critical-path test; full suite | PASS | Plan has a maximum 13 task budget and a maximum per-task attempt budget; tasks are unique, ordered, typed, and pending |
+| Company/executive separation | `application/research_planning.py` task templates | Critical-path test | PASS | Separate company and executive templates create only their matching typed targets/categories |
+| Coverage statuses | `domain/models.py` (`ResearchCoverage`, `ResearchCoverageStatus`) | Coverage and incomplete-plan tests | PASS | Typed statuses preserve covered, partial, missing, unavailable, and not-relevant state with explainable incomplete coverage |
+| High-priority gap behavior | `application/research_planning.py` (`plan`, `is_completion_ready`) | Coverage-aware planning test | PASS | Covered work is skipped; partial high-priority work remains planned; completion requires all required categories to be covered or not relevant |
+| Privacy boundary | `application/research_planning.py` (`_guidance`, `_validate_coverage`) | Fake LLM private-category test | PASS | Optional provider guidance can only emphasize approved public-professional categories; unknown/private categories reject before plan creation |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+### C06 Start / Contract-Risk Map
 
+**Engineering Goal / Why It Exists:** Convert a C05-validated Case into a
+meeting-focused, bounded ResearchPlan so later research follows explicit work
+rather than uncontrolled discovery.
+
+**Learning Goal:** Practice separating a business objective into typed,
+prioritized machine-executable research work while keeping coverage gaps and
+boundedness visible.
+
+**Inspected Before State:** C02 supplies `ResearchPlan` and `ResearchTask`
+contracts, C04 supplies an optional normalized LLM provider boundary, and C05
+supplies a confirmed root Case. No application planner, task budget, or
+coverage-aware planning behavior exists.
+
+**Owned Boundary and Design Decision:** The C06 application planner owns task
+selection, ordering, per-task attempt budgets, and coverage-aware gap
+selection. Deterministic templates establish the safe baseline; any optional
+C04 structured-LLM guidance is validated and cannot create categories, exceed
+budgets, invoke search, or override the privacy boundary.
+
+**Contract / Risk Map:** Producer: a validated C05 Case. Inputs: company,
+executive, meeting goal, optional context, and prior typed coverage. Invariants:
+typed allowed categories, company/executive separation, unique ordered tasks,
+bounded task/attempt counts, and no private-personal research. Failures:
+malformed guidance or invalid coverage returns a structured rejection; an
+unresolved high-priority coverage status remains an explicit task rather than a
+completion claim. Consumers: C07/C08 research only. Deferred: web/search
+execution, source/evidence collection, verification, orchestration,
+checkpoint persistence, and UI.
+
+**C06 Critical-Path Expectation:** C05 Case → real C06 planner → typed
+ResearchPlan with bounded, separated pending ResearchTasks → deterministic plan
+validation. The critical path uses real C05 intake and local C03 SQLite; a fake
+C04 LLM is used only for the provider-guidance validation test, never to mock
+the planner itself.
+
+### Closure Evidence
+
+**Implementation Evidence:** Extended the application-owned domain contracts
+with typed `ResearchCoverageStatus`, `ResearchCoverage`,
+`ResearchCoverageRequirement`, plan task/attempt budgets, and plan consistency
+invariants. Added `ResearchPlanner`, which turns a C05 Case into ordered
+company/executive tasks and validates optional C04 structured-LLM guidance.
+The planner never invokes search or fetches external content.
+
+**Validation Evidence:** `.venv/bin/python -m pytest
+tests/unit/test_research_planning.py` passed 6 tests. `.venv/bin/python -m
+pytest` passed 39 tests. `.venv/bin/python -m pip check`, `.venv/bin/python
+-m compileall -q src`, the research-planning import check, and `git diff
+--check` passed.
+
+**Contract / Risk Map Outcome:** The implemented boundary matches the inspected
+flow: C05 validated Case → application planner → C02 typed plan/task/coverage
+contracts. It uses deterministic templates as the default and treats an
+optional C04 provider only as bounded category emphasis. No planning result can
+become research execution, evidence, a claim, or a workflow checkpoint.
+
+**Critical-Path Evidence:**
+`test_critical_path_builds_a_bounded_separated_typed_plan` composes real C05
+Case intake and local C03 SQLite persistence with the real C06
+`ResearchPlanner`. It proves 13 ordered bounded pending tasks,
+company/executive separation, explicit required coverage, meeting-goal queries,
+and no remote dependency. Result: PASS.
+
+**Architecture Before → After:** Before C06, C02 held passive plan/task
+records, but nothing constructed or assessed them. After C06, the application
+layer owns deterministic, coverage-aware planning while the domain remains
+provider-independent and C07/C08 still own research execution.
+
+**Problem → Diagnosis → Fix:** The first provider-guidance implementation let a
+malformed fake structured response raise Pydantic validation directly. The
+diagnosis was an unnormalized provider-boundary failure. C06 now converts both
+normalized provider failures and structured-validation failures into a typed
+`INVALID_GUIDANCE` rejection; the focused regression test passes.
+
+**Known Limitations / Deferrals:** C06 does not persist plans or accept a
+`RESEARCH_PLANNED` checkpoint, execute searches, record sources/coverage
+results, or implement workflow orchestration. C07/C08 own research execution;
+later persistence/workflow Cards own durable plan/checkpoint coordination.
+
+**Professional Engineering Lesson:** A research planner is a control surface,
+not a search loop. Its value is making work explicit, prioritized, bounded, and
+reviewable before any external capability is granted.
+
+**Learner Takeaway:** A meeting goal becomes machine-executable research by
+mapping it to typed questions with target, category, priority, and attempt
+limits—then using coverage outcomes, not a count of links, to decide what is
+still needed.
+
+**What This Enables Next:** C07 and C08 can consume explicit, bounded,
+separated tasks rather than inventing their own search scope.
+
+**Historical Git Evidence:** At the final pre-delivery diff/status review, only
+C06 tracked work plus recognized untracked artifacts outside Card scope were
+present. No C06 commit, push, or integration had then been authorized or
+performed.
+
+**Baseline Before:** N/A — C06 adds deterministic planning behavior, not an
+AI-quality/routing/recovery baseline candidate.
+**Candidate After:** N/A — optional fake-provider guidance is contract-tested,
+not evaluated for model quality.
+**Regression Decision:** PASS — C01–C05 regression tests remain green.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — changes are limited to C06 domain planning contracts,
+the application planner, focused tests, and required Evidence/Project Control.
+**Git Status Review:** PASS — no secret, `.env`, cache, generated artifact, or
+C07+ implementation is in the C06 tracked set; recognized untracked artifacts
+remain untouched and outside scope.
+**PROJECT_CONTROL Updated:** YES
+**Exit Gate Evidence:** PASS — planning produces typed bounded tasks with
+explicit coverage requirements, skips covered work, retains unresolved
+high-priority gaps, and reports completion only when coverage—not result
+count—proves every required category is covered or not relevant.
 
 # V1-C07 — Company Research
 

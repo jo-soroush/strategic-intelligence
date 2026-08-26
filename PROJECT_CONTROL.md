@@ -9,17 +9,19 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C05 COMPLETE — CASE INPUT AND VALIDATION
-**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C06 AUTHORIZATION
+**Implementation Status:** V1-C06 COMPLETE — RESEARCH PLANNER
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C07 AUTHORIZATION
 **Active Card:** NONE
-**Last Completed Card:** V1-C05 — Case Input and Validation
-**Next Card Candidate:** V1-C06 — Research Planner
+**Last Completed Card:** V1-C06 — Research Planner
+**Next Card Candidate:** V1-C07 — Company Research
 **V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** COMPLETE
 **V1-C04 Status:** COMPLETE
 **V1-C05 Status:** COMPLETE
-**Next Card Start Approval:** V1-C06 REQUIRED
+**V1-C06 Status:** COMPLETE
+**V1-C07 Status:** NOT_STARTED
+**Next Card Start Approval:** V1-C07 REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
 **Card Specifications:** 22 — canonical complete file restored
@@ -90,27 +92,28 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C05 is complete and integrated. Do not start V1-C06 without separate explicit user approval and a passing dynamically verified Post-Integration Reconciliation Gate on canonical `main`.
+V1-C06 is complete. Do not start V1-C07 without separate explicit user approval and the required dynamically verified Git/control gate on canonical `main`.
 
 Safe next sequence after approval:
 
-1. dynamically verify local/remote `main`, default-branch, C05 containment, preserved Card branch, clean tracked worktree, and durable control state;
-2. obtain separate authorization to start `V1-C06 — Research Planner` only after that gate passes;
-3. STOP; do not begin C06 in this session.
+1. obtain separate authorization for C06 delivery/integration as applicable;
+2. complete required post-delivery/integration reconciliation on canonical `main` when authorized;
+3. obtain separate authorization to start `V1-C07 — Company Research` only after the dynamic gate passes;
+4. STOP; do not begin C07 in this session.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C05 — Case Input and Validation
-**Step:** C05 delivery completed by Card-branch push and fast-forward integration into canonical `main`; durable post-integration reconciliation completed
+**Card:** V1-C06 — Research Planner
+**Step:** Bounded ResearchPlan, coverage-aware completion check, and C06 closure reconciliation completed
 **Status:** COMPLETE
-**Implementation Files Changed:** typed Case input names; application-owned Case intake and deterministic entity-resolution service; C05 acceptance/ambiguity/URL/persistence tests; C05 Evidence and Project Control
-**Project-State Change:** approved C05 commit `46e857a4e6d3ca0e04a0f6a3c645bc455f706b37` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, force-push, or C06 action occurred
-**Tests Run:** `tests/unit/test_case_input.py` — 6 passed; full suite — 33 passed; `pip check`; `compileall -q src`; package import; diff/ignore/scope review
-**Result:** C05 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS; invalid, unsafe, unresolved, and conflicting Cases are rejected before persistence and later research entry
-**Evidence Updated:** C05 closure and historical delivery evidence reconciled; V1-C06–V1-C22 remain NOT_STARTED
+**Implementation Files Changed:** typed ResearchCoverage/requirements and plan budgets; application-owned ResearchPlanner; C06 planner tests; C06 Evidence and Project Control
+**Project-State Change:** C06 Card branch begins from dynamically verified canonical `main`; at this closure checkpoint, no commit, push, merge, or C07 action had been authorized
+**Tests Run:** `tests/unit/test_research_planning.py` — 6 passed; full suite — 39 passed; `pip check`; `compileall -q src`; package import; diff/ignore/scope review
+**Result:** C06 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS; research receives a typed bounded plan and completion requires coverage status, not result count
+**Evidence Updated:** C06 closure evidence reconciled; V1-C07–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C06
-**Next Action:** STOP and await explicit user approval for a dynamically gated V1-C06 start
+**Safe Resume Point:** POST-V1-C06 — delivery/integration decision pending
+**Next Action:** STOP and await explicit user approval for C06 delivery/integration or for a separately gated V1-C07 start
 
 ## Guiding Rule
 
