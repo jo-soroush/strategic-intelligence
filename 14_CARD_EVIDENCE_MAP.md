@@ -537,7 +537,10 @@ after C05 has made its target identity explicit and safe.
 **Historical Git Evidence:** At the final pre-delivery diff/status review, only
 C05 tracked work plus recognized untracked artifacts outside Card scope were
 present. No C05 commit, push, or integration had then been authorized or
-performed.
+performed. After approval, commit `46e857a` (`feat(c05): add validated case
+intake`) was pushed on the preserved C05 Card branch and fast-forward integrated
+into `main` without a merge commit or history rewrite. These are historical
+delivery facts; Git remains the live authority for reference equality.
 
 **Baseline Before:** N/A — this deterministic validation/persistence Card does
 not alter an AI, routing, trust-quality, or recovery baseline.
