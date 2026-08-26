@@ -645,9 +645,9 @@ After every approved Card integration into `main`, and before the next Card bran
 6. the completed Card remains COMPLETE and its Final Card Closure Gate remains PASS;
 7. Active Card is NONE and the next Card remains NOT_STARTED;
 8. no unexpected merge commit, rebase, or history rewrite occurred; and
-9. PROJECT_CONTROL's semantic integration checkpoint agrees with Git truth.
+9. PROJECT_CONTROL's semantic integration checkpoint agrees with Git truth, and every current operational field affected by integration (such as Current Phase, Active Card, completed/integrated Card, next-Card authorization, blocker, safe resume point, and next action) describes the resulting post-integration state rather than a pre-integration delivery state.
 
-The next Card MUST NOT start until this gate passes. PROJECT_CONTROL records semantic lifecycle state and the dynamic-verification rule; it must not present pre-commit snapshots, pending reconciliation commit/push statements, or an exact current `main` SHA as permanent live Git authority. Git dynamically proves whether the reconciliation commit/push exists and whether the worktree is clean. Card Evidence may retain clearly historical closure evidence.
+The next Card MUST NOT start until this gate passes. PROJECT_CONTROL records semantic lifecycle state and the dynamic-verification rule; it must not present pre-commit snapshots, pending reconciliation commit/push statements, or an exact current `main` SHA as permanent live Git authority. Git dynamically proves whether the reconciliation commit/push exists and whether the worktree is clean. A self-invalidation/reconciliation check fails if Git consistency is safe but any current PROJECT_CONTROL operational field is stale. Card Evidence may retain clearly historical closure evidence.
 
 An explicit user authorization to integrate a Card may also explicitly authorize the control-only reconciliation needed to complete this gate: post-integration verification, PROJECT_CONTROL update, and its commit/push. A successful reconciliation commit/push must not require another PROJECT_CONTROL edit merely to state that it occurred. It never authorizes application changes, next-Card work, history rewriting, force-push, or branch deletion. If that authorization does not explicitly cover the reconciliation commit/push, STOP after verification and request it.
 
