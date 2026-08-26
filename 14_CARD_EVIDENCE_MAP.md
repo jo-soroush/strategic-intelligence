@@ -827,10 +827,11 @@ later source access, evidence extraction, and verification can support a fact.
 executive path using the same bounded provider discipline, while C09 can later
 normalize C07 raw findings into traceable Sources and Evidence.
 
-**Historical Git Evidence:** C07 is currently uncommitted and unpushed on
-`card/v1-c07-company-research`, created linearly from verified `main` at
-`2d7599e`. No delivery action was authorized or performed; Git remains the
-live authority for branch and worktree state.
+**Historical Git Evidence:** After closure approval, commit `4c6dcd4`
+(`feat(c07): add bounded company research`) was pushed on preserved branch
+`card/v1-c07-company-research` and fast-forward integrated into `main` without
+a merge commit or history rewrite. These are historical delivery facts; Git
+remains the live authority for branch, reference equality, and worktree state.
 
 **Baseline Before:** N/A — C07 establishes deterministic, provider-independent
 discovery behavior rather than an AI-quality, routing, or recovery baseline.
