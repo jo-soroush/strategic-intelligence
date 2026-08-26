@@ -9,17 +9,17 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C04 COMPLETE — REPAIR INTEGRATED
-**Current Phase:** CARD COMPLETE — READY FOR SEPARATE V1-C05 AUTHORIZATION AFTER DYNAMIC GATE VERIFICATION
+**Implementation Status:** V1-C05 COMPLETE — CASE INPUT AND VALIDATION
+**Current Phase:** CARD COMPLETE — AWAITING SEPARATE V1-C06 AUTHORIZATION
 **Active Card:** NONE
-**Last Completed Card:** V1-C04 — Provider Foundation Repair
-**Next Card Candidate:** V1-C05 — Case Input and Validation
+**Last Completed Card:** V1-C05 — Case Input and Validation
+**Next Card Candidate:** V1-C06 — Research Planner
 **V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** COMPLETE
 **V1-C04 Status:** COMPLETE
-**V1-C05 Status:** NOT_STARTED
-**Next Card Start Approval:** REQUIRED
+**V1-C05 Status:** COMPLETE
+**Next Card Start Approval:** V1-C06 REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
 **Card Specifications:** 22 — canonical complete file restored
@@ -89,29 +89,28 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C04 repair is integrated. Do not start V1-C05 without separate explicit user approval and a passing dynamically verified Post-Integration Reconciliation Gate on canonical `main`.
+V1-C05 is complete. Do not start V1-C06 without separate explicit user approval and the required dynamically verified Git/control gate on canonical `main`.
 
 Safe next sequence after approval:
 
-1. re-read all project authorities and inspect repository/Git state;
-2. activate `V1-C05 — Case Input and Validation` only after explicit user approval;
-3. perform its inspect-only Contract / Risk Map and Roadmap Alignment Gate;
-4. execute only bounded C05 scope if the gate passes;
-5. STOP after C05; do not begin C06.
+1. obtain separate authorization for C05 delivery/integration as applicable;
+2. complete required post-delivery/integration reconciliation on canonical `main` when authorized;
+3. obtain separate authorization to start `V1-C06 — Research Planner` only after the dynamic gate passes;
+4. STOP; do not begin C06 in this session.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C04 — Provider Foundation Repair
-**Step:** Default local provider composition defect repaired and revalidated
+**Card:** V1-C05 — Case Input and Validation
+**Step:** Typed Case intake, deterministic entity-resolution gate, real Case persistence, and C05 closure reconciliation completed
 **Status:** COMPLETE
-**Implementation Files Changed:** centralized Ollama base-URL configuration, `.env.example`, deterministic C04 regression tests, Evidence Map, Project Control
-**Project-State Change:** C04 repair commit `cb882e2` was pushed on its preserved repair branch, fast-forward integrated, and pushed to `main`; live reference equality remains dynamically verified
-**Tests Run:** pre-fix composition check reproduced the missing `Settings.ollama_base_url`; C04 provider tests (9 passed); full suite (27 passed); `pip check`; compile/import; default factory composition; Git diff/status checks
-**Result:** C04 Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS; default local provider construction is centrally configured and network-free
-**Evidence Updated:** C04 repair evidence recorded; V1-C05–V1-C22 remain NOT_STARTED
+**Implementation Files Changed:** typed Case input names; application-owned Case intake and deterministic entity-resolution service; C05 acceptance/ambiguity/URL/persistence tests; C05 Evidence and Project Control
+**Project-State Change:** C05 Card branch begins from dynamically verified canonical `main`; at this closure checkpoint, no commit, push, merge, or C06 action had been authorized
+**Tests Run:** `tests/unit/test_case_input.py` — 6 passed; full suite — 33 passed; `pip check`; `compileall -q src`; package import; diff/ignore/scope review
+**Result:** C05 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS; invalid, unsafe, unresolved, and conflicting Cases are rejected before persistence and later research entry
+**Evidence Updated:** C05 closure evidence reconciled; V1-C06–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C05
-**Next Action:** Separate explicit user approval to start V1-C05, only after the dynamically verified Post-Integration Reconciliation Gate passes
+**Safe Resume Point:** POST-V1-C05 — delivery/integration decision pending
+**Next Action:** STOP and await explicit user approval for C05 delivery/integration or for a separately gated V1-C06 start
 
 ## Guiding Rule
 

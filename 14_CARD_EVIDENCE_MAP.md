@@ -22,7 +22,7 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | V1-C02 | Domain Models | COMPLETE | PASS |
 | V1-C03 | Persistence Foundation | COMPLETE | PASS |
 | V1-C04 | Provider Foundation | COMPLETE | PASS |
-| V1-C05 | Case Input and Validation | NOT_STARTED | PENDING |
+| V1-C05 | Case Input and Validation | COMPLETE | PASS |
 | V1-C06 | Research Planner | NOT_STARTED | PENDING |
 | V1-C07 | Company Research | NOT_STARTED | PENDING |
 | V1-C08 | Executive Research | NOT_STARTED | PENDING |
@@ -420,29 +420,140 @@ default-composition regression closes the configuration/factory evidence gap.
 
 # V1-C05 — Case Input and Validation
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C02, V1-C03
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Case validation/persistence | TBD | TBD | PENDING | TBD |
-| URL safety | TBD | TBD | PENDING | TBD |
-| Company identity | TBD | TBD | PENDING | TBD |
-| Executive identity | TBD | TBD | PENDING | TBD |
-| Executive↔Company relation | TBD | TBD | PENDING | TBD |
-| Ambiguity handling | TBD | TBD | PENDING | TBD |
+| Case validation/persistence | `domain/models.py` (`Case`); `application/case_input.py` (`CaseIntakeService`); C03 `PersistenceRepository` | `tests/unit/test_case_input.py`; full suite | PASS | Valid typed input creates one Case only after confirmation and retrieves it from real SQLite persistence |
+| URL safety | `application/case_input.py` (`_normalize_public_url`) | Invalid URL tests | PASS | Only absolute credential-free HTTP(S) URLs pass; whitespace, `file:`, localhost, and non-global IP literals are rejected before persistence |
+| Company identity | `application/case_input.py` (`CompanyIdentityCandidate`, `_resolve`) | Conflicting URL and business-unit ambiguity tests | PASS | A company must have a unique candidate or a supplied public URL / country-plus-business-unit anchor; conflicts reject |
+| Executive identity | `application/case_input.py` (`ExecutiveIdentityCandidate`, `_resolve`) | Same-name and moved-executive tests | PASS | An executive must have a unique candidate or professional URL/current-title anchor; multiple candidates reject |
+| Executive↔Company relation | `application/case_input.py` (`_resolve`) | Moved-executive test | PASS | A matched executive associated with another company produces a structured conflict and no Case |
+| Ambiguity handling | `application/case_input.py` (`EntityResolution`, `CaseIntakeResult`) | Insufficient-anchor and same-name/company ambiguity tests | PASS | Unresolved, conflicting, or ambiguous identity returns a structured rejection before Case persistence |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+### C05 Start / Contract-Risk Map
+
+**Engineering Goal / Why It Exists:** Create one validated root Case and
+confirm the intended company, executive, and relation before any later Card can
+conduct unrestricted research.
+
+**Learning Goal:** Practice placing deterministic validation, normalization,
+identity ambiguity, and safe persistence behind an application-owned typed
+boundary rather than allowing downstream research to infer identity.
+
+**Implementation Scope / Out of Scope:** C05 owns required company, executive,
+and meeting-goal input; optional URLs/context; safe URL handling; deterministic
+entity resolution; and root-Case persistence. It does not own network lookup,
+provider use, research planning/execution, Case-update policy, verification,
+governance, UI, or orchestration.
+
+**Dependencies / Evaluation / Exit Gate:** C02 supplies typed domain contracts;
+C03 supplies the Case repository. Required valid/missing, invalid-URL,
+persistence, same-name executive, moved-executive, conflicting-URL, and
+ambiguous-company/business-unit cases are executed below. The Exit Gate is
+that invalid or unresolved/unsafe Cases cannot enter unrestricted research.
+
+**Inspected Before State:** C02 provides typed `Case`, `Company`, and
+`Executive` contracts; C03 can persist a Case through the application-owned
+repository. Neither provides a Case-submission boundary or deterministic entity
+resolution.
+
+**Owned Boundary and Design Decision:**
+`application/case_input.py` owns strict intake validation, URL normalization,
+and deterministic resolution. It composes the completed C02 domain contracts
+with the completed C03 `PersistenceRepository`; it performs no network lookup,
+provider call, research, workflow orchestration, verification, governance, or
+UI work. Unresolved or conflicting identity data yields a non-persisted,
+structured rejection.
+
+**C05 Critical Path:** typed raw submission → application validation and URL
+normalization → company/executive/relation confirmation → C02 Case creation →
+real C03 SQLite `create_case` persistence. Invalid or ambiguous input stops
+before Case persistence and therefore before later research.
+
+**Validated Implementation Milestone:**
+`tests/unit/test_case_input.py` executes the critical path against a real
+`SqliteRepository`: accepted input is normalized, confirmed, and retrieved from
+persisted storage. The same test module also proves required-field, unsafe URL,
+same-name executive, moved-executive, conflicting-company URL,
+business-unit ambiguity, and insufficient-anchor rejections. Result: PASS — 6
+passed.
+
+### Closure Evidence
+
+**Implementation Evidence:** Added required human-readable company and executive
+names to the C02 `Case` contract and added the application-owned
+`CaseIntakeService` with strict submission, candidate, resolution, error, and
+result contracts. It creates a Case only after deterministic validation and
+identity confirmation, then uses the completed C03 repository boundary for
+persistence.
+
+**Validation Evidence:** `.venv/bin/python -m pytest tests/unit/test_case_input.py`
+passed 6 tests. `.venv/bin/python -m pytest` passed 33 tests. `.venv/bin/python
+-m pip check`, `.venv/bin/python -m compileall -q src`, and the Case-input
+package import check passed. `git diff --check` passed.
+
+**Contract / Risk Map Outcome:** The implemented critical path matches the
+inspected ownership: strict raw submission → deterministic application gate →
+C02 contracts → real C03 SQLite persistence. Candidate lookup is deliberately
+input-only and deterministic; C05 adds no network lookup or future workflow.
+
+**Critical-Path Evidence:**
+`test_critical_path_validates_normalizes_resolves_and_persists_with_real_repository`
+uses the real `SqliteRepository`, validates and normalizes a submission,
+confirms identity, persists a Case, and reads the identical Case back. Result:
+PASS.
+
+**Architecture Before → After:** Before C05, typed records and Case storage
+existed independently. After C05, the application layer owns their controlled
+composition at a validated intake boundary; domain code remains independent of
+SQLite and no provider, research, governance, UI, or orchestration code was
+introduced.
+
+**Problem → Diagnosis → Fix:** N/A — no meaningful implementation defect was
+observed during C05 validation. The design explicitly avoids treating missing
+identity anchors as sufficient evidence.
+
+**Known Limitations / Deferrals:** C05 does not fetch, research, update Cases,
+or persist separate company/executive records; the existing C03 Case update
+operation remains its storage concern. Research planning, external source
+handling, verification, governance, and UI remain owned by later Cards.
+
+**Professional Engineering Lesson:** An intake boundary is a trust boundary:
+validation and deterministic identity resolution must occur before a durable
+checkpoint can unlock more capable downstream work.
+
+**Learner Takeaway:** Represent rejection as typed data, not an exception-only
+side effect. That makes ambiguity visible, testable, and impossible for a
+future workflow to ignore accidentally.
+
+**What This Enables Next:** C06 can receive a bounded, persisted Case only
+after C05 has made its target identity explicit and safe.
+
+**Historical Git Evidence:** At the final pre-delivery diff/status review, only
+C05 tracked work plus recognized untracked artifacts outside Card scope were
+present. No C05 commit, push, or integration had then been authorized or
+performed.
+
+**Baseline Before:** N/A — this deterministic validation/persistence Card does
+not alter an AI, routing, trust-quality, or recovery baseline.
+**Candidate After:** N/A — no AI-quality candidate was introduced.
+**Regression Decision:** PASS — all prior regression tests remain green.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — C05 changes are limited to typed Case intake, its
+domain/test adjustments, and required Evidence/Project Control state.
+**Git Status Review:** PASS — no secret, `.env`, cache, generated artifact, or
+future-Card implementation is in the C05 tracked set; recognized untracked
+artifacts remain untouched and outside scope.
+**PROJECT_CONTROL Updated:** YES
+**Exit Gate Evidence:** PASS — malformed/unsafe submissions fail validation;
+unresolved, ambiguous, and conflicting identities return structured rejections;
+only confirmed input reaches Case persistence. Therefore no invalid or
+unresolved/unsafe Case can enter the later unrestricted-research path.
 
 
 # V1-C06 — Research Planner

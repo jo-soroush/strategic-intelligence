@@ -20,7 +20,7 @@ def repository(tmp_path: Path) -> SqliteRepository:
 
 
 def _case() -> Case:
-    return Case(company_id="company", executive_id="executive", meeting_goal="prepare")
+    return Case(company_id="company", executive_id="executive", company_name="Example Co", executive_name="Ava Example", meeting_goal="prepare")
 
 
 def _traceability(repository: SqliteRepository, case: Case) -> tuple[Source, Evidence, Claim]:

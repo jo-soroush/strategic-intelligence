@@ -201,6 +201,8 @@ class Case(DomainModel):
     case_id: str = Field(default_factory=new_id, min_length=1)
     company_id: str = Field(min_length=1)
     executive_id: str = Field(min_length=1)
+    company_name: str = Field(min_length=1)
+    executive_name: str = Field(min_length=1)
     meeting_goal: str = Field(min_length=1)
     extra_context: str | None = None
     company_website: str | None = None

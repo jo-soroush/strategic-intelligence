@@ -16,7 +16,7 @@ from strategic_intelligence.domain.models import (
 def test_case_company_and_executive_use_stable_ids_and_aware_timestamps() -> None:
     company = Company(name="Example Co")
     executive = Executive(full_name="Ava Example", company_id=company.company_id)
-    case = Case(company_id=company.company_id, executive_id=executive.executive_id, meeting_goal="Prepare")
+    case = Case(company_id=company.company_id, executive_id=executive.executive_id, company_name=company.name, executive_name=executive.full_name, meeting_goal="Prepare")
 
     assert company.company_id != executive.executive_id
     assert case.created_at.tzinfo is not None
