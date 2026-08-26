@@ -41,12 +41,13 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED; C01–C05 Card commits are committed and pushed
+**Git Repository:** INITIALIZED; C01–C06 Card commits are committed and pushed
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
 **Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
 **Live Operational Git State:** dynamically verify current branch, upstream, local/remote `main` equality, and tracked-worktree cleanliness from Git before every state-changing action; `REPAIR_INSTRUCTIONS.md` is a recognized untracked artifact outside Card scope
-**Last Completed / Integrated Card:** V1-C05 — Case Input and Validation; approved commit `46e857a4e6d3ca0e04a0f6a3c645bc455f706b37` is integrated into canonical `main`
+**Last Completed / Integrated Card:** V1-C06 — Research Planner; approved commit `d784694ec1665dd8660a0d882db672d70c88d45e` is integrated into canonical `main`
+**C06 Card Branch:** `card/v1-c06-research-planner` is preserved at approved commit `d784694ec1665dd8660a0d882db672d70c88d45e`
 **C05 Card Branch:** `card/v1-c05-case-input-validation` is preserved at approved commit `46e857a4e6d3ca0e04a0f6a3c645bc455f706b37`
 **C04 Card Branch:** `card/v1-c04-provider-foundation` is preserved at approved commit `8da3f527c1f095bdd2e9a9ec237018bf745bca22`
 **C04 Repair Integration State:** approved repair commit `cb882e2` is integrated into canonical `main`; `card/v1-c04-provider-foundation-repair` is preserved; live branch/commit state remains dynamically verified
@@ -54,7 +55,7 @@ These facts must be re-inspected by Codex before changing project state.
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
 **Main Upstream:** `github/main` — verify local/remote HEAD equality dynamically before Card work
-**C01–C05 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
+**C01–C06 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
 
 Follow the canonical workflow and Post-Integration Reconciliation Gate in `AGENTS.md` §21: every new Card branch starts only after that gate passes against dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
 
@@ -92,28 +93,27 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C06 is complete. Do not start V1-C07 without separate explicit user approval and the required dynamically verified Git/control gate on canonical `main`.
+V1-C06 is complete and integrated. Do not start V1-C07 without separate explicit user approval and a passing dynamically verified Post-Integration Reconciliation Gate on canonical `main`.
 
 Safe next sequence after approval:
 
-1. obtain separate authorization for C06 delivery/integration as applicable;
-2. complete required post-delivery/integration reconciliation on canonical `main` when authorized;
-3. obtain separate authorization to start `V1-C07 — Company Research` only after the dynamic gate passes;
-4. STOP; do not begin C07 in this session.
+1. dynamically verify local/remote `main`, default-branch, C06 containment, preserved Card branch, clean tracked worktree, and durable control state;
+2. obtain separate authorization to start `V1-C07 — Company Research` only after that gate passes;
+3. STOP; do not begin C07 in this session.
 
 ## Last Execution Checkpoint
 
 **Card:** V1-C06 — Research Planner
-**Step:** Bounded ResearchPlan, coverage-aware completion check, and C06 closure reconciliation completed
+**Step:** C06 delivery completed by Card-branch push and fast-forward integration into canonical `main`; durable post-integration reconciliation completed
 **Status:** COMPLETE
 **Implementation Files Changed:** typed ResearchCoverage/requirements and plan budgets; application-owned ResearchPlanner; C06 planner tests; C06 Evidence and Project Control
-**Project-State Change:** C06 Card branch begins from dynamically verified canonical `main`; at this closure checkpoint, no commit, push, merge, or C07 action had been authorized
+**Project-State Change:** approved C06 commit `d784694ec1665dd8660a0d882db672d70c88d45e` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, force-push, or C07 action occurred
 **Tests Run:** `tests/unit/test_research_planning.py` — 6 passed; full suite — 39 passed; `pip check`; `compileall -q src`; package import; diff/ignore/scope review
 **Result:** C06 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card Closure Gate PASS; research receives a typed bounded plan and completion requires coverage status, not result count
-**Evidence Updated:** C06 closure evidence reconciled; V1-C07–V1-C22 remain NOT_STARTED
+**Evidence Updated:** C06 closure and historical delivery evidence reconciled; V1-C07–V1-C22 remain NOT_STARTED
 **Blocker:** NONE
-**Safe Resume Point:** POST-V1-C06 — delivery/integration decision pending
-**Next Action:** STOP and await explicit user approval for C06 delivery/integration or for a separately gated V1-C07 start
+**Safe Resume Point:** PRE-V1-C07
+**Next Action:** STOP and await explicit user approval for a dynamically gated V1-C07 start
 
 ## Guiding Rule
 

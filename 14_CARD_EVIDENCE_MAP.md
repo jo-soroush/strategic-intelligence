@@ -671,7 +671,10 @@ separated tasks rather than inventing their own search scope.
 **Historical Git Evidence:** At the final pre-delivery diff/status review, only
 C06 tracked work plus recognized untracked artifacts outside Card scope were
 present. No C06 commit, push, or integration had then been authorized or
-performed.
+performed. After approval, commit `d784694` (`feat(c06): add bounded research
+planner`) was pushed on the preserved C06 Card branch and fast-forward
+integrated into `main` without a merge commit or history rewrite. These are
+historical delivery facts; Git remains the live authority for reference equality.
 
 **Baseline Before:** N/A — C06 adds deterministic planning behavior, not an
 AI-quality/routing/recovery baseline candidate.
