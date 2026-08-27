@@ -6,40 +6,17 @@ This is the canonical evidence ledger for all 22 V1 Cards.
 
 Evidence is written only from actual repository execution. `TBD` and `PENDING` are intentional before implementation.
 
-A Card may be COMPLETE only when its mandatory requirements, tests/evaluation, regressions, exact Exit Gate, diff/status review, Evidence Map and PROJECT_CONTROL all agree.
+A Card may be COMPLETE only when its mandatory requirements, tests/evaluation,
+regressions, exact Exit Gate, diff/status review, and canonical Evidence record
+all agree.
 
-Card-level `Git Status Review` entries are historical closure evidence captured at the time of the Card's final pre-commit review. They do not replace dynamically verified live Git state or PROJECT_CONTROL's post-integration semantic checkpoint.
+Card-level `Git Status Review` entries are historical closure evidence captured
+at the time of final pre-commit review. They do not replace dynamically
+verified live Git state.
 
 ## Status Values
 
 NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
-
-## V1 Evidence Summary
-
-| Card | Name | Status | Exit Gate |
-|---|---|---|---|
-| V1-C01 | Repository Baseline | COMPLETE | PASS |
-| V1-C02 | Domain Models | COMPLETE | PASS |
-| V1-C03 | Persistence Foundation | COMPLETE | PASS |
-| V1-C04 | Provider Foundation | COMPLETE | PASS |
-| V1-C05 | Case Input and Validation | COMPLETE | PASS |
-| V1-C06 | Research Planner | COMPLETE | PASS |
-| V1-C07 | Company Research | COMPLETE | PASS |
-| V1-C08 | Executive Research | COMPLETE | PASS |
-| V1-C09 | Evidence Layer | COMPLETE | PASS |
-| V1-C10 | Source Quality and Freshness | COMPLETE | PASS |
-| V1-C11 | Verification Engine | COMPLETE | PASS |
-| V1-C12 | Bounded Follow-Up Research | NOT_STARTED | PENDING |
-| V1-C13 | Governance Gate | NOT_STARTED | PENDING |
-| V1-C14 | Security Boundaries | NOT_STARTED | PENDING |
-| V1-C15 | Strategic Analysis | NOT_STARTED | PENDING |
-| V1-C16 | Brief Generator | NOT_STARTED | PENDING |
-| V1-C17 | Minimal Local UI | NOT_STARTED | PENDING |
-| V1-C18 | Workflow Recovery | NOT_STARTED | PENDING |
-| V1-C19 | Observability and Audit | NOT_STARTED | PENDING |
-| V1-C20 | Golden Case | NOT_STARTED | PENDING |
-| V1-C21 | Hardening and Regression | NOT_STARTED | PENDING |
-| V1-C22 | Documentation and Demo Readiness | NOT_STARTED | PENDING |
 
 ## V1-C05+ Evidence Model
 
@@ -1450,7 +1427,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1477,7 +1453,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1505,7 +1480,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1532,7 +1506,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1559,7 +1532,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1584,7 +1556,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1611,7 +1582,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1638,7 +1608,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1667,7 +1636,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1693,7 +1661,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 
@@ -1720,7 +1687,6 @@ is emitted as VERIFIED/SUPPORTED.
 **Known Issues / Blockers:** None recorded.
 **Diff Review:** PENDING
 **Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
 **Exit Gate Evidence:** TBD
 
 # Final V1 Evidence Gate

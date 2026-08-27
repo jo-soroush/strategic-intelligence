@@ -6,7 +6,9 @@ This is the canonical executable contract for all 22 V1 Cards. It consolidates t
 
 ## Execution Rules
 
-Before every Card, reconcile AGENTS.md, PROJECT_CONTROL.md, architecture documents, this Roadmap/Specification, Evidence Map, Codex Execution Protocol, Golden Case Contract when relevant, repository reality, tests and Git.
+Before every Card, reconcile AGENTS.md, architecture documents, this Roadmap,
+the relevant Card Specification and Evidence record, Git Workflow, Golden Case
+Contract when relevant, repository reality, tests, and Git.
 
 Only one Card may be active. Do not implement future Cards early. User approval is required to start each Card and for architecture/scope changes, destructive/sensitive actions, commit/push/PR/merge/deployment.
 
@@ -16,68 +18,21 @@ For every Card:
 - implement only bounded scope;
 - add/run required tests and relevant regressions;
 - run relevant baseline/evaluation or record N/A with reason when applicable;
-- update Evidence and PROJECT_CONTROL;
+- update canonical Evidence;
 - review diff/status;
 - prove the exact Exit Gate;
 - STOP on failure.
 
 Status values: NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE.
 
-## V1-C05+ Forward Card Contract
+## Planned-Contract Rule
 
-V1-C05 onward uses this compact contract in addition to the existing bounded
-requirements below. The existing `Goal` is the **Engineering Goal**; it, Scope,
-Out of Scope, Dependencies, Tests / Evaluation, and Exit Gate remain the
-authoritative Card requirements and are not broadened by this format.
-
-Before the first implementation write, the active Card must make explicit:
-
-1. **Engineering Goal** — the existing Card Goal.
-2. **Learning Goal** — the specific engineering, AI, or software practice the
-   Card will teach through its bounded work.
-3. **Why It Exists** — the problem or prerequisite the Card resolves.
-4. **Architecture Concept / Ownership Boundary** — the responsible component
-   boundary; this references approved architecture and does not redefine it.
-5. **Current System Before Card** — repository facts established by the
-   mandatory Contract / Risk Map, not pre-filled assumptions.
-6. **Design Decision** — the minimal in-scope decision selected after mapping;
-   alternatives outside the Card remain deferred.
-7. **Implementation Scope** and **Out of Scope** — the existing sections.
-8. **Dependencies**, **Tests / Evaluation**, and **Exit Gate** — the existing
-   sections.
-9. **Critical-Path Expectation** — the smallest expected composed path that
-   proves the Card's primary owned capability. It must be derived from actual
-   implementation at closure and must not create a second Critical-Path gate.
-
-The following forward-looking map defines the intended learning, rationale,
-ownership boundary, and Critical-Path expectation without asserting current
-implementation state. It applies only when the named Card is authorized.
-
-| Card | Learning Goal / Why It Exists | Architecture Concept / Ownership Boundary | Critical-Path Expectation |
-|---|---|---|---|
-| C05 | Learn deterministic input and identity gates; prevent unsafe or ambiguous cases from entering research. | Case validation and entity-resolution boundary before research, with persistence through the repository owner. | Case input → validation → entity-resolution decision → persistence or blocked research entry. |
-| C06 | Learn bounded, coverage-aware planning; turn a valid Case into explicit research work rather than ad hoc requests. | ResearchPlanner owns plan/task/coverage construction; providers only support its approved boundary. | Valid Case → bounded ResearchPlan → task/coverage validation. |
-| C07 | Learn source-grounded company research; establish company findings without inventing later evidence/verification behavior. | Company-research component produces bounded findings through approved research/provider boundaries. | Company task → approved source/finding handling → typed research output or explicit gap. |
-| C08 | Learn public, professional executive research with privacy limits. | Executive-research component owns executive findings and privacy filtering. | Executive task → public/professional boundary → typed output or explicit gap. |
-| C09 | Learn Source → Evidence → Claim traceability. | Evidence layer owns the evidence/provenance foundation and preserves downstream fidelity inputs; C11 owns fidelity/verification judgment. | Finding/source → evidence validation → claim linkage or rejection. |
-| C10 | Learn deterministic source-quality and freshness assessment. | Source-quality/freshness component owns classifications used by later verification. | Source → quality/freshness assessment → typed classification. |
-| C11 | Learn claim verification without conflating it with research or governance. | Verification component owns Fidelity/Verification outcomes and gaps; C13 alone owns Governance restriction / RESTRICT. | Claim plus evidence → Fidelity/Verification result → VERIFIED/SUPPORTED/CONFLICTING/STALE/INSUFFICIENT_EVIDENCE or explicit gap. |
-| C12 | Learn bounded correction research that terminates safely. | Follow-up orchestration owns attempt limits and terminal routing; research remains bounded. | Verification gap → bounded follow-up attempt → verified result, gap, or terminal limit. |
-| C13 | Learn deterministic governance as a non-overridable trust boundary. | Governance owns PASS/RESTRICT/BLOCK decisions over verified inputs. | Candidate content → deterministic governance checks → allowed, restricted, or blocked output. |
-| C14 | Learn enforcement of security/privacy boundaries around external input, providers, and artifacts. | Security controls own validation, redaction, permissions, and fail-closed outcomes. | Unsafe boundary input → deterministic rejection/redaction without unsafe downstream access. |
-| C15 | Learn evidence-bounded strategic synthesis. | Strategic-analysis component consumes trusted compressed context, not raw uncontrolled sources. | Verified context → typed FACT/INFERENCE/RECOMMENDATION analysis with gaps preserved. |
-| C16 | Learn brief generation that preserves governance, provenance, restrictions, and gaps. | Brief generator formats only approved governed material. | Governed analysis → brief generation → restriction/BLOCK visibility validation. |
-| C17 | Learn a thin local UI boundary over validated application services. | UI adapts user input/output and owns no research, verification, or governance logic. | Valid local request → application boundary → safe Quick/Full/partial display. |
-| C18 | Learn recovery from accepted persistence checkpoints only. | Recovery/orchestration owns resume selection; repository proves accepted state. | Interrupted run → accepted-checkpoint lookup → validated resume or safe fallback. |
-| C19 | Learn safe, structured observability across the harness. | Observability/audit boundary records content-minimized events without altering authority. | Case/run/stage event → redacted structured audit trace. |
-| C20 | Learn evaluation against owned Golden Case evidence rather than subjective quality claims. | Evaluation contract owns fixtures, rubric, and comparison results. | Golden Case input → measured pipeline outputs → rubric/traceability verdict. |
-| C21 | Learn disciplined defect hardening and regression protection. | Each defect is repaired at its owning boundary with regression evidence. | Reproduced defect → bounded owning-boundary fix → focused and regression proof. |
-| C22 | Learn reproducible engineering closure and accurate project communication. | Documentation/demo boundary reports verified behavior without changing runtime authority. | Clean setup/review path → documented commands/evidence → reproducibility verdict. |
-
-The Card-specific **Current System Before Card** and **Design Decision** are
-recorded from the active Card's inspect-first evidence; they cannot be inferred
-or marked complete before that inspection. The actual Critical-Path execution,
-commands, and result belong in `14_CARD_EVIDENCE_MAP.md`.
+Each detailed Card section below is its one authoritative planned contract.
+Its Goal is the Engineering Goal; its Scope, Out of Scope, Dependencies, Tests
+/ Evaluation, and Exit Gate are exact. For C05 onward, the compact duplicate
+overlay has been consolidated into the Card's own planned learning, ownership,
+and expected Critical-Path fields. Current-system facts, design decisions, and
+actual Critical-Path execution belong only in the Card's Evidence record.
 
 # V1-C01 — Repository Baseline
 
@@ -192,6 +147,9 @@ PASS only when: Core components operate through provider interfaces without vend
 ## Goal
 Create the validated root Case and resolve target identity before research.
 
+## Planned Learning, Ownership, and Critical Path
+Learn deterministic input and identity gates; Case validation/entity resolution owns the boundary before research and persistence; Case input → validation → entity-resolution decision → persistence or blocked research entry.
+
 ## Dependencies
 V1-C02, V1-C03
 
@@ -218,6 +176,9 @@ PASS only when: Invalid or unresolved/unsafe Cases cannot enter unrestricted res
 
 ## Goal
 Convert a valid Case into a bounded meeting-focused ResearchPlan with explicit coverage.
+
+## Planned Learning, Ownership, and Critical Path
+Learn bounded, coverage-aware planning; ResearchPlanner owns plan/task/coverage construction while providers only support its approved boundary; Valid Case → bounded ResearchPlan → task/coverage validation.
 
 ## Dependencies
 V1-C04, V1-C05
@@ -246,6 +207,9 @@ PASS only when: Research receives a valid bounded plan and completion is coverag
 ## Goal
 Produce structured source-linked company intelligence.
 
+## Planned Learning, Ownership, and Critical Path
+Learn source-grounded company research; the company-research component owns bounded findings through approved research/provider boundaries; Company task → approved source/finding handling → typed research output or explicit gap.
+
 ## Dependencies
 V1-C04, V1-C06
 
@@ -272,6 +236,9 @@ PASS only when: Company research reliably produces traceable meeting-relevant fi
 
 ## Goal
 Produce relevant public professional intelligence about the target executive.
+
+## Planned Learning, Ownership, and Critical Path
+Learn public, professional executive research with privacy limits; executive research owns findings and privacy filtering; Executive task → public/professional boundary → typed output or explicit gap.
 
 ## Dependencies
 V1-C04, V1-C06
@@ -300,6 +267,9 @@ PASS only when: Executive research is useful while preserving the public-profess
 ## Goal
 Create a traceable Source → Evidence → Candidate Claim foundation with fidelity inputs.
 
+## Planned Learning, Ownership, and Critical Path
+Learn Source → Evidence → Claim traceability; the Evidence layer owns provenance and downstream fidelity inputs while C11 owns fidelity/verification judgment; Finding/source → evidence validation → claim linkage or rejection.
+
 ## Dependencies
 V1-C03, V1-C07, V1-C08
 
@@ -326,6 +296,9 @@ PASS only when: Important findings are traceable to Sources and ready for fideli
 
 ## Goal
 Provide deterministic source-quality/freshness metadata for Verification.
+
+## Planned Learning, Ownership, and Critical Path
+Learn deterministic source-quality/freshness assessment; this component owns classifications used by later verification; Source → quality/freshness assessment → typed classification.
 
 ## Dependencies
 V1-C09
@@ -354,6 +327,9 @@ PASS only when: Verification receives reliable source-quality and freshness inpu
 ## Goal
 Evaluate factual Claims against Evidence after Evidence Fidelity checking.
 
+## Planned Learning, Ownership, and Critical Path
+Learn verification without conflating it with research or governance; Verification owns Fidelity/Verification outcomes and gaps while C13 alone owns Governance restriction / RESTRICT; Claim plus evidence → Fidelity/Verification result → VERIFIED/SUPPORTED/CONFLICTING/STALE/INSUFFICIENT_EVIDENCE or explicit gap.
+
 ## Dependencies
 V1-C09, V1-C10
 
@@ -380,6 +356,9 @@ PASS only when: Unsupported/overstrong facts cannot be promoted to trusted factu
 
 ## Goal
 Allow Verification to request targeted additional research without autonomous loops.
+
+## Planned Learning, Ownership, and Critical Path
+Learn bounded correction research that terminates safely; follow-up orchestration owns attempt limits and terminal routing; Verification gap → bounded follow-up attempt → verified result, gap, or terminal limit.
 
 ## Dependencies
 V1-C07, V1-C08, V1-C11
@@ -408,6 +387,9 @@ PASS only when: Research-more behavior is bounded and deterministic at workflow 
 ## Goal
 Implement the deterministic non-overridable trust boundary before user-facing intelligence.
 
+## Planned Learning, Ownership, and Critical Path
+Learn deterministic governance as a non-overridable trust boundary; Governance owns PASS/RESTRICT/BLOCK decisions over verified inputs; Candidate content → deterministic governance checks → allowed, restricted, or blocked output.
+
 ## Dependencies
 V1-C11
 
@@ -434,6 +416,9 @@ PASS only when: Trust rules are demonstrably stronger than model output and cann
 
 ## Goal
 Implement V1 controls for safely researching untrusted public sources.
+
+## Planned Learning, Ownership, and Critical Path
+Learn enforcement of security/privacy boundaries; security controls own validation, redaction, permissions, and fail-closed outcomes; Unsafe boundary input → deterministic rejection/redaction without unsafe downstream access.
 
 ## Dependencies
 V1-C04, V1-C05, V1-C07, V1-C08, V1-C13
@@ -462,6 +447,9 @@ PASS only when: External research cannot bypass application security/governance 
 ## Goal
 Convert governed intelligence into meeting-relevant strategic reasoning using controlled context.
 
+## Planned Learning, Ownership, and Critical Path
+Learn evidence-bounded strategic synthesis; Strategic Analysis consumes trusted compressed context rather than raw uncontrolled sources; Verified context → typed FACT/INFERENCE/RECOMMENDATION analysis with gaps preserved.
+
 ## Dependencies
 V1-C11, V1-C13
 
@@ -488,6 +476,9 @@ PASS only when: Strategic reasoning adds value without destroying evidence/trust
 
 ## Goal
 Generate trustworthy Quick and Full Briefs from governed intelligence.
+
+## Planned Learning, Ownership, and Critical Path
+Learn brief generation that preserves governance, provenance, restrictions, and gaps; the Brief generator formats only approved governed material; Governed analysis → brief generation → restriction/BLOCK visibility validation.
 
 ## Dependencies
 V1-C13, V1-C15
@@ -516,6 +507,9 @@ PASS only when: Both Briefs are trustworthy, traceable and useful.
 ## Goal
 Make V1 usable locally without direct Python invocation.
 
+## Planned Learning, Ownership, and Critical Path
+Learn a thin local UI boundary over validated application services; UI adapts input/output and owns no research, verification, or governance logic; Valid local request → application boundary → safe Quick/Full/partial display.
+
 ## Dependencies
 V1-C05, V1-C16
 
@@ -542,6 +536,9 @@ PASS only when: A user can execute the approved V1 workflow locally.
 
 ## Goal
 Prove safe recovery from validated accepted checkpoints.
+
+## Planned Learning, Ownership, and Critical Path
+Learn recovery from accepted persistence checkpoints only; recovery/orchestration owns resume selection and the repository proves accepted state; Interrupted run → accepted-checkpoint lookup → validated resume or safe fallback.
 
 ## Dependencies
 V1-C03, V1-C16
@@ -570,6 +567,9 @@ PASS only when: Interrupted work resumes from the last accepted safe checkpoint 
 ## Goal
 Make Harness execution reconstructable and measurable.
 
+## Planned Learning, Ownership, and Critical Path
+Learn safe structured observability; the observability/audit boundary records content-minimized events without altering authority; Case/run/stage event → redacted structured audit trace.
+
 ## Dependencies
 V1-C03, V1-C04, V1-C13
 
@@ -596,6 +596,9 @@ PASS only when: A developer can answer what happened, why, and how the run perfo
 
 ## Goal
 Prove V1 on one real company, executive and meeting goal using the Golden Case Contract.
+
+## Planned Learning, Ownership, and Critical Path
+Learn evaluation against owned Golden Case evidence rather than subjective quality claims; the evaluation contract owns fixtures, rubric, and comparisons; Golden Case input → measured pipeline outputs → rubric/traceability verdict.
 
 ## Dependencies
 V1-C07 through V1-C19
@@ -624,6 +627,9 @@ PASS only when: Golden Case passes mandatory trust invariants and demonstrates r
 ## Goal
 Fix confirmed integration/Golden Case defects without feature expansion.
 
+## Planned Learning, Ownership, and Critical Path
+Learn disciplined defect hardening and regression protection; each defect is repaired at its owning boundary with regression evidence; Reproduced defect → bounded owning-boundary fix → focused and regression proof.
+
 ## Dependencies
 V1-C20
 
@@ -651,6 +657,9 @@ PASS only when: No known critical V1 defect remains and relevant quality baselin
 ## Goal
 Make V1 reproducible, self-explanatory and portfolio/demo ready.
 
+## Planned Learning, Ownership, and Critical Path
+Learn reproducible engineering closure and accurate project communication; documentation/demo reports verified behavior without changing runtime authority; Clean setup/review path → documented commands/evidence → reproducibility verdict.
+
 ## Dependencies
 V1-C21
 
@@ -675,4 +684,6 @@ PASS only when: A future developer/Codex session can reproduce and understand V1
 
 # Final V1 Gate
 
-C22 does not itself authorize V1 COMPLETE. Final status also requires the mandatory gates in the Test & Evaluation Plan, Roadmap, Evidence Map, Golden Case Contract, AGENTS.md and PROJECT_CONTROL.md to agree with repository reality.
+C22 does not itself authorize V1 COMPLETE. Final status also requires the
+applicable Test & Evaluation Plan, Card Specifications, Evidence Map, Golden
+Case Contract, AGENTS.md, and Git reality to agree.

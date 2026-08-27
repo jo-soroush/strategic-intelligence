@@ -15,9 +15,9 @@ Governance, end-to-end workflow orchestration, brief generation, UI, recovery,
 and later V1 capabilities remain governed by their owning future Cards. The
 verification foundation evaluates persisted Claim/Evidence/Source provenance
 and source metadata without mutating Claims, governing trust, or researching.
-The canonical Evidence Map and PROJECT_CONTROL own current Card delivery
-status; this README describes durable repository capabilities rather than live
-Card state.
+The canonical Evidence Map owns actual Card delivery evidence, while Git proves
+live delivery state; this README describes durable repository capabilities
+rather than live Card state.
 
 ### Requirements
 

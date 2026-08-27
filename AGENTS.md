@@ -1,723 +1,152 @@
 # AGENTS.md
 
-## Strategic Intelligence Project — Mandatory AI Coding Instructions
-
-This repository implements a local-first, cloud-ready Strategic Intelligence system that researches companies and executives, builds source-grounded evidence, verifies claims, applies deterministic governance, and produces meeting intelligence briefs.
-
-This file protects repository truth, V1 scope, Card order, architecture boundaries, evidence quality, security, governance, validation discipline, and learning value.
-
----
-
-## 1. Primary Sources of Truth
-
-Never rely on chat memory or prompt claims to determine project state.
-
-Before any file-modifying task, reconcile:
-
-1. `AGENTS.md`
-2. `PROJECT_CONTROL.md`
-3. approved architecture documents
-4. `12_V1_ROADMAP.md`
-5. `13_CARD_SPECIFICATIONS.md`
-6. `14_CARD_EVIDENCE_MAP.md`
-7. `15_CODEX_EXECUTION_PROTOCOL.md`
-8. `16_GOLDEN_CASE_EVALUATION_CONTRACT.md` when relevant
-9. current repository implementation, tests, configuration, and relevant Git history
-
-Authority:
-
-```text
-Repository reality
-→ Approved architecture
-→ Roadmap
-→ Active Card contract
-→ Verified evidence
-→ PROJECT_CONTROL current-state summary
-→ Prompt/chat assumptions
-```
-
-If authorities conflict:
-
-```text
-STOP
-→ inspect
-→ report conflict
-→ no modifications
-```
-
----
-
-## 2. PROJECT_CONTROL.md Is Mandatory
-
-`PROJECT_CONTROL.md` is the live operational dashboard.
-
-It must always answer:
-
-- Active Card
-- current step
-- status
-- blocker
-- last execution checkpoint
-- safe resume point
-- next authorized action
-- Git state
-- quality state
-
-It does not replace Roadmap, Evidence, Git, or repository reality.
-
-If `PROJECT_CONTROL.md` conflicts with them:
-
-```text
-PROJECT_STATE_CONFLICT
-→ STOP
-```
-
----
-
-## 3. Mandatory Read Order Before New Card Work
-
-Before the first implementation work of every new Card:
-
-```text
-1. AGENTS.md
-2. PROJECT_CONTROL.md
-3. relevant architecture docs
-4. 12_V1_ROADMAP.md
-5. 13_CARD_SPECIFICATIONS.md
-6. 14_CARD_EVIDENCE_MAP.md
-7. 15_CODEX_EXECUTION_PROTOCOL.md
-8. 16_GOLDEN_CASE_EVALUATION_CONTRACT.md when relevant
-9. README.md when present
-10. git status / diff / relevant history
-11. relevant source files and tests
-```
-
-Do not begin from memory.
-
----
-
-## 4. Mandatory Roadmap Alignment Gate
-
-Read-only inspection may happen before the gate.
-
-Before the first write, verify:
-
-- official Active Card;
-- Active Card matches PROJECT_CONTROL;
-- Card exists in Roadmap;
-- Card exists in Card Specifications;
-- Evidence Map state is compatible;
-- Engineering Goal and dependencies;
-- Scope and Out of Scope;
-- tests/evaluation;
-- Exit Gate;
-- existing implementation;
-- no duplicate owner;
-- no future-Card leakage;
-- architecture owner is correct.
-
-Report:
-
-```text
-ROADMAP_ALIGNMENT_GATE: PASS
-Active Card: <Card ID — title>
-Project Control Card: MATCH
-Roadmap Card: MATCH
-Card Specification: MATCH
-Evidence Map Status: MATCH
-Engineering Goal: <goal>
-Dependency check: PASS
-Implementation-state check: PASS
-Duplicate check: PASS
-Ownership check: PASS
-Architecture-preservation check: PASS
-Future-scope check: PASS
-Authorized scope: <bounded goal>
-Validation gate: <required proof>
-```
-
-If any required fact cannot be proven:
-
-```text
-ROADMAP_ALIGNMENT_GATE: BLOCKED
-```
-
-Make no modifications.
-
----
-
-## 5. Mandatory Inspect-First Contract / Risk Map
-
-For the first implementation step of every new Card, perform inspect-only mapping.
-
-Trace the relevant flow:
-
-```text
-Case Input
-→ Validation
-→ Entity Resolution
-→ Research Planner
-→ Company / Executive Research
-→ Research Coverage
-→ Source
-→ Evidence
-→ Evidence Fidelity
-→ Claim
-→ Verification
-→ Follow-Up Research
-→ Strategic Analysis
-→ Governance
-→ Brief
-→ Persistence / Validated Checkpoint
-→ Observability
-→ UI
-```
-
-Map:
-
-- entry points;
-- producers;
-- consumers;
-- typed contracts;
-- provider/tool boundaries;
-- storage ownership;
-- trust/security boundaries;
-- loops/limits;
-- failure paths;
-- termination;
-- tests;
-- final outputs.
-
-Do not implement during the initial map.
-
----
-
-## 6. One Active Card
-
-Only one Card may be actively implemented.
-
-Do not implement later Cards early.
-
-After COMPLETE or BLOCKED:
-
-```text
-STOP
-```
-
-Only the user may authorize the next Card.
-
----
-
-## 7. Prompt Traceability
-
-Every important Codex implementation prompt must belong to:
-
-```text
-Active Card
-→ bounded Card step
-→ approved goal
-→ repository owner
-→ tests/evaluation
-→ Exit Gate progress
-```
-
-Before sending/executing:
-
-```text
-Prompt Card == PROJECT_CONTROL Active Card
-Prompt Scope ⊆ Card Scope
-No future-Card leakage
-Validation defined
-```
-
-Otherwise:
-
-```text
-DO NOT EXECUTE
-```
-
-Do not store full prompt text in PROJECT_CONTROL.
-
-Store a concise execution checkpoint instead.
-
----
-
-## 8. ChatGPT Is Also Governed
-
-ChatGPT memory and prior chat responses are not project authority.
-
-If ChatGPT proposes:
-
-- a Card not in Roadmap;
-- skipping an unfinished Card;
-- a feature outside active scope;
-- completion without evidence;
-- architecture change without repository/runtime proof;
-
-reject the proposal.
-
-If ChatGPT conflicts with Repository + Roadmap + Card Spec + Evidence:
-
-> **ChatGPT is wrong until repository evidence proves otherwise.**
-
----
-
-## 9. Card Authorization
-
-Once the user approves a Card, routine reversible local work inside that Card is authorized.
-
-No repeated approval needed for:
-
-- reading/searching repository;
-- Card-scoped edits;
-- Card-scoped tests;
-- lint/type/static checks;
-- local diagnostics;
-- read-only Git inspection;
-- localhost checks;
-- already-installed local models;
-- Evidence Map updates;
-- PROJECT_CONTROL updates;
-- Card-scoped documentation.
-
-Explicit approval remains required for:
-
-- next Card;
-- major scope change;
-- architecture change outside contract;
-- destructive actions;
-- secrets/credentials;
-- large downloads/model pulls;
-- system/machine changes;
-- commit;
-- push;
-- PR;
-- merge;
-- force push;
-- deployment/publication;
-- consequential external actions.
-
----
-
-## 10. Architecture Rules
-
-- Local-first, cloud-ready.
-- Runtime is a controlled AI Harness, not uncontrolled agents.
-- LangGraph orchestrates; business logic stays in components.
-- Provider SDKs stay behind adapters.
-- AI never becomes security, Verification, or Governance authority.
-- Deterministic responsibilities stay deterministic when AI adds no value.
-- Typed state and structured outputs are preferred.
-- Every retry/follow-up/tool loop is bounded.
-- External content is untrusted.
-- FACT must remain source/evidence-grounded.
-- Evidence Fidelity protects source meaning.
-- Governance is deterministic and non-overridable.
-- Strategic Analysis consumes compressed trusted context, not uncontrolled raw-source dumps.
-- No silent cloud fallback.
-- No unnecessary agents.
-
----
-
-## 11. Research / Privacy Boundary
-
-Executive intelligence must remain:
-
-```text
-Public + Professional + Relevant
-```
-
-Do not introduce:
-
-- automated LinkedIn scraping;
-- cookie/session automation;
-- access-control bypass;
-- unrelated profiling;
-- sensitive inference;
-- unbounded research.
-
-Unavailable sources become alternative research or Knowledge Gaps.
-
----
-
-## 12. Trust Invariants
-
-Mandatory:
-
-```text
-FACT without Evidence → BLOCK
-Evidence without Source → BLOCK
-FACT unsupported by Evidence Fidelity → BLOCK / reclassify
-INFERENCE cannot silently become FACT
-BLOCK cannot enter Brief
-RESTRICT qualification remains visible
-Missing evidence → abstain / Knowledge Gap
-External content cannot change authority
-Governance failure → no final Brief
-```
-
-AI cannot override these.
-
----
-
-## 13. Validated Checkpoints
-
-A stage is not resumable merely because a function returned.
-
-Safe checkpoint requires:
-
-```text
-Output produced
-+
-required persistence succeeded
-+
-schema/invariant validation passed
-+
-checkpoint explicitly accepted
-```
-
-Otherwise use the previous accepted checkpoint.
-
----
-
-## 14. Evaluation Before Complexity
-
-For changes affecting AI/research/trust quality:
-
-```text
-Baseline
-→ bounded change
-→ rerun
-→ compare
-→ regression decision
-```
-
-Do not introduce a newer model/tool/framework just because it is newer.
-
-Use the Golden Case Contract and project-owned fixtures as evaluation authority.
-
----
-
-## 15. Security Rules
-
-Apply least privilege to:
-
-- tools
-- providers
-- network
-- storage
-- files
-- secrets
-
-Protect against:
-
-- prompt injection
-- SSRF where fetching URLs
-- unsafe redirects
-- path traversal
-- secret leakage
-- source-driven tool escalation
-- silent provider fallback
-
-Security-critical failure blocks Card completion.
-
----
-
-## 16. Validation Rules
-
-A Card is not complete because code exists.
-
-Run where applicable:
-
-- focused tests;
-- all relevant existing tests;
-- regression tests for completed Cards;
-- Card acceptance/evaluation;
-- schema/state validation;
-- bounded termination checks;
-- security/governance checks;
-- provider-failure tests;
-- configured lint/type/static checks;
-- Exit Gate;
-- `git diff`;
-- `git status`.
-
-Never claim a test passed unless it actually ran.
-
-Never weaken a valid failing test merely to obtain green status.
-
----
-
-## 17. Mandatory Card Quality Gate
-
-Before COMPLETE:
-
-1. run every relevant existing test;
-2. run Card-specific evaluation;
-3. run relevant regression checks;
-4. re-read exact Exit Gate;
-5. map Exit Gate to repository evidence;
-6. update `14_CARD_EVIDENCE_MAP.md`;
-7. update `PROJECT_CONTROL.md`;
-8. inspect `git diff`;
-9. inspect `git status`;
-10. verify no secrets/junk/unrelated files;
-11. verify architecture boundaries;
-12. STOP if anything mandatory fails.
-
-### Critical-Path Validation Gate
-
-Before a Card can be COMPLETE, identify and execute its Card Critical Path: the smallest realistic end-to-end execution path within that Card's owned scope that proves its primary capability works when its owned components are composed as intended. It is not automatically every runtime path, a full-system test, a live external-service test, future-Card workflow, or a duplicate of every unit test.
-
-Derive the path from the Card Specification, architecture ownership, exact Exit Gate, and actual implementation. Map every step to current-Card or completed-prerequisite ownership; use the real composition/configuration boundary wherever practical; fake only necessary external systems for deterministic/offline execution; and never mock away the owned integration boundary being proved. Record the exact path, test/check, and PASS result in Card Evidence.
-
-All tests passing is not sufficient completeness evidence by itself. Closure requires both required unit/contract/invariant validation and a passing Critical Path. If no executable Critical Path is appropriate, explicitly justify that from the Card contract. Missing, failing, unproven, over-mocked, or future-scope-dependent Critical Paths fail closed: `CARD STATUS = BLOCKED`.
-
-New Cards must use this gate. Revalidate a completed Card only when a concrete defect or audit finding shows its claimed primary capability was not actually exercised; do not reopen historical Cards solely for documentation busywork.
-
-### Final Card Closure Gate
-
-Do not report a Card as COMPLETE until this final reconciliation passes. Derive the verdict from repository evidence, not a narrative summary. For the active Card, mechanically verify:
-
-1. implementation, mandatory Card tests/evaluation, Critical-Path Validation, required regression, exact Exit Gate, and required security/secret/path/dependency/static checks are PASS;
-2. Evidence Map summary status, Card-section status, and Card-section Exit Gate are consistently COMPLETE/PASS;
-3. completed requirements contain real execution evidence and no unresolved `PENDING`, `TODO`, `BLOCKED`, `UNKNOWN`, or `UNPROVEN` placeholder remains in the active Card's closure record;
-4. PROJECT_CONTROL agrees with the Evidence Map, closes the Active Card correctly, and leaves the next Card NOT_STARTED;
-5. Critical Path evidence identifies the primary composed capability, proves its owned boundary without mocking it away, and introduces no future-Card scope; and
-6. Git diff/status, scope, architecture, and future-Card leakage reviews pass with no unrelated files; and
-7. review existing documentation whose current claims are materially affected by the Card, and update only durable descriptions that have become false or misleading. Reconcile compact Card contracts with detailed contracts and actual ownership boundaries. Do not create duplicate live-status authorities, copy volatile Card status/test/SHA facts into README or architecture documents, rewrite historical Evidence as current state, or rewrite future-design documents merely because their capability is not implemented.
-
-Evaluate stale-state search results in context: intentionally retained future-Card states are not defects. If any applicable condition disagrees, set `CARD STATUS = BLOCKED`; identify it and do not commit, push, integrate, or start the next Card.
-
-Failure:
-
-```text
-CARD STATUS = BLOCKED
-```
-
-Never continue to the next Card.
-
----
-
-## 18. Evidence Must Teach and Prove
-
-`14_CARD_EVIDENCE_MAP.md` is:
-
-1. engineering evidence;
-2. professional learning journal.
-
-Each Card has exactly one canonical Evidence record: its section in
-`14_CARD_EVIDENCE_MAP.md`. Technical proof, engineering history, and learning
-evidence belong together in that same record. Retrospective enrichment modifies
-the existing record and must be labelled as such; supplemental logs or
-artifacts may support it but are not competing Evidence authorities.
-
-For V1-C05 and later Cards, use the compact forward-only Card contract in
-`13_CARD_SPECIFICATIONS.md` and the closure-evidence model in
-`14_CARD_EVIDENCE_MAP.md`. The Card Specification records the intended
-engineering contract, including its expected Critical Path. The Evidence Map
-records only what repository execution actually proved, including the actual
-Critical-Path result. Do not rewrite C01-C04 merely to make their historical
-records match this later format.
-
-Update Evidence at meaningful validated milestones when a new fact becomes
-proven: the Contract / Risk Map, a validated implementation milestone, a
-Critical-Path run, a defect diagnosis or validated repair, the Exit Gate, or
-approved Git delivery/integration. Do not update it for every trivial command
-or edit, and never reconstruct unobserved history from memory.
-
-Completed Card closure evidence must concisely explain:
-
-- what was built;
-- why;
-- problem solved;
-- relevant AI/software concept;
-- flow;
-- architecture before → after;
-- important files/symbols;
-- tests/evaluations actually run;
-- failed assumptions;
-- diagnosis/fix;
-- professional lesson;
-- student takeaway;
-- exact Exit Gate proof;
-- what the Card enables next;
-- known limitations or deferrals, with a future owner when known; and
-- historical Card branch/commit/delivery evidence when available.
-
-Record actual problems and failed assumptions, or explicit `N/A` where no
-meaningful issue occurred; do not rewrite history to make implementation look
-frictionless. Git evidence in the Evidence Map is historical traceability only.
-Live branch, SHA, upstream, push, integration, and worktree facts remain Git
-authority and must be dynamically verified under §21.
-
-Never invent evidence.
-
----
-
-## 19. PROJECT_CONTROL Update Rule
-
-Update when:
-
-- Card starts;
-- meaningful step completes;
-- blocker appears;
-- blocker resolves;
-- Exit Gate runs;
-- Card closes;
-- approved architecture/scope changes;
-- session ends after state changed.
-
-Record:
-
-- Active Card
-- step
-- status
-- files changed
-- tests/checks
-- result
-- Evidence Map status
-- blocker
-- safe resume point
-- next authorized action
-
-Detailed history stays in Evidence Map.
-
----
-
-## 20. Lost-Context Recovery
-
-If any AI becomes unsure about project state:
-
-```text
-STOP
-→ AGENTS.md
-→ PROJECT_CONTROL.md
-→ Roadmap
-→ Card Spec
-→ Evidence Map
-→ Git
-→ code/tests
-→ reconstruct reality
-```
-
-Never continue from memory.
-
----
-
-## 21. Git / GitHub Discipline
-
-`main` is the canonical latest approved integrated project state. Do not implement directly on it.
-
-Canonical Card workflow:
-
-```text
-updated approved main
-→ create one Card branch from main
-→ implement exactly one authorized Card on that branch
-→ test/evaluate and update Evidence Map + PROJECT_CONTROL
-→ prove the exact Exit Gate and review diff/status
-→ user approves commit/push/integration
-→ integrate the approved Card state into main
-→ create the next Card branch from updated main
-```
-
-Rules:
-
-- Only one Card may be active; its implementation stays on its Card branch.
-- A Card cannot be integrated into `main` until tests/evaluation, Evidence Map, PROJECT_CONTROL, exact Exit Gate, and diff/status review all pass, and the user explicitly approves integration.
-- Commit, push, PR, merge, and force-push remain explicit user-approved actions.
-- No Card branch may be based on an older completed Card branch once `main` has advanced; every new Card starts from the updated approved `main`.
-- Do not force-push or rewrite history unless separately and explicitly authorized.
-- Completed Card branches may remain for traceability. Deletion requires explicit project policy or user approval.
-- Before starting a Card, verify dynamically that local `main` equals `github/main`, GitHub's default branch is `main`, the tracked working tree is clean, the prior Card is COMPLETE, and the active-Card state is correct. Do not require PROJECT_CONTROL to store an exact current `main` SHA: a control-document commit necessarily changes that SHA. Use Git, Card Evidence, commit reports, and history for exact commit evidence.
-- Trigger `PROJECT_STATE_CONFLICT` only for meaningful disagreement between repository/Git reality and project authority, not because a control-document commit advanced `main` after dynamic verification.
-
-### Post-Integration Reconciliation Gate
-
-After every approved Card integration into `main`, and before the next Card branch may be created, run this mandatory gate. Verify dynamically that:
-
-1. local `main` exists and equals `github/main`;
-2. GitHub's default branch is `main`;
-3. the approved Card commit is contained in `main`;
-4. the completed Card branch is preserved and still points to its approved commit;
-5. the tracked working tree is clean except explicitly recognized artifacts;
-6. the completed Card remains COMPLETE and its Final Card Closure Gate remains PASS;
-7. Active Card is NONE and the next Card remains NOT_STARTED;
-8. no unexpected merge commit, rebase, or history rewrite occurred; and
-9. PROJECT_CONTROL's semantic integration checkpoint agrees with Git truth, and every current operational field affected by integration (such as Current Phase, Active Card, completed/integrated Card, next-Card authorization, blocker, safe resume point, and next action) describes the resulting post-integration state rather than a pre-integration delivery state.
-
-The next Card MUST NOT start until this gate passes. PROJECT_CONTROL records semantic lifecycle state and the dynamic-verification rule; it must not present pre-commit snapshots, pending reconciliation commit/push statements, or an exact current `main` SHA as permanent live Git authority. Git dynamically proves whether the reconciliation commit/push exists and whether the worktree is clean. A self-invalidation/reconciliation check fails if Git consistency is safe but any current PROJECT_CONTROL operational field is stale. Card Evidence may retain clearly historical closure evidence.
-
-An explicit user authorization to integrate a Card may also explicitly authorize the control-only reconciliation needed to complete this gate: post-integration verification, PROJECT_CONTROL update, and its commit/push. A successful reconciliation commit/push must not require another PROJECT_CONTROL edit merely to state that it occurred. It never authorizes application changes, next-Card work, history rewriting, force-push, or branch deletion. If that authorization does not explicitly cover the reconciliation commit/push, STOP after verification and request it.
-
-Commit meaningful validated steps only and only after user approval.
-
-Never commit:
-
-- secrets
-- `.env`
-- credentials
-- model files
-- caches
-- generated junk
-- unrelated machine state
-
-Git supports evidence but does not override repository/project authorities.
-
----
-
-## 22. Post-Step Report
-
-After each bounded step:
-
-```text
-Active Card:
-Step completed:
-Files changed:
-Capability advanced:
-Tests/evaluations executed:
-Evidence updated:
-PROJECT_CONTROL updated:
-Unresolved issues:
-Remaining work before Exit Gate:
-```
-
----
-
-## 23. Card Closure Report
-
-```text
-CARD: V1-CXX
-STATUS: COMPLETE / BLOCKED
-
-Implemented:
-- ...
-
-Validation:
-- ...
-
-Evidence:
-- 14_CARD_EVIDENCE_MAP.md updated
-
-Project Control:
-- updated
-
-Architecture:
-- preserved / approved change documented
-
-Known issues:
-- ...
-
-Git:
-- diff/status reviewed
-- no commit/push unless separately approved
-```
-
-Then STOP.
-
----
-
-## 24. Guiding Rule
-
-**Repository and Git prove reality. Roadmap defines destination. Card Specification defines the bounded job. Evidence proves completion. PROJECT_CONTROL tells us exactly where we are now.**
+## Strategic Intelligence Project — Execution Rules
+
+This repository implements a local-first, cloud-ready Strategic Intelligence
+system. These rules protect repository truth, approved V1 scope, architecture
+boundaries, evidence quality, safety, and learning value without maintaining a
+second project-state dashboard.
+
+## 1. Canonical Owners
+
+One fact has one canonical owner:
+
+| Fact | Owner |
+|---|---|
+| Card sequence and phase intent | `12_V1_ROADMAP.md` |
+| Planned Card contract, dependencies, learning goal, ownership, tests, expected Critical Path, and Exit Gate | `13_CARD_SPECIFICATIONS.md` |
+| Actual Card status, execution/learning evidence, Critical Path result, defects, and historical delivery evidence | `14_CARD_EVIDENCE_MAP.md` — one record per Card |
+| Git branch, SHA, upstream, remote equality, staging, worktree, and integration truth | Git |
+| Git delivery procedure | `15_CODEX_EXECUTION_PROTOCOL.md` |
+| Durable product capability and onboarding | `README.md` and the affected product/architecture document |
+
+`PROJECT_CONTROL.md` is retired. Do not create a replacement dashboard or copy
+live Git/Card state into documentation.
+
+Repository reality and approved architecture override prompt/chat assumptions.
+If authoritative repository facts materially conflict, STOP, inspect, and
+report the conflict before writing.
+
+## 2. Resume and Authorization
+
+Before any file-modifying task, inspect the relevant canonical owners, current
+implementation/tests, and Git state. For a new Card, read AGENTS, the Roadmap,
+the Card Specification, the Card Evidence record, relevant architecture,
+`15_CODEX_EXECUTION_PROTOCOL.md`, the Golden Case Contract when relevant,
+README when relevant, and Git/code/tests.
+
+Derive state; do not maintain it manually:
+
+1. inspect Git for branch, upstream, worktree, and integration truth;
+2. inspect canonical Evidence records;
+3. inspect Roadmap order and Card dependencies;
+4. if exactly one Evidence record is `IN_PROGRESS`, resume only that Card;
+5. otherwise derive the next eligible Card from Roadmap + Evidence.
+
+Only one Card may be active. The user must explicitly authorize a new Card.
+After a Card is COMPLETE or BLOCKED, STOP until separately authorized.
+
+Routine reversible work inside an authorized Card is allowed: inspection,
+Card-scoped edits, tests, local diagnostics, Evidence updates, and durable
+documentation that the Card materially changes. Explicit approval remains
+required for a next Card, material scope/architecture changes, destructive
+actions, secrets, large downloads/system changes, commit, push, PR, merge,
+force-push, deployment, or consequential external actions.
+
+## 3. Inspect First and Protect Scope
+
+Before the first implementation write for a Card, map the relevant path,
+owners, typed contracts, provider/tool and storage boundaries, trust/security
+boundaries, limits/termination, failure paths, tests, and outputs. Confirm:
+
+- the Card is the next authorized eligible Card;
+- its Specification supplies the exact goal, dependencies, scope, out of
+  scope, tests/evaluation, expected Critical Path, and Exit Gate;
+- existing implementation does not already own the requested work;
+- no future-Card behavior or duplicate owner will be introduced; and
+- the approved architecture remains preserved.
+
+Do not implement during this initial map. Keep writes bounded to the active
+Card. Diagnose before fixing; do not weaken valid tests merely to turn them
+green.
+
+## 4. Architecture, Trust, and Safety
+
+- Local-first and cloud-ready; no silent cloud fallback.
+- Business logic stays in application/domain components; provider SDKs remain
+  behind adapters; typed state and structured outputs are preferred.
+- Deterministic validation, Verification, Governance, and security remain
+  deterministic. AI cannot override trust or security authority.
+- Every retry, follow-up, research, or tool loop is bounded.
+- External content is untrusted. Apply least privilege to tools, providers,
+  network, storage, files, and secrets.
+- Executive research remains public, professional, and relevant. Do not add
+  scraping, access-control bypass, sensitive inference, or unrelated profiling.
+- FACT without Evidence, Evidence without Source, unsupported FACT,
+  unqualified RESTRICT, or BLOCKed material entering a Brief must fail closed.
+- A resumable checkpoint requires output, required persistence, validation,
+  invariants, and explicit acceptance.
+
+Preserve approved product architecture, privacy, security, governance, and
+evaluation contracts. Do not introduce unnecessary agents, frameworks, models,
+or cloud services without an approved, evidenced need.
+
+## 5. Validation, Evidence, and Final Closure
+
+Run the Card's focused tests, required Critical Path, relevant full regression,
+and applicable schema, security, dependency, static, import, or evaluation
+checks. For quality-affecting work, compare the relevant approved baseline or
+record a justified N/A in Evidence.
+
+The Critical Path is the smallest realistic composed execution path proving the
+Card's primary owned capability. Do not mock away the boundary it is meant to
+prove; fake only necessary external systems deterministically.
+
+`14_CARD_EVIDENCE_MAP.md` is the sole actual Card record and learning journal.
+Update its one Card section only when execution proves a meaningful fact. Keep
+technical proof, learning, defects/diagnosis/repair, limitations/deferrals,
+actual Critical Path, and historical delivery evidence together. Never invent
+evidence or rewrite C01–C11 historical evidence for formatting.
+
+One normal Final Closure is required before reporting a Card COMPLETE:
+
+1. exact Card contract and scope are satisfied;
+2. focused tests pass;
+3. required Critical Path passes;
+4. relevant full regression passes;
+5. exact Exit Gate passes;
+6. the canonical Evidence record is complete;
+7. no future-Card leakage exists; and
+8. final diff/status/scope/secrets/generated-artifact review passes, with only
+   materially affected durable product documentation updated.
+
+If a required item fails or is unproven, the Card is BLOCKED. Do not require a
+separate status-summary sync, live-SHA sync, control-document reconciliation,
+or routine repository-wide audit.
+
+README and architecture documents are not Card-status dashboards. Update them
+only when a Card materially changes a durable capability, architecture claim,
+or onboarding instruction.
+
+## 6. Health Audits
+
+A full repository health audit is not normal Card delivery. Use one only when
+justified: end of a major phase, pre-release/demo/V1 closure, architecture
+migration, demonstrated consistency failure, or major documentation
+consolidation. It is an inspection practice, not another Card gate.
+
+## 7. Git Discipline
+
+Do not implement directly on `main`. Follow the canonical branch, staging,
+commit, push, integration, and post-delivery verification procedure in
+`15_CODEX_EXECUTION_PROTOCOL.md`. Git dynamically proves operational facts;
+historical Git details in Evidence are traceability, not live authority.
+
+Never commit secrets, `.env`, credentials, model files, caches, generated
+junk, or unrelated machine state. Never force-push or rewrite history unless
+separately and explicitly authorized.
+
+## Guiding Rule
+
+**Roadmap defines sequence. Card Specifications define the planned job.
+Evidence proves what happened. Git proves Git facts. AGENTS governs execution.**
