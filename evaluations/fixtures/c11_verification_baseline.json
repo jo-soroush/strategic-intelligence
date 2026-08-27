@@ -1,0 +1,76 @@
+{
+  "baseline_id": "c11-verification-v1",
+  "as_of": "2026-08-27",
+  "cases": [
+    {
+      "label": "current-primary-direct-support",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [{"content": "Example Co opened a research lab.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": "2026-08-01"}],
+      "expected_fidelity": "SUPPORTED_BY_EVIDENCE",
+      "expected_verification": "VERIFIED"
+    },
+    {
+      "label": "overstrong-claim",
+      "claim_text": "Example Co announced an AI partnership with Acme.",
+      "evidence": [{"content": "Example Co announced an AI partnership.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": "2026-08-01"}],
+      "expected_fidelity": "PARTIALLY_SUPPORTED",
+      "expected_verification": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "label": "contradictory-evidence",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [
+        {"content": "Example Co opened a research lab.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": "2026-08-01"},
+        {"content": "Example Co did not open a research lab.", "relationship": "CONTRADICTS", "source_type": "BUSINESS_PUBLICATION", "publication_date": "2026-08-02"}
+      ],
+      "expected_fidelity": "SUPPORTED_BY_EVIDENCE",
+      "expected_verification": "CONFLICTING"
+    },
+    {
+      "label": "stale-primary-support",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [{"content": "Example Co opened a research lab.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": "2024-01-01"}],
+      "expected_fidelity": "SUPPORTED_BY_EVIDENCE",
+      "expected_verification": "STALE"
+    },
+    {
+      "label": "context-only-ambiguous",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [{"content": "Example Co discussed research priorities.", "relationship": "CONTEXT", "source_type": "OFFICIAL_COMPANY", "publication_date": "2026-08-01"}],
+      "expected_fidelity": "AMBIGUOUS",
+      "expected_verification": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "label": "non-supporting-evidence",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [{"content": "Example Co announced a new hiring program.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": "2026-08-01"}],
+      "expected_fidelity": "NOT_SUPPORTED",
+      "expected_verification": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "label": "duplicate-origin-support",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [
+        {"content": "Example Co opened a research lab.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": "2026-08-01", "origin_source_id": "wire-1"},
+        {"content": "Example Co opened a research lab.", "relationship": "SUPPORTS", "source_type": "BUSINESS_PUBLICATION", "publication_date": "2026-08-02", "origin_source_id": "wire-1"}
+      ],
+      "expected_fidelity": "SUPPORTED_BY_EVIDENCE",
+      "expected_verification": "SUPPORTED"
+    },
+    {
+      "label": "unknown-freshness-support",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [{"content": "Example Co opened a research lab.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": null}],
+      "expected_fidelity": "SUPPORTED_BY_EVIDENCE",
+      "expected_verification": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "label": "missing-provenance",
+      "setup": "MISSING_LINK",
+      "claim_text": "Example Co opened a research lab.",
+      "evidence": [{"content": "Example Co opened a research lab.", "relationship": "SUPPORTS", "source_type": "OFFICIAL_COMPANY", "publication_date": "2026-08-01"}],
+      "expected_assessment": "REJECTED",
+      "expected_error": "INVALID_PROVENANCE"
+    }
+  ]
+}

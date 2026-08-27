@@ -8,13 +8,16 @@ The repository currently contains the implemented V1 foundations for typed
 domain models; local persistence and repository infrastructure; vendor-neutral
 provider boundaries; validated Case intake; bounded research planning; company
 and public-professional executive research; Source → Evidence → candidate Claim
-provenance; and deterministic source-quality/freshness metadata.
+provenance; deterministic source-quality/freshness metadata; and deterministic
+Evidence Fidelity/Verification judgment.
 
-Verification/fidelity judgment, governance, end-to-end workflow orchestration,
-brief generation, UI, recovery, and later V1 capabilities remain governed by
-their owning future Cards. The canonical Evidence Map and PROJECT_CONTROL own
-current Card delivery status; this README describes durable repository
-capabilities rather than live Card state.
+Governance, end-to-end workflow orchestration, brief generation, UI, recovery,
+and later V1 capabilities remain governed by their owning future Cards. The
+verification foundation evaluates persisted Claim/Evidence/Source provenance
+and source metadata without mutating Claims, governing trust, or researching.
+The canonical Evidence Map and PROJECT_CONTROL own current Card delivery
+status; this README describes durable repository capabilities rather than live
+Card state.
 
 ### Requirements
 
@@ -36,7 +39,7 @@ The project reads non-secret settings from the process environment. `.env.exampl
 
 | Location | Ownership | Current role |
 |---|---|---|
-| `src/strategic_intelligence/application/` | application/use-case composition | Case intake, research planning, company/executive research, evidence provenance, and source metadata services. |
+| `src/strategic_intelligence/application/` | application/use-case composition | Case intake, research planning, company/executive research, evidence provenance, source metadata, and deterministic Verification services. |
 | `src/strategic_intelligence/domain/` | domain contracts | Typed V1 models, enums, invariants, and serialization. |
 | `src/strategic_intelligence/harness/` | workflow orchestration | Reserved for the controlled orchestration/routing capability owned by future Cards. |
 | `src/strategic_intelligence/providers/` | provider adapters | Application-owned LLM/search contracts, explicit adapters, factory, and deterministic fakes. |

@@ -102,6 +102,17 @@ class SqliteRepository:
     def get_claim(self, claim_id: str) -> Claim | None:
         return self._get("claims", Claim, claim_id)
 
+    def get_claim_evidence_links(self, claim_id: str) -> list[ClaimEvidenceLink]:
+        rows = self._connection.execute(
+            "SELECT claim_id, evidence_id, relationship_type FROM claim_evidence_links WHERE claim_id = ?",
+            (claim_id,),
+        ).fetchall()
+        return [ClaimEvidenceLink(
+            claim_id=row["claim_id"],
+            evidence_id=row["evidence_id"],
+            relationship_type=row["relationship_type"],
+        ) for row in rows]
+
     def accept_checkpoint(self, run_id: str, stage: WorkflowStage, required_records: Sequence[tuple[str, str]]) -> None:
         tables = {"case": "cases", "source": "sources", "evidence": "evidence", "claim": "claims", "workflow_run": "workflow_runs"}
         with self._connection:

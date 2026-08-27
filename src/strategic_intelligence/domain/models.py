@@ -119,6 +119,13 @@ class ClaimEvidenceRelationship(str, Enum):
     CONTEXT = "CONTEXT"
 
 
+class FidelityStatus(str, Enum):
+    SUPPORTED_BY_EVIDENCE = "SUPPORTED_BY_EVIDENCE"
+    PARTIALLY_SUPPORTED = "PARTIALLY_SUPPORTED"
+    NOT_SUPPORTED = "NOT_SUPPORTED"
+    AMBIGUOUS = "AMBIGUOUS"
+
+
 class VerificationStatus(str, Enum):
     VERIFIED = "VERIFIED"
     SUPPORTED = "SUPPORTED"
@@ -352,6 +359,7 @@ class ClaimEvidenceLink(DomainModel):
 class VerificationResult(DomainModel):
     verification_id: str = Field(default_factory=new_id, min_length=1)
     claim_id: str = Field(min_length=1)
+    fidelity_status: FidelityStatus
     status: VerificationStatus
     source_quality: SourceQuality
     freshness_status: FreshnessStatus

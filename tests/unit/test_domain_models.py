@@ -7,7 +7,7 @@ from strategic_intelligence.domain.models import (
     AnalysisItem, AuditEvent, Case, Claim, ClaimEvidenceLink, ClaimEvidenceRelationship,
     ClaimType, Company, Evidence, Executive, GovernanceDecision,
     GovernanceDecisionStatus, MeetingBrief, MeetingQuestion, Opportunity, QuickBrief,
-    RawFinding, ResearchCategory, ResearchPlan, ResearchTask, Source, SourceQuality,
+    FidelityStatus, RawFinding, ResearchCategory, ResearchPlan, ResearchTask, Source, SourceQuality,
     SourceType, TargetType, UserContext, VerificationResult, VerificationStatus,
     WorkflowError, WorkflowErrorCode, WorkflowRun, WorkflowState,
 )
@@ -61,7 +61,7 @@ def test_datetime_must_be_timezone_aware() -> None:
 
 
 def test_verification_governance_and_error_contracts_are_structured() -> None:
-    verification = VerificationResult(claim_id="claim", status=VerificationStatus.SUPPORTED, source_quality=SourceQuality.PRIMARY, freshness_status="CURRENT", independent_source_count=1)
+    verification = VerificationResult(claim_id="claim", fidelity_status=FidelityStatus.SUPPORTED_BY_EVIDENCE, status=VerificationStatus.SUPPORTED, source_quality=SourceQuality.PRIMARY, freshness_status="CURRENT", independent_source_count=1)
     governance = GovernanceDecision(case_id="case", target_type="claim", target_id="claim", decision=GovernanceDecisionStatus.RESTRICT)
     error = WorkflowError(case_id="case", component="research", error_code=WorkflowErrorCode.SEARCH_FAILED, message="unavailable")
 

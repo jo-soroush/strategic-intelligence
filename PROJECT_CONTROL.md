@@ -9,11 +9,11 @@ This file is the live operational state. Repository reality and approved project
 **Project:** Strategic Intelligence Project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
-**Implementation Status:** V1-C10 COMPLETE — SOURCE QUALITY AND FRESHNESS
-**Current Phase:** POST-INTEGRATION RECONCILED — AWAITING SEPARATE V1-C11 AUTHORIZATION
+**Implementation Status:** V1-C11 COMPLETE — VERIFICATION ENGINE
+**Current Phase:** CARD CLOSED — V1-C12 NOT AUTHORIZED
 **Active Card:** NONE
-**Last Completed Card:** V1-C10 — Source Quality and Freshness
-**Next Card Candidate:** V1-C11 — Verification Engine (NOT AUTHORIZED)
+**Last Completed Card:** V1-C11 — Verification Engine
+**Next Card Candidate:** V1-C12 — Bounded Follow-Up Research (NOT AUTHORIZED)
 **V1-C01 Status:** COMPLETE
 **V1-C02 Status:** COMPLETE
 **V1-C03 Status:** COMPLETE
@@ -24,7 +24,8 @@ This file is the live operational state. Repository reality and approved project
 **V1-C08 Status:** COMPLETE
 **V1-C09 Status:** COMPLETE
 **V1-C10 Status:** COMPLETE
-**Next Card Start Approval:** V1-C11 REQUIRED
+**V1-C11 Status:** COMPLETE
+**Next Card Start Approval:** V1-C12 REQUIRED
 **Current Blocker:** NONE
 **Roadmap Cards:** 22 — canonical complete file restored
 **Card Specifications:** 22 — canonical complete file restored
@@ -44,7 +45,7 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED; C01–C10 Card commits are committed and pushed
+**Git Repository:** INITIALIZED; C01–C10 Card commits are committed and pushed; dynamically verify C11 branch/delivery state from Git when separately authorized
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
 **Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
@@ -100,29 +101,36 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C10 is complete and integrated into canonical `main`. Keep C11 and later
-Cards NOT_STARTED; do not start C11 without separate explicit authorization.
+V1-C11 is COMPLETE and Active Card is NONE. Keep C12 and later Cards
+NOT_STARTED; dynamically verify Git state before any separately authorized
+delivery or next-Card action. Do not commit, push, or merge without separate
+authorization.
 
 ## Last Execution Checkpoint
 
-**Card:** V1-C10 — Source Quality and Freshness
-**Step:** C10 delivery commit pushed and fast-forward integrated into canonical `main`; post-integration reconciliation completed
+**Card:** V1-C11 — Verification Engine
+**Step:** pre-finalization audit F001–F004 repaired; Final Card Closure Gate and C11 Critical Path revalidated
 **Status:** COMPLETE
-**Implementation Files Changed:** `application/source_quality.py`;
-`tests/unit/test_source_quality.py`; canonical C10 Evidence;
-`PROJECT_CONTROL.md`
-**Project-State Change:** approved C10 commit `2c2868910c5bd433f76d38e7e2641dc237626220` was pushed on its preserved Card branch and fast-forward integrated into canonical `main`; no merge commit, rebase, or force-push occurred.
-**Tests Run:** focused C10 tests — 6 passed; full suite — 58 passed; `pip check`;
-`compileall -q src`; source-quality import; `git diff --check`; scope/ignore/
-secret review.
-**Result:** C10 exact Exit Gate PASS; Critical-Path Validation PASS; Final Card
-Closure Gate PASS. A persisted Source deterministically yields quality,
-publication/retrieval-date, freshness, and duplicate-origin metadata without
-becoming verification or a factual-truth decision.
-**Evidence Updated:** C10 closure and historical delivery evidence completed; C11–V1-C22 remain NOT_STARTED.
+**Implementation Files Changed:** `domain/models.py`; application persistence
+protocol and deterministic verification service; SQLite repository read path;
+C11 baseline fixture/tests; C11 Evidence; `PROJECT_CONTROL.md`; README.
+**Project-State Change:** C11 was implemented and validated on
+`card/v1-c11-verification-engine`, created from verified integrated `main` at
+`2ee6e1e`; no commit, push, merge, rebase, or force-push has occurred.
+**Tests Run:** `.venv/bin/python -m pytest tests/unit/test_verification.py -q`
+(13 passed); `.venv/bin/python -m pytest` (71 passed); `pip check`; compile,
+import, and diff checks.
+**Result:** repaired deterministic C11 Fidelity/Verification permits FACT only,
+enforces same-Case provenance, rejects unusable normalized Claims, consumes C10
+metadata, preserves candidate Claims without promotion/mutation, and leaves
+Governance/follow-up research deferred.
+**Evidence Updated:** single C11 closure record includes F001–F004 diagnosis,
+repairs, expanded static expected-vs-actual baseline, and fresh Exit Gate proof;
+C12–V1-C22 remain NOT_STARTED.
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C11
-**Next Action:** STOP and await explicit authorization for a dynamically gated V1-C11 start
+**Safe Resume Point:** PRE-V1-C12 — REQUIRE DYNAMIC GIT REVIEW AFTER EXPLICIT
+AUTHORIZATION
+**Next Action:** STOP and await explicit authorization; do not start C12
 
 ## Guiding Rule
 

@@ -28,7 +28,7 @@ NOT_STARTED / IN_PROGRESS / BLOCKED / COMPLETE
 | V1-C08 | Executive Research | COMPLETE | PASS |
 | V1-C09 | Evidence Layer | COMPLETE | PASS |
 | V1-C10 | Source Quality and Freshness | COMPLETE | PASS |
-| V1-C11 | Verification Engine | NOT_STARTED | PENDING |
+| V1-C11 | Verification Engine | COMPLETE | PASS |
 | V1-C12 | Bounded Follow-Up Research | NOT_STARTED | PENDING |
 | V1-C13 | Governance Gate | NOT_STARTED | PENDING |
 | V1-C14 | Security Boundaries | NOT_STARTED | PENDING |
@@ -1280,28 +1280,145 @@ CURRENT/AGING/STALE/UNKNOWN, and duplicate-origin inputs from Source records.
 
 # V1-C11 — Verification Engine
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C09, V1-C10
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Evidence Fidelity labels | TBD | TBD | PENDING | TBD |
-| Verification statuses | TBD | TBD | PENDING | TBD |
-| Source independence/conflict | TBD | TBD | PENDING | TBD |
-| Baseline fixture version | TBD | TBD | PENDING | TBD |
-| Expected vs actual/regression | TBD | TBD | PENDING | TBD |
+| Evidence Fidelity labels | `domain/models.py`; `application/verification.py` | `tests/unit/test_verification.py` | PASS | Typed direct, partial, unsupported, and ambiguous outcomes derive from persisted SUPPORTS/CONTEXT Evidence rather than Evidence availability alone. |
+| Verification statuses | `application/verification.py`; typed `VerificationResult` | focused C11 tests | PASS | VERIFIED, SUPPORTED, CONFLICTING, STALE, and INSUFFICIENT_EVIDENCE are deterministic, explainable results; C11 neither mutates Claims nor governs. |
+| Source independence/conflict | `application/verification.py`; C03 repository read | focused C11 tests | PASS | Actual links are read with Evidence/Source, C10 quality/freshness is assessed, duplicate origins are counted, and contradictions remain visible. |
+| Baseline fixture version | `evaluations/fixtures/c11_verification_baseline.json` | labeled expected-vs-actual baseline test | PASS | `c11-verification-v1` independently labels direct, partial, ambiguous, unsupported, conflicting, stale, duplicate-origin, unknown-freshness, and missing-provenance outcomes. |
+| Expected vs actual/regression | `tests/unit/test_verification.py` | focused 13 passed; full suite 71 passed | PASS | Static expected Fidelity/Verification labels match the real C11 service; completed-C01–C10 tests remain green. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**PROJECT_CONTROL Updated:** PENDING
-**Exit Gate Evidence:** TBD
+### C11 Start / Contract-Risk Map
+
+**Engineering Goal / Why It Exists:** Evaluate factual candidate Claims against
+their linked Evidence after Fidelity checking, so provenance alone cannot
+promote a Claim to trusted factual intelligence.
+
+**Learning Goal:** Separate deterministic fidelity/support judgment from source
+collection, metadata classification, and later Governance. Evidence exists does
+not mean the Claim is supported strongly enough to verify.
+
+**Current System Before Card:** C09 persists a Source → Evidence → candidate
+Claim chain with SUPPORTS/CONTRADICTS/CONTEXT links and leaves verification
+unset. C10 deterministically provides quality, freshness, and duplicate-origin
+metadata for typed Sources. C03 owns repository reads/writes; no Verification
+application boundary exists.
+
+**Design Decision:** C11 will add an application-owned, deterministic
+Fidelity/Verification service. It will read C09 provenance through the C03
+repository boundary, use real C10 metadata, retain contradiction/duplicate
+signals, return typed fidelity plus VerificationResult outcomes, and never
+mutate the candidate Claim or make Governance decisions.
+
+**Contract / Risk Map:** Producers: persisted C09 Claim, ClaimEvidenceLink,
+Evidence, and Source records; C10 provides source-quality/freshness assessment.
+Inputs: all links must resolve to the Claim's Evidence and their Sources.
+SUPPORTS may contribute only after fidelity comparison; CONTRADICTS preserves a
+conflict; CONTEXT never becomes support. Missing provenance, no supporting
+Evidence, unsupported/overstated wording, stale/unknown metadata, weak quality,
+and duplicate origins fail closed to typed non-verified outcomes. C11 may
+conclude VERIFIED, SUPPORTED, CONFLICTING, STALE, or INSUFFICIENT_EVIDENCE with
+explainable fidelity status; it must never conclude Governance PASS/RESTRICT/
+BLOCK, fetch/research, alter Claim type/status, start C12 follow-up, or hide
+conflict/uncertainty. Governance is the downstream C13 consumer.
+
+**C11 Critical-Path Expectation:** persisted C05 Case → real C09 candidate
+Claim plus explicit links → C03 read-back of Claim/Evidence/Source/link data →
+real C10 quality/freshness assessment → real C11 Fidelity/Verification service
+→ typed VerificationResult without Claim mutation. Persistence reads: YES;
+providers/network: NO.
+
+**Implementation Evidence:** C11 adds `FidelityStatus` and requires it in the
+typed `VerificationResult`; `VerificationService` owns deterministic judgment.
+It reads ClaimEvidenceLinks through the application-owned persistence protocol
+and C03 SQLite implementation, resolves linked Evidence/Source provenance,
+uses C10 `SourceQualityService`, returns accepted/rejected typed assessments,
+and does not persist/mutate a Claim's `verification_status`.
+
+**Critical-Path Evidence:** Expected and actual path: persisted C05 Case → real
+C09 `EvidenceLayerService` candidate Claim plus SUPPORTS link → real C03 SQLite
+Claim/Evidence/Source/link read-back → real C10 metadata assessment → real C11
+`VerificationService` → typed `VerificationResult`. The focused test
+`test_critical_path_reads_real_c09_candidate_without_promoting_it` passed with
+direct fidelity but `INSUFFICIENT_EVIDENCE` for C09's OTHER/unknown metadata;
+the persisted candidate remains unmutated. No provider/network or C12 workflow
+was faked or used.
+
+**Baseline Before:** N/A — C11 establishes the first deterministic
+Fidelity/Verification judgment baseline; no earlier verification behavior
+exists for comparison.
+
+**Candidate After / Expected vs Actual:** PASS — static labeled fixture
+`c11-verification-v1` records direct-primary VERIFIED, overstrong
+INSUFFICIENT_EVIDENCE, ambiguous CONTEXT-only, unsupported, conflicting, stale,
+duplicate-origin SUPPORTED, unknown-freshness INSUFFICIENT_EVIDENCE, and
+missing-provenance rejection outcomes. The test reads these declared labels and
+compares them to real C11 results; it does not generate expected labels from
+the service.
+
+**Regression Decision:** PASS — after the independent pre-finalization audit
+found and C11 repaired four defects, `.venv/bin/python -m pytest` executed 71
+tests with 71 passed. Focused C11 tests: 13 passed. C03/C09/C10 regression
+coverage remains included in the full suite.
+
+**Architecture Before → After:** Before C11, C09 held provenance and C10 held
+metadata but no component owned the support judgment. After C11, application
+code owns a deterministic Fidelity/Verification boundary over those completed
+contracts; C13 still owns PASS/RESTRICT/BLOCK Governance and C12 still owns
+follow-up research.
+
+**Problem → Diagnosis → Fix:** An independent pre-finalization audit invalidated
+the earlier local closure. F001: C11 could evaluate `INFERENCE` or
+`RECOMMENDATION` as factual; repair rejects non-FACT Claims. F002: it checked
+Evidence→Source case consistency but not Claim→Evidence; repair rejects
+cross-case Evidence. F003: punctuation-only or non-ASCII-only Claim text could
+normalize to an empty string and match every Evidence item; repair rejects an
+unusable normalized Claim before fidelity. F004: the versioned baseline omitted
+required scenarios; repair added static ambiguous, unsupported, duplicate,
+unknown-freshness, and missing-provenance oracles. New regression tests prove
+each repair; 13 focused and 71 full tests pass.
+
+**Known Limitations / Deferrals:** Verification results are returned, not yet
+persisted as a separate record or used by workflow/Governance. C11 rejects
+non-FACT Claims rather than governing them. C12 owns bounded follow-up
+research; C13 owns final trust policy; C15+ owns consumption.
+
+**Professional Engineering Lesson:** Provenance, source metadata, fidelity, and
+Governance are distinct trust layers. Separating them makes conservative
+judgments inspectable and prevents a convenient but unsafe “evidence exists”
+shortcut.
+
+**Learner Takeaway:** A factual candidate becomes useful only after its words,
+relationships, source quality, freshness, independence, and conflicts are
+evaluated. A typed non-verified outcome is a successful safety result.
+
+**What This Enables Next:** C12 can request bounded additional research for a
+specific weak Claim, while C13 can later apply non-overridable governance to
+the explicit C11 result.
+
+**Diff Review:** PASS — C11-only domain/application/persistence/test/baseline
+and durable-documentation changes; no provider, Governance, orchestration, UI,
+or C12+ behavior.
+
+**Git Status Review:** PASS — only C11 tracked changes plus recognized
+untracked `REPAIR_INSTRUCTIONS.md` and `eference/`; no staged files, commit,
+push, merge, rebase, or force-push.
+
+**PROJECT_CONTROL Updated:** YES
+
+**Exact Exit Gate Proof:** PASS — after F001–F004 repair, FACT-only entry,
+same-Case Claim→Evidence→Source provenance, unusable-normalization rejection,
+overstrong, unsupported, context-only, missing-provenance, stale,
+unknown-freshness, duplicate-origin, conflicting, and independent-confirmation
+cases exercise deterministic non-promotion. The versioned baseline has static
+expected labels matching actual C11 results; no unsupported or overstrong FACT
+is emitted as VERIFIED/SUPPORTED.
 
 
 # V1-C12 — Bounded Follow-Up Research
