@@ -10,7 +10,7 @@ This file is the live operational state. Repository reality and approved project
 **Version:** V1
 **Architecture Status:** FROZEN FOR IMPLEMENTATION
 **Implementation Status:** V1-C11 COMPLETE — VERIFICATION ENGINE
-**Current Phase:** CARD CLOSED — V1-C12 NOT AUTHORIZED
+**Current Phase:** POST-INTEGRATION RECONCILED — AWAITING SEPARATE V1-C12 AUTHORIZATION
 **Active Card:** NONE
 **Last Completed Card:** V1-C11 — Verification Engine
 **Next Card Candidate:** V1-C12 — Bounded Follow-Up Research (NOT AUTHORIZED)
@@ -45,12 +45,13 @@ These facts must be re-inspected by Codex before changing project state.
 
 ## Current Git State
 
-**Git Repository:** INITIALIZED; C01–C10 Card commits are committed and pushed; dynamically verify C11 branch/delivery state from Git when separately authorized
+**Git Repository:** INITIALIZED; C01–C11 Card commits are committed and pushed
 **Canonical Branch:** `main`
 **GitHub Default Branch:** `main`
 **Integrated-State Authority:** dynamically verify that local `main` HEAD equals `github/main`; do not store a self-referential current `main` SHA here
 **Live Operational Git State:** dynamically verify current branch, upstream, local/remote `main` equality, and tracked-worktree cleanliness from Git before every state-changing action; `REPAIR_INSTRUCTIONS.md` is a recognized untracked artifact outside Card scope
-**Last Completed / Integrated Card:** V1-C10 — Source Quality and Freshness; approved commit `2c2868910c5bd433f76d38e7e2641dc237626220` is integrated into canonical `main`
+**Last Completed / Integrated Card:** V1-C11 — Verification Engine; approved commit `f3bca2f9e031da2b319f87be0cba745bb6448bd2` is integrated into canonical `main`
+**C11 Card Branch:** `card/v1-c11-verification-engine` is preserved at approved commit `f3bca2f9e031da2b319f87be0cba745bb6448bd2`
 **C10 Card Branch:** `card/v1-c10-source-quality-freshness` is preserved at approved commit `2c2868910c5bd433f76d38e7e2641dc237626220`
 **C09 Card Branch:** `card/v1-c09-evidence-layer` is preserved at approved commit `92a3e074bca8ada18d3f6ee02868b5b1f9fdad66`
 **C08 Card Branch:** `card/v1-c08-executive-research` is preserved at approved commit `89712a7f7ff0d388580f6a7c7b84bbbd17b2e347`
@@ -63,7 +64,7 @@ These facts must be re-inspected by Codex before changing project state.
 **C02 Card Branch:** `card/v1-c02-domain-models` → `17bb25c5b22d27087fa649ed57abf20d36e2e3c9`
 **GitHub Remote:** `github` → `https://github.com/jo-soroush/strategic-intelligence.git`
 **Main Upstream:** `github/main` — verify local/remote HEAD equality dynamically before Card work
-**C01–C10 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
+**C01–C11 Card/Main Pushes:** SUCCESSFUL — verify current references dynamically
 
 Follow the canonical workflow and Post-Integration Reconciliation Gate in `AGENTS.md` §21: every new Card branch starts only after that gate passes against dynamically verified current `main`; integration, commit, push, PR, merge, and force-push remain explicitly user-approved. Exact SHAs remain historical evidence in Git history, Card Evidence, and commit reports, not a self-synchronizing Project Control field.
 
@@ -101,22 +102,23 @@ The only issue reported by the final audit was stale resume text in this file. T
 
 ## Current Resume Instruction
 
-V1-C11 is COMPLETE and Active Card is NONE. Keep C12 and later Cards
-NOT_STARTED; dynamically verify Git state before any separately authorized
-delivery or next-Card action. Do not commit, push, or merge without separate
-authorization.
+V1-C11 is COMPLETE and integrated into canonical `main`; Active Card is NONE.
+Keep C12 and later Cards NOT_STARTED. Dynamically verify Git state before any
+separately authorized next-Card action. Do not commit, push, or merge without
+separate authorization.
 
 ## Last Execution Checkpoint
 
 **Card:** V1-C11 — Verification Engine
-**Step:** pre-finalization audit F001–F004 repaired; Final Card Closure Gate and C11 Critical Path revalidated
+**Step:** C11 Card commit pushed, fast-forward integrated into canonical `main`, and post-integration reconciliation completed
 **Status:** COMPLETE
 **Implementation Files Changed:** `domain/models.py`; application persistence
 protocol and deterministic verification service; SQLite repository read path;
 C11 baseline fixture/tests; C11 Evidence; `PROJECT_CONTROL.md`; README.
-**Project-State Change:** C11 was implemented and validated on
-`card/v1-c11-verification-engine`, created from verified integrated `main` at
-`2ee6e1e`; no commit, push, merge, rebase, or force-push has occurred.
+**Project-State Change:** approved C11 commit
+`f3bca2f9e031da2b319f87be0cba745bb6448bd2` was pushed on its preserved Card
+branch and fast-forward integrated into canonical `main`; no merge commit,
+rebase, or force-push occurred.
 **Tests Run:** `.venv/bin/python -m pytest tests/unit/test_verification.py -q`
 (13 passed); `.venv/bin/python -m pytest` (71 passed); `pip check`; compile,
 import, and diff checks.
@@ -128,9 +130,8 @@ Governance/follow-up research deferred.
 repairs, expanded static expected-vs-actual baseline, and fresh Exit Gate proof;
 C12–V1-C22 remain NOT_STARTED.
 **Blocker:** NONE
-**Safe Resume Point:** PRE-V1-C12 — REQUIRE DYNAMIC GIT REVIEW AFTER EXPLICIT
-AUTHORIZATION
-**Next Action:** STOP and await explicit authorization; do not start C12
+**Safe Resume Point:** PRE-V1-C12 — POST-INTEGRATION RECONCILED
+**Next Action:** STOP and await separate explicit authorization for V1-C12
 
 ## Guiding Rule
 

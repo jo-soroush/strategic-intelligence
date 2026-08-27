@@ -1412,6 +1412,13 @@ push, merge, rebase, or force-push.
 
 **PROJECT_CONTROL Updated:** YES
 
+**Historical Git Evidence:** C11 implementation commit
+`f3bca2f9e031da2b319f87be0cba745bb6448bd2`
+(`feat(c11): add governed verification engine`) was pushed to the preserved
+`card/v1-c11-verification-engine` branch and fast-forward integrated into
+canonical `main` without a merge commit, rebase, or force-push. This is
+historical delivery evidence; Git remains the live authority.
+
 **Exact Exit Gate Proof:** PASS — after F001–F004 repair, FACT-only entry,
 same-Case Claim→Evidence→Source provenance, unusable-normalization rejection,
 overstrong, unsupported, context-only, missing-provenance, stale,
