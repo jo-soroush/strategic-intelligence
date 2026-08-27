@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 from strategic_intelligence.application.evidence_layer import EvidenceLayerErrorCode, EvidenceLayerService, EvidenceLayerStatus
@@ -6,7 +7,7 @@ from strategic_intelligence.infrastructure.sqlite_repository import SqliteReposi
 
 
 def _finding(case_id: str = "case", *, url: str = "https://example.test/source", content: str = "Example Co announced an AI partnership.") -> RawFinding:
-    return RawFinding(case_id=case_id, research_task_id="task", source_url=url, title="Example announcement", extracted_content=content, topic="AI_ACTIVITY", relevance="meeting relevant")
+    return RawFinding(case_id=case_id, research_task_id="task", source_url=url, title="Example announcement", publisher="Example News", publication_date=date(2026, 8, 20), extracted_content=content, topic="AI_ACTIVITY", relevance="meeting relevant")
 
 
 def _case() -> Case:
@@ -28,6 +29,8 @@ def test_critical_path_persists_complete_provenance_chain(tmp_path: Path) -> Non
     assert result.candidate_claim.verification_status is None
     assert result.link.relationship_type is ClaimEvidenceRelationship.SUPPORTS
     assert result.originating_finding_id == finding.finding_id
+    assert result.source.publisher == "Example News"
+    assert result.source.publication_date == result.evidence.publication_date == date(2026, 8, 20)
 
 
 def test_duplicate_source_is_reused_and_conflicting_evidence_is_preserved(tmp_path: Path) -> None:

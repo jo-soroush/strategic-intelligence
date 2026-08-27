@@ -74,11 +74,12 @@ class EvidenceLayerService:
         try:
             sources = [self._repository.save_source(Source(
                 case_id=item.case_id, url=item.source_url, title=item.title,
+                publisher=item.publisher, publication_date=item.publication_date,
                 source_type=SourceType.OTHER, quality_class=SourceQuality.OTHER,
             )) for item in findings]
             evidence_items = [self._repository.save_evidence(Evidence(
                 case_id=item.case_id, source_id=source.source_id,
-                content=item.extracted_content, topic=item.topic, relevance=item.relevance,
+                content=item.extracted_content, topic=item.topic, relevance=item.relevance, publication_date=item.publication_date,
             )) for item, source in zip(findings, sources, strict=True)]
             claim = Claim(
                 case_id=findings[0].case_id, text=claim_text.strip(), claim_type=claim_type,
@@ -97,6 +98,24 @@ class EvidenceLayerService:
             evidence_items=evidence_items, links=links,
             originating_finding_id=findings[0].finding_id,
         )
+
+    def retain_follow_up_evidence(self, finding: RawFinding, *, source_type: SourceType = SourceType.OTHER, quality_class: SourceQuality = SourceQuality.OTHER) -> EvidenceLayerResult:
+        """Persist C07/C08 provenance without creating or promoting a new Claim."""
+        if not self._valid_finding(finding):
+            return self._rejected(EvidenceLayerErrorCode.INVALID_FINDING, "raw finding lacks required provenance or excerpt")
+        try:
+            source = self._repository.save_source(Source(
+                case_id=finding.case_id, url=finding.source_url, title=finding.title,
+                publisher=finding.publisher, publication_date=finding.publication_date,
+                source_type=source_type, quality_class=quality_class,
+            ))
+            evidence = self._repository.save_evidence(Evidence(
+                case_id=finding.case_id, source_id=source.source_id,
+                content=finding.extracted_content, topic=finding.topic, relevance=finding.relevance, publication_date=finding.publication_date,
+            ))
+        except Exception:
+            return self._rejected(EvidenceLayerErrorCode.PERSISTENCE_FAILED, "follow-up evidence could not be persisted")
+        return EvidenceLayerResult(status=EvidenceLayerStatus.ACCEPTED, source=source, evidence=evidence, sources=[source], evidence_items=[evidence], originating_finding_id=finding.finding_id)
 
     @staticmethod
     def _valid_finding(finding: RawFinding) -> bool:

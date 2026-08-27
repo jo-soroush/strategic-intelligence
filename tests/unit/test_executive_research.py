@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 from strategic_intelligence.application.case_input import CaseIntakeService, IntakeStatus
@@ -54,6 +55,7 @@ def test_critical_path_uses_c05_c06_and_real_privacy_aware_executive_research(tm
             url="https://news.example.test/ava-example-role",
             snippet="Ava Example leads strategy and AI partnerships for Example Co.",
             publisher="Example Co newsroom",
+            published_at=date(2026, 8, 20),
         )])
         result = ExecutiveResearchService(provider).research(intake.case, task)
     finally:
@@ -66,6 +68,8 @@ def test_critical_path_uses_c05_c06_and_real_privacy_aware_executive_research(tm
     assert result.findings[0].research_task_id == task.research_task_id
     assert result.findings[0].source_url == "https://news.example.test/ava-example-role"
     assert result.findings[0].relevance == "PUBLIC_PROFESSIONAL_MEETING_RELEVANT_DISCOVERY"
+    assert result.findings[0].publisher == "Example Co newsroom"
+    assert result.findings[0].publication_date == date(2026, 8, 20)
 
 
 def test_privacy_identity_relevance_and_duplicates_are_rejected_before_retention() -> None:

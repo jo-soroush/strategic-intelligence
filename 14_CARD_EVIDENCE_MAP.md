@@ -1407,27 +1407,30 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C12 — Bounded Follow-Up Research
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C07, V1-C08, V1-C11
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Focused follow-up | TBD | TBD | PENDING | TBD |
-| Attempt limit | TBD | TBD | PENDING | TBD |
-| Reverification | TBD | TBD | PENDING | TBD |
-| Abstention | TBD | TBD | PENDING | TBD |
-| Audit/persisted counters | TBD | TBD | PENDING | TBD |
+| Focused follow-up | `application/follow_up_research.py` | `test_follow_up_research.py` | PASS | Deterministic C12 orchestration accepts only unresolved C11 assessments and terminates on no progress, resolution, or budget exhaustion. |
+| Attempt limit | `FollowUpResearchService.run` | focused tests | PASS | Iteration is bounded by `ResearchTask.max_attempts` (1–3); no implicit retry exists. |
+| Reverification | C09 Evidence + C11 Verification | focused tests | PASS | Retained follow-up provenance is appended to the existing Claim before deterministic C11 re-evaluation. |
+| Abstention | `FollowUpResult` | focused tests | PASS | Missing/insufficient follow-up remains NO_PROGRESS or EXHAUSTED, never VERIFIED. |
+| Audit/persisted counters | `FollowUpResearchAttempt`; SQLite repository | focused tests | PASS | Each executed attempt persists count, evidence IDs, verification status, terminal flag, and reason. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** N/A — C12 did not exist; C11 correctly stopped at typed unresolved outcomes.
+**Candidate After:** PASS — C07/C08 preserve optional provider publisher/publication metadata in the application-owned `RawFinding`; C09 persists it to `Source` and `Evidence`; bounded C12 retains provenance, re-runs C11, and persists each terminal attempt without Governance behavior.
+**Regression Decision:** PASS — C07–C12 focused composition/regression tests: 36 passed; full suite: 75 passed; `pip check`, compile, package/config imports, and diff check passed.
+**Known Issues / Blockers:** None. The confirmed C07/C08 → `RawFinding` → C09 metadata-propagation gap was repaired without altering C10 freshness policy or C11 verification policy: missing publication dates remain UNKNOWN, and retrieval date is not substituted or fabricated.
+**Critical Path:** PASS — deterministic C04-style `SearchResult(publisher="Example Co", published_at=2026-08-20)` → real C07 `CompanyResearchService` → metadata-bearing `RawFinding` → real C09 `EvidenceLayerService` → C03 SQLite persistence → C10 CURRENT freshness assessment at 2026-08-27 → C11 VERIFIED Claim → real C12 bounded follow-up RESOLVED after one persisted attempt. C08 has a focused equivalent propagation proof. The fake replaces only external provider/network discovery; application, evidence, persistence, C10, and C11 boundaries are real. No network use.
+**Technical Learning / Learner Takeaway:** Bounded follow-up is orchestration, not a truth or Governance authority. Provenance metadata must survive each application-owned boundary so deterministic quality and verification decisions can remain conservative when metadata is missing and can resolve only when retained evidence warrants it.
+**Known Limitations / Deferrals:** C13 remains the sole owner of PASS/RESTRICT/BLOCK; no Governance decision, silent provider fallback, or autonomous loop was added.
+**Diff Review:** PASS — C12 application/domain/persistence/test/Evidence changes plus directly-required C07/C08 → C09 metadata propagation and regression coverage only; no C13+ implementation.
+**Git Status Review:** PASS — tracked changes reviewed; protected untracked repair/reference materials remain outside scope.
+**Exit Gate Evidence:** PASS — workflow-level research-more is deterministic and bounded by `ResearchTask.max_attempts` (1–3); the real composed resolved path and terminal no-progress paths are both proven, with every executed attempt persisted for audit.
 
 
 # V1-C13 — Governance Gate

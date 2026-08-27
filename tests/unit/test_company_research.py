@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 from strategic_intelligence.application.case_input import CaseIntakeService, IntakeStatus
@@ -53,6 +54,7 @@ def test_critical_path_executes_a_real_company_service_from_c05_and_c06(tmp_path
             url="https://news.example.test/projects/ai",
             snippet="Example Co announced an AI project for enterprise partners.",
             publisher="Example News",
+            published_at=date(2026, 8, 20),
         )])
         result = CompanyResearchService(provider).research(intake.case, task)
     finally:
@@ -66,6 +68,8 @@ def test_critical_path_executes_a_real_company_service_from_c05_and_c06(tmp_path
     assert result.findings[0].source_url == "https://news.example.test/projects/ai"
     assert result.findings[0].topic == "PROJECTS"
     assert result.findings[0].relevance == "MEETING_RELEVANT_DISCOVERY"
+    assert result.findings[0].publisher == "Example News"
+    assert result.findings[0].publication_date == date(2026, 8, 20)
 
 
 def test_empty_duplicate_blocked_and_irrelevant_results_are_explicit_and_bounded() -> None:

@@ -73,6 +73,13 @@ class ResearchTaskStatus(str, Enum):
     FAILED = "FAILED"
 
 
+class FollowUpResearchStatus(str, Enum):
+    RESOLVED = "RESOLVED"
+    EXHAUSTED = "EXHAUSTED"
+    NO_PROGRESS = "NO_PROGRESS"
+    REJECTED = "REJECTED"
+
+
 class ResearchCoverageStatus(str, Enum):
     COVERED = "COVERED"
     PARTIAL = "PARTIAL"
@@ -302,6 +309,8 @@ class RawFinding(DomainModel):
     research_task_id: str = Field(min_length=1)
     source_url: str = Field(min_length=1)
     title: str = Field(min_length=1)
+    publisher: str | None = None
+    publication_date: date | None = None
     extracted_content: str = Field(min_length=1)
     topic: str = Field(min_length=1)
     relevance: str = Field(min_length=1)
@@ -368,6 +377,20 @@ class VerificationResult(DomainModel):
     duplicate_risk: bool = False
     notes: str | None = None
     verified_at: datetime = Field(default_factory=utc_now)
+
+
+class FollowUpResearchAttempt(DomainModel):
+    attempt_id: str = Field(default_factory=new_id, min_length=1)
+    case_id: str = Field(min_length=1)
+    claim_id: str = Field(min_length=1)
+    research_task_id: str = Field(min_length=1)
+    attempt_number: int = Field(ge=1, le=3)
+    finding_ids: list[str] = Field(default_factory=list)
+    evidence_ids: list[str] = Field(default_factory=list)
+    verification_status: VerificationStatus
+    terminal: bool
+    reason: str = Field(min_length=1)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class AnalysisItem(DomainModel):

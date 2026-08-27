@@ -10,7 +10,7 @@ from typing import Sequence, TypeVar
 from pydantic import BaseModel
 
 from strategic_intelligence.domain.models import (
-    Case, Claim, ClaimEvidenceLink, Evidence, Source, WorkflowRun, WorkflowStage,
+    Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, Source, WorkflowRun, WorkflowStage,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS sources (id TEXT PRIMARY KEY, case_id TEXT NOT NULL R
 CREATE TABLE IF NOT EXISTS evidence (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), source_id TEXT NOT NULL REFERENCES sources(id), content TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, source_id, content));
 CREATE TABLE IF NOT EXISTS claims (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), text TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, text));
 CREATE TABLE IF NOT EXISTS claim_evidence_links (claim_id TEXT NOT NULL REFERENCES claims(id), evidence_id TEXT NOT NULL REFERENCES evidence(id), relationship_type TEXT NOT NULL, PRIMARY KEY(claim_id, evidence_id, relationship_type));
+CREATE TABLE IF NOT EXISTS follow_up_attempts (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL REFERENCES claims(id), payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS checkpoints (run_id TEXT NOT NULL REFERENCES workflow_runs(id), stage TEXT NOT NULL, accepted INTEGER NOT NULL, required_records TEXT NOT NULL, accepted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(run_id, stage));
 """
 
@@ -112,6 +113,28 @@ class SqliteRepository:
             evidence_id=row["evidence_id"],
             relationship_type=row["relationship_type"],
         ) for row in rows]
+
+    def append_claim_evidence(self, claim_id: str, evidence: Sequence[Evidence], links: Sequence[ClaimEvidenceLink]) -> Claim:
+        claim = self.get_claim(claim_id)
+        if claim is None or {link.claim_id for link in links} != {claim_id} or {link.evidence_id for link in links} != {item.evidence_id for item in evidence}:
+            raise ValueError("follow-up evidence links must belong to the persisted claim")
+        with self._connection:
+            for item in evidence:
+                self.save_evidence(item)
+            for link in links:
+                self._connection.execute("INSERT OR IGNORE INTO claim_evidence_links(claim_id, evidence_id, relationship_type) VALUES (?, ?, ?)", (link.claim_id, link.evidence_id, link.relationship_type.value))
+            updated = claim.model_copy(update={"evidence_ids": [*claim.evidence_ids, *(item.evidence_id for item in evidence if item.evidence_id not in claim.evidence_ids)]})
+            self._connection.execute("UPDATE claims SET payload = ? WHERE id = ?", (self._dump(updated), claim_id))
+        return updated
+
+    def save_follow_up_attempt(self, attempt: FollowUpResearchAttempt) -> FollowUpResearchAttempt:
+        with self._connection:
+            self._connection.execute("INSERT INTO follow_up_attempts(id, claim_id, payload) VALUES (?, ?, ?)", (attempt.attempt_id, attempt.claim_id, self._dump(attempt)))
+        return attempt
+
+    def list_follow_up_attempts(self, claim_id: str) -> list[FollowUpResearchAttempt]:
+        rows = self._connection.execute("SELECT payload FROM follow_up_attempts WHERE claim_id = ? ORDER BY rowid", (claim_id,)).fetchall()
+        return [self._load(FollowUpResearchAttempt, row["payload"]) for row in rows]
 
     def accept_checkpoint(self, run_id: str, stage: WorkflowStage, required_records: Sequence[tuple[str, str]]) -> None:
         tables = {"case": "cases", "source": "sources", "evidence": "evidence", "claim": "claims", "workflow_run": "workflow_runs"}

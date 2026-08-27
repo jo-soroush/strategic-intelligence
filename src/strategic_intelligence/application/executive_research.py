@@ -202,6 +202,8 @@ class ExecutiveResearchService:
             research_task_id=task.research_task_id,
             source_url=url,
             title=title,
+            publisher=result.publisher,
+            publication_date=result.published_at,
             extracted_content=snippet,
             topic=task.category.value,
             relevance="PUBLIC_PROFESSIONAL_MEETING_RELEVANT_DISCOVERY",

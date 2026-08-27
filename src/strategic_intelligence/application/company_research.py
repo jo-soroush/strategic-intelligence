@@ -203,6 +203,8 @@ class CompanyResearchService:
             research_task_id=task.research_task_id,
             source_url=url,
             title=title,
+            publisher=result.publisher,
+            publication_date=result.published_at,
             extracted_content=snippet,
             topic=task.category.value,
             relevance="MEETING_RELEVANT_DISCOVERY",
