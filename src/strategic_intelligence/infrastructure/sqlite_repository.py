@@ -10,7 +10,7 @@ from typing import Sequence, TypeVar
 from pydantic import BaseModel
 
 from strategic_intelligence.domain.models import (
-    Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, Source, WorkflowRun, WorkflowStage,
+    Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, WorkflowRun, WorkflowStage,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS evidence (id TEXT PRIMARY KEY, case_id TEXT NOT NULL 
 CREATE TABLE IF NOT EXISTS claims (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), text TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, text));
 CREATE TABLE IF NOT EXISTS claim_evidence_links (claim_id TEXT NOT NULL REFERENCES claims(id), evidence_id TEXT NOT NULL REFERENCES evidence(id), relationship_type TEXT NOT NULL, PRIMARY KEY(claim_id, evidence_id, relationship_type));
 CREATE TABLE IF NOT EXISTS follow_up_attempts (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL REFERENCES claims(id), payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS governance_decisions (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), target_id TEXT NOT NULL, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS checkpoints (run_id TEXT NOT NULL REFERENCES workflow_runs(id), stage TEXT NOT NULL, accepted INTEGER NOT NULL, required_records TEXT NOT NULL, accepted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(run_id, stage));
 """
 
@@ -92,7 +93,7 @@ class SqliteRepository:
         return self._get("evidence", Evidence, evidence_id)
 
     def save_claim_with_links(self, claim: Claim, links: Sequence[ClaimEvidenceLink]) -> Claim:
-        if {link.claim_id for link in links} != {claim.claim_id} or {link.evidence_id for link in links} != set(claim.evidence_ids):
+        if any(link.claim_id != claim.claim_id for link in links) or {link.evidence_id for link in links} != set(claim.evidence_ids):
             raise ValueError("claim links must exactly match claim evidence identifiers")
         with self._connection:
             self._connection.execute("INSERT INTO claims(id, case_id, text, payload) VALUES (?, ?, ?, ?)", (claim.claim_id, claim.case_id, claim.text, self._dump(claim)))
@@ -135,6 +136,20 @@ class SqliteRepository:
     def list_follow_up_attempts(self, claim_id: str) -> list[FollowUpResearchAttempt]:
         rows = self._connection.execute("SELECT payload FROM follow_up_attempts WHERE claim_id = ? ORDER BY rowid", (claim_id,)).fetchall()
         return [self._load(FollowUpResearchAttempt, row["payload"]) for row in rows]
+
+    def save_governance_decision(self, decision: GovernanceDecision) -> GovernanceDecision:
+        with self._connection:
+            self._connection.execute(
+                "INSERT INTO governance_decisions(id, case_id, target_id, payload) VALUES (?, ?, ?, ?)",
+                (decision.governance_id, decision.case_id, decision.target_id, self._dump(decision)),
+            )
+        return decision
+
+    def list_governance_decisions(self, target_id: str) -> list[GovernanceDecision]:
+        rows = self._connection.execute(
+            "SELECT payload FROM governance_decisions WHERE target_id = ? ORDER BY rowid", (target_id,),
+        ).fetchall()
+        return [self._load(GovernanceDecision, row["payload"]) for row in rows]
 
     def accept_checkpoint(self, run_id: str, stage: WorkflowStage, required_records: Sequence[tuple[str, str]]) -> None:
         tables = {"case": "cases", "source": "sources", "evidence": "evidence", "claim": "claims", "workflow_run": "workflow_runs"}

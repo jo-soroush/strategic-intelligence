@@ -76,6 +76,18 @@ def test_claim_link_transaction_rolls_back_on_missing_evidence(repository: Sqlit
     assert repository.link_count(claim.claim_id) == 0
 
 
+def test_recommendation_without_evidence_persists_without_claim_links(repository: SqliteRepository) -> None:
+    case = repository.create_case(_case())
+    recommendation = Claim(
+        case_id=case.case_id, text="Ask about research priorities.",
+        claim_type=ClaimType.RECOMMENDATION, topic="strategy",
+    )
+
+    assert repository.save_claim_with_links(recommendation, []) == recommendation
+    assert repository.get_claim(recommendation.claim_id) == recommendation
+    assert repository.link_count(recommendation.claim_id) == 0
+
+
 def test_checkpoint_requires_persisted_records_and_never_accepts_failed_input(repository: SqliteRepository) -> None:
     case = repository.create_case(_case())
     run = repository.save_workflow_run(WorkflowRun(case_id=case.case_id))

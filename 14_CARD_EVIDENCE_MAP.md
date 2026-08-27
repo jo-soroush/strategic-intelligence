@@ -1435,28 +1435,31 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C13 — Governance Gate
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C11
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| FACT without Evidence BLOCK | TBD | TBD | PENDING | TBD |
-| Evidence without Source BLOCK | TBD | TBD | PENDING | TBD |
-| Inference separation | TBD | TBD | PENDING | TBD |
-| BLOCK leakage=0 | TBD | TBD | PENDING | TBD |
-| RESTRICT preservation | TBD | TBD | PENDING | TBD |
-| Fail closed/reason codes | TBD | TBD | PENDING | TBD |
+| FACT without Evidence BLOCK | C02 `Claim` invariant; `GovernanceService.evaluate` | `test_governance.py` | PASS | A FACT without Evidence cannot deserialize as a valid Claim; Governance rejects that invalid persisted input before final use rather than weakening the C02 invariant. |
+| Evidence without Source BLOCK | `GovernanceService._evaluate_fact` | focused tests | PASS | Invalid provenance from C11 becomes a persisted BLOCK with `UNTRACEABLE_CLAIM`. |
+| Inference separation | `GovernanceService.evaluate` | focused tests | PASS | Traceable INFERENCE stays INFERENCE and receives RESTRICT with `INFERENCE_REQUIRES_QUALIFICATION`; it is never verified as FACT. |
+| BLOCK leakage=0 | `GovernanceDecision` only | focused tests | PASS | BLOCK is a typed, persisted terminal Governance result; C16 Brief behavior was not implemented or invoked. |
+| RESTRICT preservation | `GovernanceDecision.reason_codes` and `notes` | focused tests | PASS | Conflict, stale, inference, and recommendation restrictions preserve an explicit reason and qualification in persistence. |
+| Fail closed/reason codes | `GovernanceService`; C03 repository | focused tests | PASS | Unsupported, untraceable, and private-personal Claims BLOCK; deterministic repeated evaluation preserves decision/reason semantics and audit records. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** N/A — C11 supplied deterministic verification outcomes but no final-use Governance decision or persisted restriction record.
+**Candidate After:** PASS — C13 deterministically consumes persisted Claim provenance and C11 assessment, produces one typed PASS/RESTRICT/BLOCK decision with reason codes/notes, and persists it through the application-owned C03 repository boundary.
+**Regression Decision:** PASS — focused C13: 8 passed; C09–C13 evidence/source-quality/verification/follow-up/governance regression: 35 passed; full suite: 84 passed; `pip check`, compile, governance import, and diff checks passed.
+**Known Issues / Blockers:** None. During C13 testing, a valid RECOMMENDATION with no Evidence exposed an over-strict C03 link-set check. The bounded correction permits an empty link set only when the Claim has no evidence IDs, while still requiring every supplied link to match the Claim and exactly match its evidence IDs. FACT/INFERENCE evidence invariants remain enforced by C02; invalid persisted FACT data is rejected fail-closed.
+**Critical Path:** PASS — persisted C03 Source/Evidence/FACT Claim with unresolved C11 quality → real C12 `FollowUpResearchService` → deterministic C04-style fake `SearchResult` → real C07 Company Research → C09 retained provenance → C10 freshness inside real C11 → C12 RESOLVED → real C13 `GovernanceService` → PASS `GovernanceDecision` → C03 `list_governance_decisions` read-back. The fake replaces only external search/network discovery; no network use.
+**Technical Learning / Learner Takeaway:** Verification asks whether a Claim is supported; Governance separately decides whether it may be used. Keeping the decision typed, deterministic, reason-coded, and persisted makes conflict, staleness, uncertainty, non-factual content, and privacy boundaries visible rather than silently normalized away.
+**Known Limitations / Deferrals:** C14 security controls, C15 strategic analysis, C16 Brief routing, orchestration, and provider/network enforcement remain out of scope. C13 performs no research, source-quality classification, fidelity re-evaluation, or AI override.
+**Diff Review:** PASS — C13 Governance/domain/repository/test/Evidence changes plus the directly-required valid no-evidence RECOMMENDATION persistence correction only; no C14+ implementation.
+**Git Status Review:** PASS — tracked C13 changes reviewed; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope; no staged files.
+**Exit Gate Evidence:** PASS — deterministic PASS/RESTRICT/BLOCK rules block unsupported, untraceable, and private-personal Claims; preserve stale/conflict/non-factual qualification; and cannot be overridden by model output because no model path exists in the Governance engine.
 
 
 # V1-C14 — Security Boundaries
