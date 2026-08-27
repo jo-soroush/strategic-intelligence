@@ -12,6 +12,7 @@ from strategic_intelligence.domain.models import (
     Claim, ClaimEvidenceLink, ClaimEvidenceRelationship, ClaimType, Evidence,
     RawFinding, Source, SourceQuality, SourceType,
 )
+from strategic_intelligence.security import UnsafeExternalUrlError, normalize_external_url
 
 
 class EvidenceLayerStatus(str, Enum):
@@ -119,7 +120,11 @@ class EvidenceLayerService:
 
     @staticmethod
     def _valid_finding(finding: RawFinding) -> bool:
-        return bool(finding.case_id and finding.research_task_id and finding.source_url.startswith(("http://", "https://")) and finding.title.strip() and finding.extracted_content.strip())
+        try:
+            normalize_external_url(finding.source_url)
+        except UnsafeExternalUrlError:
+            return False
+        return bool(finding.case_id and finding.research_task_id and finding.title.strip() and finding.extracted_content.strip())
 
     @staticmethod
     def _relationships_for(

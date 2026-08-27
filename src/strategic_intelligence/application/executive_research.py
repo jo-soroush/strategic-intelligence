@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import ipaddress
 import re
 from enum import Enum
-from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from strategic_intelligence.domain.models import Case, RawFinding, ResearchCategory, ResearchTask, ResearchTaskStatus, TargetType
 from strategic_intelligence.providers.contracts import ProviderError, ProviderErrorCode, SearchProvider, SearchQuery, SearchResult
+from strategic_intelligence.security import UnsafeExternalUrlError, normalize_external_url
 
 
 _EXECUTIVE_CATEGORIES = frozenset({
@@ -241,23 +240,7 @@ def _contains_excluded_personal_data(value: str) -> bool:
 
 
 def _public_discovery_url(value: str) -> str | None:
-    if value != value.strip() or any(character.isspace() for character in value):
-        return None
-    parsed = urlsplit(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
-        return None
     try:
-        port = parsed.port
-    except ValueError:
+        return normalize_external_url(value)
+    except UnsafeExternalUrlError:
         return None
-    hostname = parsed.hostname.lower().rstrip(".")
-    if hostname == "localhost" or hostname.endswith(".local"):
-        return None
-    try:
-        address = ipaddress.ip_address(hostname)
-    except ValueError:
-        address = None
-    if address is not None and not address.is_global:
-        return None
-    netloc = hostname if port is None else f"{hostname}:{port}"
-    return urlunsplit((parsed.scheme.lower(), netloc, parsed.path or "", parsed.query, ""))

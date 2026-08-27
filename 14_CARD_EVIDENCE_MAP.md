@@ -1464,29 +1464,32 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C14 — Security Boundaries
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C04, V1-C05, V1-C07, V1-C08, V1-C13
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Secrets | TBD | TBD | PENDING | TBD |
-| URL/SSRF/redirect | TBD | TBD | PENDING | TBD |
-| Path safety | TBD | TBD | PENDING | TBD |
-| Prompt injection | TBD | TBD | PENDING | TBD |
-| Least privilege | TBD | TBD | PENDING | TBD |
-| Redaction | TBD | TBD | PENDING | TBD |
-| No silent fallback | TBD | TBD | PENDING | TBD |
+| URL / SSRF / redirect | `security/boundaries.py`; C05/C07/C08/C09 ingress; C04 DuckDuckGo adapter | `test_security_boundaries.py` | PASS | One application-owned policy accepts syntactically valid public HTTP(S) URLs and permits only public-unicast destinations. It rejects malformed authority encoding, credentials, loopback, private, link-local, unspecified, multicast, reserved, known internal, and resolver-supported numeric destinations. The owned network opener resolves and checks every address before opening; every redirect repeats that check. |
+| Safe source retention | `application/evidence_layer.py` | unsafe literal and malformed-host persistence tests | PASS | Unsafe and malformed RawFindings are rejected before `save_source`, `save_evidence`, or Claim persistence; C14 rejection cannot become trusted Evidence. |
+| Prompt-injection isolation | C07/C08 RawFinding data flow; C09 evidence; C13 Governance | `test_untrusted_source_text_remains_data_and_cannot_override_governance` | PASS | Malicious source instructions remain persisted source data only. They receive no provider, tool, configuration, or Governance capability; deterministic C13 returns BLOCK for the unsupported Claim. |
+| Artifact path safety | C03 `LocalArtifactStore` | `test_artifact_paths_allow_safe_components_and_reject_traversal` | PASS | Generated-safe identifiers and containment under the configured root allow a safe artifact while rejecting traversal in identifiers and suffixes. |
+| Secrets / logging | `observability/logging.py` | message and formatted-exception redaction tests | PASS | The application logger redacts configured secret values plus bearer and credential-shaped fragments from messages, stack information, and pre-rendered exception text without mutating the underlying exception. No secret is hardcoded or added to domain/persistence contracts. |
+| Least privilege / no silent fallback | C04 provider factory; C07 Company Research | `test_provider_configuration_and_failure_do_not_silently_fallback`; `test_providers.py` | PASS | Provider selection remains explicit. Unsupported configuration fails and a failing provider produces one visible UNAVAILABLE result with no substitution, retry, or bypass. |
+| Privacy regression | C08 Executive Research | `test_executive_research.py` | PASS | The completed C08 public-professional/personal-data filtering boundary remains green and is not re-owned by C14. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** C05/C07/C08 had three similar public-URL normalizers and C03 already contained artifacts, but C09 accepted any HTTP(S) finding, the DuckDuckGo adapter auto-followed redirects, and logging had no secret-redaction filter.
+**Candidate After:** PASS — C14 centralizes deterministic external-URL normalization in `security/boundaries.py`, applies it at C05 user intake, C07/C08 discovery retention, C09 evidence retention, and the only owned external network opener. The lexical boundary admits only ASCII DNS reg-names or IP literals and rejects encoded authority text. At the network boundary, `getaddrinfo` results are checked before opening and before every redirect continuation; every resolved address must meet the public-unicast invariant. The same fail-closed policy protects redirects; logging redacts secrets; existing C03, C04, and C13 boundaries remain owned by their Cards.
+**Regression Decision:** PASS — focused C14: 27 passed; C04/C05/C07/C08/C09/C13 security regression: 36 passed; full suite: 111 passed; `pip check`, compile, package/config imports, `git diff --check`, and `git diff --cached --check` passed.
+**Known Issues / Blockers:** Resolved before final closure. The first pre-delivery audit invalidated the initial closure: F001 found decimal/hex numeric IPv4 forms (`2130706433`, `0x7f000001`) passed textual validation but resolved to loopback; F002 found `SecretRedactionFilter` redacted a log message but not formatter-appended `exc_info`. F001 was repaired with literal numeric parsing plus fail-closed resolved-address validation at the owned opener and redirect boundary. F002 was repaired by redacting pre-rendered exception and stack text on the LogRecord while retaining the original exception. The second adversarial audit found F003: multicast addresses were accepted because `is_global` was treated as permitted public access; this was repaired with an explicit public-unicast invariant. It also found F004: percent-encoded authority hosts passed lexical C05/C09 validation; this was repaired with ASCII DNS-reg-name/IP-literal host syntax validation. The earlier C13 BLOCK-versus-RESTRICT test expectation was corrected to prove stronger existing Governance behavior; no production defect was found there.
+**Critical Path:** PASS — multicast `http://224.0.0.1/discovery` → real C14 public-unicast policy → `INTERNAL_DESTINATION` rejection → mocked `build_opener` proves no network opener/action occurs. Malformed `http://%31%32%37.0.0.1/internal` → shared lexical policy → `MALFORMED` rejection → real C05 validation and C09 EvidenceLayer reject before persistence, with no network opener. The F001 numeric-loopback and resolved-private redirect paths remain rejected; a mocked public resolver result permits the HTTPS/public-unicast control URL. Separately, an exception carrying a configured secret → real `SecretRedactionFilter` → standard final formatter emits `[REDACTED]` while the original exception remains unchanged. Mocks replace only DNS/network I/O to make safety deterministic; the C14 policy, redirect hook, C05/C09 boundaries, and logging formatter path are real. No network use.
+**Technical Learning / Learner Takeaway:** Security is strongest when the component holding a dangerous capability enforces a narrow deterministic policy itself. Centralizing URL policy eliminates inconsistent ingress validation, while capability separation means untrusted text can be retained as evidence data without becoming instructions, tool access, secrets, or Governance authority.
+**Known Limitations / Deferrals:** The standard-library opener performs its own resolution after C14's `getaddrinfo` preflight, so the bounded V1 implementation rejects all addresses observed immediately before each owned open/redirect but does not claim DNS-pinning or perfect DNS-rebinding immunity without a larger custom HTTP stack. Resolution failures fail closed. C15 analysis, C16 Brief behavior, UI, cloud/enterprise security, crawlers, and access-control bypass remain out of scope. C09 provenance, C10 freshness, C11 verification, C12 follow-up, and C13 Governance ownership are unchanged.
+**Diff Review:** PASS — centralized C14 security policy, resolved-destination/redirect repair, public-unicast/malformed-host adversarial repair, logging exception-redaction repair, ingress wiring, provider protection, focused tests, and canonical C14 Evidence only; no C15+ implementation, architecture expansion, dependency, or new control dashboard.
+**Git Status Review:** PASS — all tracked C14 changes reviewed; no staged files; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope.
+**Exit Gate Evidence:** PASS — external research URLs are deterministically validated at application ingress and, immediately before the owned network access path, against every address then resolved. Malformed authority, unsafe literal/numeric, resolved-private, multicast, and redirect destinations are rejected before downstream network/evidence actions. Source text cannot override the separate deterministic C13 authority, artifact traversal is rejected, provider failure does not bypass policy, and message/exception secret-bearing log content is redacted. Therefore external research cannot bypass application security/Governance boundaries within the documented standard-library DNS preflight limitation.
 
 
 # V1-C15 — Strategic Analysis

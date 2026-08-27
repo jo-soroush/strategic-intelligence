@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import ipaddress
 from enum import Enum
 from typing import Any, Mapping, Sequence
-from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from strategic_intelligence.application.persistence import PersistenceRepository
 from strategic_intelligence.domain.models import Case, Company, Executive
+from strategic_intelligence.security import UnsafeExternalUrlError, normalize_external_url
 
 
 class IntakeStatus(str, Enum):
@@ -52,26 +51,10 @@ def _normalize_optional_text(value: str | None, field_name: str) -> str | None:
 
 
 def _normalize_public_url(value: str) -> str:
-    if value != value.strip() or any(character.isspace() for character in value):
-        raise ValueError("URL must not contain whitespace")
-    parsed = urlsplit(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
-        raise ValueError("URL must be an absolute http(s) URL without credentials")
     try:
-        port = parsed.port
-    except ValueError as error:
-        raise ValueError("URL has an invalid port") from error
-    hostname = parsed.hostname.lower().rstrip(".")
-    if hostname == "localhost" or hostname.endswith(".local"):
-        raise ValueError("URL host must be publicly routable")
-    try:
-        address = ipaddress.ip_address(hostname)
-    except ValueError:
-        address = None
-    if address is not None and not address.is_global:
-        raise ValueError("URL host must be publicly routable")
-    netloc = hostname if port is None else f"{hostname}:{port}"
-    return urlunsplit((parsed.scheme.lower(), netloc, parsed.path or "", parsed.query, parsed.fragment))
+        return normalize_external_url(value, preserve_fragment=True)
+    except UnsafeExternalUrlError as error:
+        raise ValueError("URL must be a public http(s) URL without credentials") from error
 
 
 def _identity(value: str) -> str:
