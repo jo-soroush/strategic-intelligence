@@ -516,18 +516,25 @@ PASS only when: Both Briefs are trustworthy, traceable and useful.
 Make V1 usable locally without direct Python invocation.
 
 ## Planned Learning, Ownership, and Critical Path
-Learn a thin local UI boundary over validated application services; UI adapts input/output and owns no research, verification, or governance logic; Valid local request → application boundary → safe Quick/Full/partial display.
+Learn a thin local UI boundary over validated application services; UI adapts
+input/output and owns no workflow sequencing, research, verification, or
+governance logic; Valid local request → C18 application workflow boundary →
+typed workflow result → safe Quick/Full/partial display.
 
 ## Dependencies
-V1-C05, V1-C16
+V1-C05, V1-C16, V1-C18
 
 ## Implementation Scope and Requirements
-Thin local UI for Case input, workflow status, Quick/Full Brief, errors and Knowledge Gaps; no business logic/polish expansion.
+Thin local UI for Case input, C18 workflow invocation/status, Quick/Full Brief,
+typed errors, Knowledge Gaps, restrictions, and omission disclosure; no
+business logic/polish expansion.
 
 All implementation must use application-owned typed contracts, deterministic controls where behavior is objectively checkable, bounded retries/loops, least-privilege capabilities, safe failure, and existing architecture owners. Provider-specific objects must not leak into domain contracts. External content remains untrusted.
 
 ## Out of Scope
-Any feature not required by this Card or the approved V1 scope; future-Card implementation; silent architecture expansion.
+Workflow sequencing, retry/resume, repository coordination, provider calls,
+Case-validation rules, Verification, Governance, Strategic Analysis, Brief
+generation, and any future-Card implementation.
 
 ## Required Tests / Evaluation
 Valid submission; validation error; completed/partial/failed result.
@@ -540,27 +547,45 @@ Record actual implementation locations, tests/commands and results, relevant eva
 ## Exit Gate
 PASS only when: A user can execute the approved V1 workflow locally.
 
-# V1-C18 — Workflow Recovery
+# V1-C18 — Workflow Execution and Recovery
 
 ## Goal
-Prove safe recovery from validated accepted checkpoints.
+Provide an application-owned bounded workflow boundary and prove safe recovery
+from validated accepted checkpoints.
 
 ## Planned Learning, Ownership, and Critical Path
-Learn recovery from accepted persistence checkpoints only; recovery/orchestration owns resume selection and the repository proves accepted state; Interrupted run → accepted-checkpoint lookup → validated resume or safe fallback.
+Learn bounded first-run execution and recovery from accepted persistence
+checkpoints; the workflow orchestrator sequences existing typed services,
+owns routing/termination and resume selection, and the repository proves
+accepted state. First run: validated Case → research → Evidence/Claims →
+Verification → bounded Follow-Up as required → Governance → Strategic Analysis
+→ Brief Generator → typed workflow result. Recovery: interrupted run →
+accepted-checkpoint lookup → validated resume or safe fallback.
 
 ## Dependencies
-V1-C03, V1-C16
+V1-C03, V1-C05, V1-C16
 
 ## Implementation Scope and Requirements
-Stage action → required persistence → invariant/schema validation → checkpoint acceptance → recovery; accepted-only resume; fallback from invalid latest checkpoint; no trust-stage skip; bounded counters; duplicate/idempotent safety.
+Application-owned first-run workflow entry point; explicit stage action →
+required persistence → invariant/schema validation → checkpoint acceptance;
+accepted-only resume; fallback from invalid latest checkpoint; no trust-stage
+skip; bounded counters; duplicate/idempotent safety. It sequences existing
+authorities and preserves their typed outputs/states without a trust upgrade.
 
 All implementation must use application-owned typed contracts, deterministic controls where behavior is objectively checkable, bounded retries/loops, least-privilege capabilities, safe failure, and existing architecture owners. Provider-specific objects must not leak into domain contracts. External content remains untrusted.
 
 ## Out of Scope
-Any feature not required by this Card or the approved V1 scope; future-Card implementation; silent architecture expansion.
+Case-validation rules, research semantics, provenance, source quality/freshness,
+Verification, Follow-Up decision authority, Governance decisions, security
+policy, Strategic Analysis, Brief generation, UI presentation, and any
+future-Card implementation.
 
 ## Required Tests / Evaluation
-Persistence failure; invariant failure; recovery from accepted checkpoint; invalid latest fallback; resume after Research/Evidence/Verification/Governance; idempotent/duplicate-safe resume.
+Real composed first-run path through the implemented application services;
+persistence failure; invariant failure; recovery from accepted checkpoint;
+invalid latest fallback; resume after Research/Evidence/Verification/Governance;
+idempotent/duplicate-safe resume; and proof that orchestration preserves C05,
+C03, C09–C16 authority boundaries.
 
 Run relevant existing regression tests. For AI/routing/trust/recovery/quality-affecting Cards, execute the applicable baseline/evaluation or explicitly record N/A with reason.
 
@@ -568,7 +593,9 @@ Run relevant existing regression tests. For AI/routing/trust/recovery/quality-af
 Record actual implementation locations, tests/commands and results, relevant evaluation/baseline identifiers/results, known issues/blockers, diff/status review, and exact Exit Gate proof in `14_CARD_EVIDENCE_MAP.md`. Never invent evidence.
 
 ## Exit Gate
-PASS only when: Interrupted work resumes from the last accepted safe checkpoint without corrupting trust state.
+PASS only when: An application-owned workflow boundary safely executes the
+approved first-run V1 path and interrupted work resumes from the last accepted
+safe checkpoint without corrupting trust state.
 
 # V1-C19 — Observability and Audit
 

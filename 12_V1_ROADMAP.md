@@ -47,12 +47,16 @@ approved scope change proves it necessary.
 |---|---|
 | V1-C15 — Strategic Analysis | Produce evidence-bounded strategic synthesis. |
 | V1-C16 — Brief Generator | Produce trustworthy, traceable meeting briefs. |
-| V1-C17 — Minimal Local UI | Provide a thin local interface over validated services. |
-| V1-C18 — Workflow Recovery | Resume only from accepted safe checkpoints. |
+| V1-C18 — Workflow Execution and Recovery | Provide the application workflow boundary, then resume only from accepted safe checkpoints. |
+| V1-C17 — Minimal Local UI | Provide a thin local interface over the completed workflow boundary. |
 | V1-C19 — Observability and Audit | Explain what happened, why, and how a run performed. |
 | V1-C20 — Golden Case | Evaluate real meeting-preparation value against trust invariants. |
 | V1-C21 — Hardening and Regression | Repair known defects and protect quality baselines. |
 | V1-C22 — Documentation and Demo Readiness | Make V1 reproducible and explainable without chat reconstruction. |
+
+Execution order follows this table. C18 deliberately precedes C17 because the
+UI must invoke C18's application-owned workflow boundary; Card identifiers are
+preserved for traceability.
 
 ## Final V1 Intent
 

@@ -1568,7 +1568,7 @@ is emitted as VERIFIED/SUPPORTED.
 # V1-C17 — Minimal Local UI
 
 **Status:** NOT_STARTED
-**Dependencies:** V1-C05, V1-C16
+**Dependencies:** V1-C05, V1-C16, V1-C18
 **Exit Gate:** PENDING
 
 ### Evidence
@@ -1576,7 +1576,7 @@ is emitted as VERIFIED/SUPPORTED.
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
 | Case input | TBD | TBD | PENDING | TBD |
-| Workflow execution | TBD | TBD | PENDING | TBD |
+| C18 workflow invocation | TBD | TBD | PENDING | TBD |
 | Quick/Full display | TBD | TBD | PENDING | TBD |
 | Partial/failure display | TBD | TBD | PENDING | TBD |
 
@@ -1589,16 +1589,17 @@ is emitted as VERIFIED/SUPPORTED.
 **Exit Gate Evidence:** TBD
 
 
-# V1-C18 — Workflow Recovery
+# V1-C18 — Workflow Execution and Recovery
 
 **Status:** NOT_STARTED
-**Dependencies:** V1-C03, V1-C16
+**Dependencies:** V1-C03, V1-C05, V1-C16
 **Exit Gate:** PENDING
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
+| First-run application workflow boundary | TBD | TBD | PENDING | TBD |
 | Accepted-checkpoint protocol | TBD | TBD | PENDING | TBD |
 | Persistence/invariant rejection | TBD | TBD | PENDING | TBD |
 | Fallback to prior accepted checkpoint | TBD | TBD | PENDING | TBD |

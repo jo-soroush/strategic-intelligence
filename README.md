@@ -9,12 +9,11 @@ domain models; local persistence and repository infrastructure; vendor-neutral
 provider boundaries; validated Case intake; bounded research planning; company
 and public-professional executive research; Source → Evidence → candidate Claim
 provenance; deterministic source-quality/freshness metadata; and deterministic
-Evidence Fidelity/Verification judgment.
+Evidence Fidelity/Verification judgment; deterministic Governance; governed
+strategic analysis; and trustworthy, traceable Quick/Full Brief generation.
 
-Governance, end-to-end workflow orchestration, brief generation, UI, recovery,
-and later V1 capabilities remain governed by their owning future Cards. The
-verification foundation evaluates persisted Claim/Evidence/Source provenance
-and source metadata without mutating Claims, governing trust, or researching.
+End-to-end workflow orchestration, local UI, recovery, and later V1
+capabilities remain governed by their owning future Cards.
 The canonical Evidence Map owns actual Card delivery evidence, while Git proves
 live delivery state; this README describes durable repository capabilities
 rather than live Card state.
