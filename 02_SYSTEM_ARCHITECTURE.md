@@ -37,9 +37,9 @@ Evidence Layer
    ↓
 Verification Gate
    ↓
-Strategic Analysis
-   ↓
 Governance Gate
+   ↓
+Strategic Analysis
    ↓
 Brief Generator
    ↓
@@ -104,9 +104,9 @@ build_evidence
   ↓
 verify_claims
   ↓
-strategic_analysis
-  ↓
 governance_gate
+  ↓
+strategic_analysis
   ↓
 generate_brief
   ↓
@@ -974,13 +974,13 @@ The product should not exist to demonstrate architectural complexity.
 └─────────────────┬──────────────────┘
                   ↓
 ┌────────────────────────────────────┐
-│       Strategic Analysis           │
-│ Direction / Opportunity / Meeting  │
+│          Governance Gate           │
+│ PASS / RESTRICT / BLOCK            │
 └─────────────────┬──────────────────┘
                   ↓
 ┌────────────────────────────────────┐
-│          Governance Gate           │
-│ PASS / RESTRICT / BLOCK            │
+│       Strategic Analysis           │
+│ Direction / Opportunity / Meeting  │
 └─────────────────┬──────────────────┘
                   ↓
 ┌────────────────────────────────────┐

@@ -38,11 +38,11 @@ Executive Research ┘
                          ↓
                   Verification Gate
                          ↓
+                  Governance Gate
+                         ↓
                   Strategic Analysis
                          ↓
-                   Governance Gate
-                         ↓
-                   Brief Generator
+                  Brief Generator
                          ↓
                  Quick / Full Brief
 ```

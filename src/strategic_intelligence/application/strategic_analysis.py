@@ -11,8 +11,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from strategic_intelligence.application.persistence import PersistenceRepository
 from strategic_intelligence.application.verification import (
+    VerificationAssessment,
     VerificationAssessmentStatus,
     VerificationService,
+    verification_fingerprint,
 )
 from strategic_intelligence.domain.models import (
     AnalysisItem,
@@ -136,7 +138,7 @@ class StrategicAnalysisService:
         case = self._repository.get_case(case_id)
         if case is None:
             return self._rejected(StrategicAnalysisErrorCode.MISSING_CASE, "strategic analysis requires a persisted Case")
-        blocked_texts = self._blocked_claim_texts(case.case_id)
+        blocked_texts = self._blocked_claim_texts(case.case_id, as_of=as_of)
         context = self._build_context(
             case,
             as_of=as_of,
@@ -172,12 +174,14 @@ class StrategicAnalysisService:
     ) -> TrustedStrategicContext:
         candidates: list[TrustedClaimContext] = []
         for claim in self._repository.list_claims(case.case_id):
-            decision = self._latest_case_decision(claim, case.case_id)
+            assessment = self._verification.verify(claim.claim_id, as_of=as_of) if claim.claim_type is ClaimType.FACT else None
+            decision = self._latest_case_decision(claim, case.case_id, assessment)
             if decision is None or decision.decision is GovernanceDecisionStatus.BLOCK:
                 continue
             compressed = self._compress_claim(
                 claim,
                 decision,
+                assessment=assessment,
                 as_of=as_of,
                 evidence_character_budget=evidence_character_budget,
             )
@@ -201,32 +205,50 @@ class StrategicAnalysisService:
             evidence_character_budget=evidence_character_budget,
         )
 
-    def _latest_case_decision(self, claim: Claim, case_id: str) -> GovernanceDecision | None:
+    def _latest_case_decision(
+        self,
+        claim: Claim,
+        case_id: str,
+        assessment: VerificationAssessment | None = None,
+    ) -> GovernanceDecision | None:
         decisions = [
             decision for decision in self._repository.list_governance_decisions(claim.claim_id)
             if decision.case_id == case_id and decision.target_id == claim.claim_id
         ]
-        return decisions[-1] if decisions else None
+        if not decisions:
+            return None
+        decision = decisions[-1]
+        if claim.claim_type is ClaimType.FACT:
+            if decision.verification_fingerprint is None:
+                if not (
+                    decision.decision is GovernanceDecisionStatus.BLOCK
+                    and GovernanceReasonCode.PRIVACY_BOUNDARY in decision.reason_codes
+                ):
+                    return None
+            elif decision.verification_fingerprint != verification_fingerprint(assessment):
+                return None
+        return decision
 
-    def _blocked_claim_texts(self, case_id: str) -> set[str]:
+    def _blocked_claim_texts(self, case_id: str, *, as_of: date) -> set[str]:
         """Keep blocked Claim text local so copied material cannot be laundered by an ID."""
 
-        return {
-            self._normalized_text(claim.text)
-            for claim in self._repository.list_claims(case_id)
-            if (decision := self._latest_case_decision(claim, case_id)) is not None
-            and decision.decision is GovernanceDecisionStatus.BLOCK
-        }
+        blocked_texts: set[str] = set()
+        for claim in self._repository.list_claims(case_id):
+            assessment = self._verification.verify(claim.claim_id, as_of=as_of) if claim.claim_type is ClaimType.FACT else None
+            decision = self._latest_case_decision(claim, case_id, assessment)
+            if decision is not None and decision.decision is GovernanceDecisionStatus.BLOCK:
+                blocked_texts.add(self._normalized_text(claim.text))
+        return blocked_texts
 
     def _compress_claim(
         self,
         claim: Claim,
         decision: GovernanceDecision,
         *,
+        assessment: VerificationAssessment | None,
         as_of: date,
         evidence_character_budget: int,
     ) -> TrustedClaimContext | None:
-        assessment = self._verification.verify(claim.claim_id, as_of=as_of) if claim.claim_type is ClaimType.FACT else None
         if claim.claim_type is ClaimType.FACT and (
             assessment is None
             or assessment.status is not VerificationAssessmentStatus.ACCEPTED

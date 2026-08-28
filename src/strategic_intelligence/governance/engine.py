@@ -9,7 +9,7 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 
 from strategic_intelligence.application.persistence import PersistenceRepository
-from strategic_intelligence.application.verification import VerificationAssessment, VerificationAssessmentStatus, VerificationService
+from strategic_intelligence.application.verification import VerificationAssessment, VerificationAssessmentStatus, VerificationService, verification_fingerprint
 from strategic_intelligence.domain.models import (
     Claim, ClaimType, FidelityStatus, GovernanceDecision, GovernanceDecisionStatus,
     GovernanceReasonCode, VerificationStatus,
@@ -93,6 +93,7 @@ class GovernanceService:
             decision=decision,
             reason_codes=reasons,
             notes=notes,
+            verification_fingerprint=verification_fingerprint(verification) if verification is not None else None,
         ))
         return GovernanceAssessment(
             status=GovernanceAssessmentStatus.ACCEPTED,

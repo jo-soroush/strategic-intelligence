@@ -34,6 +34,14 @@ overlay has been consolidated into the Card's own planned learning, ownership,
 and expected Critical-Path fields. Current-system facts, design decisions, and
 actual Critical-Path execution belong only in the Card's Evidence record.
 
+## Cross-Card Composition Rule
+
+When a Card creates, consumes, or changes a trust, security, provider,
+persistence, or cross-Card boundary, its planned contract must identify the
+material composition surface and require an executable Critical Path or
+regression for it. The scope is risk-proportionate and does not create a new
+delivery stage.
+
 # V1-C01 — Repository Baseline
 
 ## Goal

@@ -102,6 +102,13 @@ The Critical Path is the smallest realistic composed execution path proving the
 Card's primary owned capability. Do not mock away the boundary it is meant to
 prove; fake only necessary external systems deterministically.
 
+For a Card that creates, consumes, or changes a trust, security, provider,
+persistence, or cross-Card boundary, identify its risk-scoped cross-Card
+composition surface before implementation. The Critical Path and relevant
+regressions must execute the material time, persistence, network, and
+documentation-order interactions on that surface; a passing Card-local suite
+does not substitute for that proof.
+
 `14_CARD_EVIDENCE_MAP.md` is the sole actual Card record and learning journal.
 Update its one Card section only when execution proves a meaningful fact. Keep
 technical proof, learning, defects/diagnosis/repair, limitations/deferrals,

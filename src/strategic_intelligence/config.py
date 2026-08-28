@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import ipaddress
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -18,10 +19,19 @@ def _relative_directory(name: str, value: str) -> Path:
     return path
 
 
-def _http_base_url(name: str, value: str) -> str:
+def _ollama_base_url(name: str, value: str, *, allow_remote: bool) -> str:
     parsed = urlsplit(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.query or parsed.fragment:
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.query or parsed.fragment or parsed.username or parsed.password:
         raise ValueError(f"{name} must be an absolute http(s) base URL without query or fragment")
+    hostname = parsed.hostname
+    if hostname is None:
+        raise ValueError(f"{name} must include a hostname")
+    try:
+        is_loopback = ipaddress.ip_address(hostname).is_loopback
+    except ValueError:
+        is_loopback = hostname.lower().rstrip(".") in {"localhost"} or hostname.lower().rstrip(".").endswith(".localhost")
+    if not is_loopback and not allow_remote:
+        raise ValueError(f"{name} must be a loopback endpoint unless CLOUD_PROVIDERS_ENABLED=true")
     return value.rstrip("/")
 
 
@@ -56,6 +66,7 @@ class Settings:
         if log_level not in _VALID_LOG_LEVELS:
             raise ValueError(f"LOG_LEVEL must be one of {sorted(_VALID_LOG_LEVELS)}")
 
+        cloud_providers_enabled = os.getenv("CLOUD_PROVIDERS_ENABLED", "false").lower() == "true"
         return cls(
             environment=os.getenv("APP_ENV", "development"),
             log_level=log_level,
@@ -64,7 +75,7 @@ class Settings:
             llm_provider=os.getenv("LLM_PROVIDER", "ollama").lower(),
             llm_model=os.getenv("LLM_MODEL", "llama3.2"),
             llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "30")),
-            ollama_base_url=_http_base_url("OLLAMA_BASE_URL", os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")),
+            ollama_base_url=_ollama_base_url("OLLAMA_BASE_URL", os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434"), allow_remote=cloud_providers_enabled),
             search_provider=os.getenv("SEARCH_PROVIDER", "fake").lower(),
-            cloud_providers_enabled=os.getenv("CLOUD_PROVIDERS_ENABLED", "false").lower() == "true",
+            cloud_providers_enabled=cloud_providers_enabled,
         )

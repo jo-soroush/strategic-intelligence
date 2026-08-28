@@ -48,6 +48,11 @@ At closure, the Card's evidence must concisely contain:
     never live Git authority.
 11. **Exact Exit Gate Proof** — requirement-to-actual-proof mapping.
 
+Post-delivery defects and validated repairs belong chronologically in the
+canonical record for the Card whose owned boundary exposed them. Record the
+cross-Card composition proof where material; do not create a second status
+authority or rewrite unrelated historical records.
+
 The existing per-Card requirement table remains the authoritative detailed
 requirement map. Do not duplicate architecture documents, copy raw test logs,
 or use this section to store live branch, current `main` SHA, upstream, pending
@@ -1518,6 +1523,7 @@ is emitted as VERIFIED/SUPPORTED.
 **Technical Learning / Learner Takeaway:** Strategic value can be added without handing an LLM raw authority: let deterministic controls decide what is eligible, give the model a small typed data envelope, and reject output that cannot prove its links back to permitted Claims.
 **Known Limitations / Deferrals:** C15 does not persist StrategicAnalysis, generate a Brief, orchestrate a workflow, or judge open-ended semantic usefulness; those remain C16+ work and later evaluation. FACT is deliberately constrained to Unicode NFKC/case/whitespace-equivalent Claim reuse rather than semantic paraphrase. INFERENCE/RECOMMENDATION retain model-authored language but are Case/Claim-bound, explicitly non-FACT, and structurally marked/qualified when RESTRICT; C15 cannot deterministically detect arbitrary semantic paraphrases a hostile provider knows independently of its bounded input. C13 remains final-use authority. A generic provenance-bearing recommendation can satisfy C15's intentionally non-semantic minimum-value invariant; Golden Case/evaluation owns usefulness judgment.
 **Diff Review:** PASS — C15 application service, narrow Case-scoped Claim retrieval, small optional qualification fields on existing analysis outputs, focused adversarial tests, and the canonical C15 Evidence record only; no research, verification, Governance, security, Brief, UI, or C16+ implementation.
+**Post-Delivery Repair Chronology:** The C01–C15 hard audit found P01: a historical C13 PASS could be reused after the real C11 assessment became stale; repaired by persisting a semantic C11 fingerprint with C13’s decision and requiring C15’s final-use context to match it. S01: a configured remote Ollama endpoint could bypass C14’s owned network boundary; repaired by loopback-only local configuration, explicit remote enablement, and C14 validation for enabled remote requests. D01: four durable architecture/workflow documents incorrectly placed Strategic Analysis before Governance; corrected to the implemented `Verification → Governance → Strategic Analysis` order. Focused C11/C13/C15 and C04/C14 regressions plus composed tests prove the repairs; C13 remains the sole final-use Governance authority.
 **Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope.
 **Exit Gate Evidence:** PASS — controlled strategic reasoning uses only bounded Case-scoped governed intelligence; BLOCK material is excluded before provider access; FACT allows only formatting-equivalent reuse of one eligible PASS FACT Claim; all model reasoning remains typed and in-context; RESTRICT derivations are structurally visible downstream; restriction overflow is explicitly disclosed; and malformed, oversized, cross-Case, unsupported-FACT, classification-escalating, and empty provider output fails closed. This is a bounded-input/non-FACT reasoning guarantee, not semantic detection of arbitrary BLOCK paraphrases.
 

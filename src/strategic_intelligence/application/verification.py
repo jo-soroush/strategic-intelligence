@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import hashlib
+import json
 from datetime import date
 from enum import Enum
 
@@ -176,3 +178,25 @@ class VerificationService:
             status=VerificationAssessmentStatus.REJECTED,
             errors=[VerificationError(code=code, message=message)],
         )
+
+
+def verification_fingerprint(assessment: VerificationAssessment | None) -> str | None:
+    """Stable C11 trust-state identity for a C13 final-use decision."""
+
+    if assessment is None or assessment.status is not VerificationAssessmentStatus.ACCEPTED or assessment.claim is None:
+        return None
+    payload = {
+        "claim_id": assessment.claim.claim_id,
+        "evidence_ids": assessment.claim.evidence_ids,
+        "fidelity_status": assessment.fidelity_status.value if assessment.fidelity_status else None,
+        "verification": {
+            "fidelity_status": assessment.verification.fidelity_status.value,
+            "status": assessment.verification.status.value,
+            "source_quality": assessment.verification.source_quality.value,
+            "freshness_status": assessment.verification.freshness_status.value,
+            "independent_source_count": assessment.verification.independent_source_count,
+            "conflict_detected": assessment.verification.conflict_detected,
+            "duplicate_risk": assessment.verification.duplicate_risk,
+        } if assessment.verification else None,
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()

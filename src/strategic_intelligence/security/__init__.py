@@ -5,6 +5,7 @@ from strategic_intelligence.security.boundaries import (
     UrlSafetyCode,
     normalize_external_url,
     normalize_redirect_url,
+    open_external_request,
     open_external_url,
     validate_resolved_external_url,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "UrlSafetyCode",
     "normalize_external_url",
     "normalize_redirect_url",
+    "open_external_request",
     "open_external_url",
     "validate_resolved_external_url",
 ]

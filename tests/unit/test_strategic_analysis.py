@@ -134,6 +134,18 @@ def test_critical_path_builds_bounded_governed_context_and_typed_analysis(tmp_pa
     assert result.analysis.company_direction[0].related_claim_ids == [claim.claim_id]
 
 
+def test_historical_governance_pass_cannot_authorize_strategic_analysis_after_verification_changes(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+    case = _case(repository)
+    claim = _claim(repository, case)
+    _govern(repository, claim)
+
+    result = _service(repository, _analysis(case, claim.claim_id)).analyze(case.case_id, as_of=date(2028, 8, 27))
+
+    assert result.status is StrategicAnalysisStatus.REJECTED
+    assert result.errors[0].code is StrategicAnalysisErrorCode.NO_GOVERNED_CONTEXT
+
+
 def test_restricted_stale_claim_is_visible_as_a_qualification_not_a_clean_fact(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
     case = _case(repository)

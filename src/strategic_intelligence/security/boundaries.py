@@ -7,7 +7,7 @@ import re
 import socket
 from enum import Enum
 from urllib.parse import urljoin, urlsplit, urlunsplit
-from urllib.request import HTTPRedirectHandler, build_opener
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 
 class UrlSafetyCode(str, Enum):
@@ -138,3 +138,10 @@ def open_external_url(url: str, *, timeout: float):
 
     normalized = validate_resolved_external_url(url)
     return build_opener(_SafeRedirectHandler()).open(normalized, timeout=timeout)
+
+
+def open_external_request(request: Request, *, timeout: float):
+    """Open one policy-validated external request, including redirect destinations."""
+
+    validate_resolved_external_url(request.full_url)
+    return build_opener(_SafeRedirectHandler()).open(request, timeout=timeout)

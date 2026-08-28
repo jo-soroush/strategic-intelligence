@@ -55,8 +55,8 @@ START
 → Build Claims
 → Verify
 → bounded Follow-Up Research when required
-→ Strategic Analysis
 → Governance Gate
+→ Strategic Analysis
 → Brief Generator
 → Persist Results
 → Determine Case Status

@@ -456,6 +456,7 @@ class GovernanceDecision(DomainModel):
     decision: GovernanceDecisionStatus
     reason_codes: list[GovernanceReasonCode] = Field(default_factory=list)
     notes: str | None = None
+    verification_fingerprint: str | None = None
     decided_at: datetime = Field(default_factory=utc_now)
 
 

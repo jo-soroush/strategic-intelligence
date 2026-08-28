@@ -36,6 +36,9 @@ Before an authorized commit:
    unrelated files are staged; and
 5. commit one coherent, validated change using an accurate message.
 
+For a Card with an identified cross-Card composition surface, the staged
+evidence must include its required composed Critical Path or regression proof.
+
 Commit only with explicit user authorization. Do not claim validation that did
 not run.
 

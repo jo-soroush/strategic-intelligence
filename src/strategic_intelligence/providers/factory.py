@@ -19,7 +19,7 @@ class Providers:
 
 def build_providers(settings: Settings) -> Providers:
     if settings.llm_provider == "ollama":
-        llm: LLMProvider = OllamaAdapter(settings.ollama_base_url, settings.llm_model, settings.llm_timeout_seconds)
+        llm: LLMProvider = OllamaAdapter(settings.ollama_base_url, settings.llm_model, settings.llm_timeout_seconds, allow_remote=settings.cloud_providers_enabled)
     elif settings.llm_provider == "fake":
         llm = FakeLLMProvider()
     else:

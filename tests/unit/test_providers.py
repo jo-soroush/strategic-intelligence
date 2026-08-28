@@ -46,6 +46,38 @@ def test_ollama_base_url_rejects_non_http_scheme(monkeypatch) -> None:
         _settings(monkeypatch, OLLAMA_BASE_URL="file:///tmp/ollama")
 
 
+def test_remote_ollama_requires_explicit_enablement(monkeypatch) -> None:
+    with pytest.raises(ValueError, match="CLOUD_PROVIDERS_ENABLED"):
+        _settings(monkeypatch, OLLAMA_BASE_URL="https://remote.example")
+    settings = _settings(monkeypatch, OLLAMA_BASE_URL="https://remote.example", CLOUD_PROVIDERS_ENABLED="true")
+    assert isinstance(build_providers(settings).llm, OllamaAdapter)
+
+
+def test_enabled_remote_ollama_uses_the_c14_external_request_boundary(monkeypatch) -> None:
+    captured: list[str] = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return b'{"response":"ok"}'
+
+    monkeypatch.setattr(
+        "strategic_intelligence.providers.ollama.open_external_request",
+        lambda request, *, timeout: captured.append(request.full_url) or Response(),
+    )
+    monkeypatch.setattr("strategic_intelligence.providers.ollama.urlopen", lambda *args, **kwargs: pytest.fail("remote request bypassed C14"))
+
+    response = OllamaAdapter("https://remote.example", "remote", 1, allow_remote=True).generate(LLMRequest("prompt"))
+
+    assert response.text == "ok"
+    assert captured == ["https://remote.example/api/generate"]
+
+
 def test_cloud_selection_is_rejected_without_explicit_enablement(monkeypatch) -> None:
     with pytest.raises(ProviderError) as error:
         build_providers(_settings(monkeypatch, LLM_PROVIDER="hosted"))

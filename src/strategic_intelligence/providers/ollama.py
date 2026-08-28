@@ -3,22 +3,34 @@
 from __future__ import annotations
 
 import json
+import ipaddress
+from urllib.parse import urlsplit
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from strategic_intelligence.providers.contracts import LLMProvider, LLMRequest, LLMResponse, ProviderError, ProviderErrorCode
+from strategic_intelligence.security import UnsafeExternalUrlError, open_external_request
 
 
 class OllamaAdapter(LLMProvider):
-    def __init__(self, base_url: str, model: str, timeout_seconds: float) -> None:
+    def __init__(self, base_url: str, model: str, timeout_seconds: float, *, allow_remote: bool = False) -> None:
         self._base_url = base_url.rstrip("/")
         self._model = model
         self._timeout_seconds = timeout_seconds
+        hostname = urlsplit(self._base_url).hostname
+        try:
+            self._is_loopback = bool(hostname and ipaddress.ip_address(hostname).is_loopback)
+        except ValueError:
+            self._is_loopback = bool(hostname and (hostname.lower() == "localhost" or hostname.lower().endswith(".localhost")))
+        if not self._is_loopback and not allow_remote:
+            raise ProviderError(ProviderErrorCode.CONFIGURATION_INVALID, "remote Ollama requires explicit cloud-provider enablement")
 
     def generate(self, request: LLMRequest) -> LLMResponse:
         payload = json.dumps({"model": request.model or self._model, "prompt": request.prompt, "stream": False}).encode()
         try:
-            with urlopen(Request(f"{self._base_url}/api/generate", data=payload, headers={"Content-Type": "application/json"}), timeout=request.timeout_seconds or self._timeout_seconds) as response:
+            outbound = Request(f"{self._base_url}/api/generate", data=payload, headers={"Content-Type": "application/json"})
+            opener = urlopen if self._is_loopback else open_external_request
+            with opener(outbound, timeout=request.timeout_seconds or self._timeout_seconds) as response:
                 body = json.loads(response.read())
         except TimeoutError as error:
             raise ProviderError(ProviderErrorCode.TIMEOUT, "local provider timed out", retryable=True) from error
@@ -26,6 +38,8 @@ class OllamaAdapter(LLMProvider):
             raise ProviderError(ProviderErrorCode.UNAVAILABLE, f"local provider returned HTTP {error.code}", retryable=error.code >= 500) from error
         except URLError as error:
             raise ProviderError(ProviderErrorCode.UNAVAILABLE, "local provider is unavailable", retryable=True) from error
+        except UnsafeExternalUrlError as error:
+            raise ProviderError(ProviderErrorCode.CONFIGURATION_INVALID, "remote provider destination is not permitted") from error
         except (json.JSONDecodeError, KeyError, TypeError) as error:
             raise ProviderError(ProviderErrorCode.INVALID_RESPONSE, "local provider returned an invalid response") from error
         return LLMResponse(text=str(body["response"]), provider="ollama", model=str(body.get("model", self._model)))

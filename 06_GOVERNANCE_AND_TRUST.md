@@ -18,8 +18,8 @@ Source
 → Candidate Claim
 → Evidence Fidelity Gate
 → Verification
-→ Strategic Analysis
 → Governance Gate
+→ Strategic Analysis
 → Final Brief
 ```
 
@@ -195,7 +195,7 @@ Raw Sources
 → Relevant Evidence
 → Fidelity-checked Claims
 → Verified Claims
-→ Ranked Strategic Signals
+→ Governance-approved, ranked Strategic Signals
 → Strategic Analysis
 → Brief
 ```
