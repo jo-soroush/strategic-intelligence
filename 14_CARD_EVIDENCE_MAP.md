@@ -1539,28 +1539,30 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C16 — Brief Generator
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C13, V1-C15
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Quick Brief | TBD | TBD | PENDING | TBD |
-| Full Brief | TBD | TBD | PENDING | TBD |
-| BLOCK leakage=0 | TBD | TBD | PENDING | TBD |
-| RESTRICT preserved | TBD | TBD | PENDING | TBD |
-| Unsupported facts=0 known | TBD | TBD | PENDING | TBD |
-| Sources/gaps visible | TBD | TBD | PENDING | TBD |
+| Deterministic Quick/Full Briefs | `application/brief_generator.py`; `domain/models.py` | `tests/unit/test_brief_generator.py` | PASS | C16 deterministically projects only accepted C15 analysis; QuickBrief carries gaps and restriction-overflow disclosure. |
+| Cross-Card trust composition | C03/C11/C13/C15 → C16 | real composed C13 → C15 → C16 test | PASS | PASS is visible, RESTRICT is qualified in both Briefs, BLOCK is absent, and related Claim IDs remain traceable. |
+| Provenance and Case isolation | `BriefGeneratorService` | cross-Case/unknown Claim and persistence-reload tests | PASS | Case, Claim, Evidence, and Source ownership are validated before presentation; inconsistent provenance fails closed. |
+| Classification/restrictions/gaps | `BriefGeneratorService` | altered FACT and removed-restriction adversarial tests | PASS | Unsupported FACT rewrite and removed C15 restriction metadata are rejected; knowledge gaps and omitted restrictions remain visible. |
+| Provider/security boundary | existing C04/C14 adapters | C14/provider regression | PASS | C16 adds no provider, SDK, socket, or direct network path. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** C15 provided accepted Case-scoped StrategicAnalysis but no Brief-generation service or Brief-specific trust validation.
+**Candidate After:** PASS — deterministic QuickBrief and MeetingBrief presentation consumes accepted C15 output, validates same-Case provenance, preserves typed classification/restrictions/gaps, and exposes traceable source references without a new provider path.
+**Regression Decision:** PASS — focused C16 plus C13/C14/C15/persistence/domain regression passed; full suite and dependency/compile/import/diff checks passed.
+**Cross-Card Composition Surface:** C13 → C15 → C16 preserves PASS/RESTRICT/BLOCK semantics; currentness remains owned by C15; C03 reload retains same-Case provenance; C14 remains the sole external-provider boundary; C16 rejects unknown/cross-Case Claim/Evidence/Source references.
+**Critical Path:** PASS — persisted Case + traceable Source/Evidence/Claim + real C11/C13 PASS/RESTRICT/BLOCK decisions → C15 accepted StrategicAnalysis → deterministic C16 QuickBrief + MeetingBrief → FACT/INFERENCE/RECOMMENDATION provenance, restriction metadata, gaps, source references, and BLOCK exclusion validated. The provider is fake only for C15 structured analysis; persistence and trust services are real.
+**Hard-Audit Chronology:** The pre-delivery C16 hard audit initially failed. F001 found QuickBrief silently truncated material gaps after five items; repaired with independent `omitted_knowledge_gap_count`, separate from C15's upstream `omitted_restriction_count`. F002 found MeetingBrief reduced restricted gaps to plain strings; repaired with typed `knowledge_gap_details` retaining `is_restricted` and reason codes. F003 found no independent C16 presentation bounds for typed adversarial input; repaired with deterministic section, gap, text, Claim-reference, duplicate-reference, and source-reference limits. Boundary/one-over tests and the C13→C15→C16, currentness, persistence/reload, Quick/Full consistency, and adversarial re-audit proofs passed.
+**Known Issues / Blockers:** None. C16 intentionally does not detect arbitrary semantic paraphrase attacks beyond C15's bounded provenance controls, nor does it persist Briefs or orchestrate workflow; later Cards own those capabilities.
+**Diff Review:** PASS — C16 service, minimal QuickBrief trust-display fields, focused C16/composition tests, and canonical C16 Evidence only; no C17/UI, research, verification, Governance, security-policy, provider-adapter, or workflow-recovery implementation.
+**Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside C16 scope.
+**Exit Gate Evidence:** PASS — both Briefs are generated only from accepted C15 governed analysis, are traceable through valid same-Case Claim/Evidence/Source records, retain restrictions/gaps and classification, reject provenance or trust destruction, and contain meaningful governed material. C17 remains NOT_STARTED.
 
 
 # V1-C17 — Minimal Local UI

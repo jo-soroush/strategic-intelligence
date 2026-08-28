@@ -477,6 +477,7 @@ class MeetingBrief(DomainModel):
     questions: list[MeetingQuestion] = Field(default_factory=list)
     do_not_assume: list[str] = Field(default_factory=list)
     knowledge_gaps: list[str] = Field(default_factory=list)
+    knowledge_gap_details: list[AnalysisItem] = Field(default_factory=list)
     source_references: list[str] = Field(default_factory=list)
     generated_at: datetime = Field(default_factory=utc_now)
 
@@ -489,6 +490,9 @@ class QuickBrief(DomainModel):
     top_opportunities: list[Opportunity] = Field(default_factory=list)
     top_questions: list[MeetingQuestion] = Field(default_factory=list)
     major_risks: list[AnalysisItem] = Field(default_factory=list)
+    knowledge_gaps: list[AnalysisItem] = Field(default_factory=list)
+    omitted_restriction_count: int = Field(default=0, ge=0)
+    omitted_knowledge_gap_count: int = Field(default=0, ge=0)
     generated_at: datetime = Field(default_factory=utc_now)
 
 
