@@ -127,6 +127,8 @@ class SqliteRepository:
         claim = self.get_claim(claim_id)
         if claim is None or {link.claim_id for link in links} != {claim_id} or {link.evidence_id for link in links} != {item.evidence_id for item in evidence}:
             raise ValueError("follow-up evidence links must belong to the persisted claim")
+        if any(item.case_id != claim.case_id for item in evidence):
+            raise ValueError("follow-up evidence must belong to the persisted claim's case")
         with self._connection:
             for item in evidence:
                 self.save_evidence(item)

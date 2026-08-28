@@ -76,6 +76,56 @@ def test_claim_link_transaction_rolls_back_on_missing_evidence(repository: Sqlit
     assert repository.link_count(claim.claim_id) == 0
 
 
+def test_append_claim_evidence_enforces_same_case_provenance_across_reload(tmp_path: Path) -> None:
+    database_path = tmp_path / "configured-data" / "strategic_intelligence.db"
+    repository = SqliteRepository(database_path)
+    try:
+        case_a = repository.create_case(_case())
+        source_a, evidence_a, claim_a = _traceability(repository, case_a)
+        case_b = repository.create_case(_case())
+        _, evidence_b, _ = _traceability(repository, case_b)
+
+        additional_evidence_a = repository.save_evidence(Evidence(
+            case_id=case_a.case_id,
+            source_id=source_a.source_id,
+            content="additional support",
+            topic="strategy",
+            relevance="high",
+        ))
+        appended = repository.append_claim_evidence(
+            claim_a.claim_id,
+            [additional_evidence_a],
+            [ClaimEvidenceLink(
+                claim_id=claim_a.claim_id,
+                evidence_id=additional_evidence_a.evidence_id,
+                relationship_type=ClaimEvidenceRelationship.SUPPORTS,
+            )],
+        )
+        assert appended.evidence_ids == [evidence_a.evidence_id, additional_evidence_a.evidence_id]
+        with pytest.raises(ValueError, match="claim's case"):
+            repository.append_claim_evidence(
+                claim_a.claim_id,
+                [evidence_b],
+                [ClaimEvidenceLink(
+                    claim_id=claim_a.claim_id,
+                    evidence_id=evidence_b.evidence_id,
+                    relationship_type=ClaimEvidenceRelationship.SUPPORTS,
+                )],
+            )
+        assert repository.get_claim(claim_a.claim_id) == appended
+        assert repository.link_count(claim_a.claim_id) == 2
+    finally:
+        repository.close()
+
+    reopened = SqliteRepository(database_path)
+    try:
+        assert reopened.get_claim(claim_a.claim_id) == appended
+        assert reopened.link_count(claim_a.claim_id) == 2
+        assert reopened.get_evidence(evidence_b.evidence_id) == evidence_b
+    finally:
+        reopened.close()
+
+
 def test_recommendation_without_evidence_persists_without_claim_links(repository: SqliteRepository) -> None:
     case = repository.create_case(_case())
     recommendation = Claim(

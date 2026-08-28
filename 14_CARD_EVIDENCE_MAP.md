@@ -274,6 +274,15 @@ not relabel them as a later gate.
 recorded. The checkpoint-rejection and rollback cases are intentional safety
 tests, not evidence of a production failure.
 
+**Post-Delivery Repair Chronology:** The final C01–C15 composition audit found
+F001 (IMPORTANT): `append_claim_evidence` could accept a direct Case-B Evidence
+attachment to a Case-A Claim. C11 and C15 already rejected the resulting
+provenance mismatch at consumption, but the C03 persistence boundary lacked
+the invariant. The repair rejects mismatched Claim/Evidence Case IDs before
+the transaction. A direct cross-Case append now fails, leaves valid existing
+links unchanged, and remains absent after repository reopen; same-Case append
+and the C12 follow-up path continue to pass.
+
 **Known Limitations / Deferrals:** C03 establishes accepted-checkpoint storage,
 not the later workflow recovery/resume behavior owned by C18. It also does not
 implement research, verification, governance, or cloud database behavior.
