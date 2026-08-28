@@ -1494,28 +1494,32 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C15 — Strategic Analysis
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** V1-C11, V1-C13
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Strategic reasoning | TBD | TBD | PENDING | TBD |
-| FACT/INFERENCE/RECOMMENDATION | TBD | TBD | PENDING | TBD |
-| No invented user/facts | TBD | TBD | PENDING | TBD |
-| Knowledge gaps | TBD | TBD | PENDING | TBD |
-| Context budget/compression | TBD | TBD | PENDING | TBD |
-| Provenance/conflict/restriction preservation | TBD | TBD | PENDING | TBD |
+| Controlled strategic reasoning | `application/strategic_analysis.py` | `test_critical_path_builds_bounded_governed_context_and_typed_analysis` | PASS | A Case's governed C11/C13 intelligence is compressed into typed `StrategicAnalysis`; C15 performs no research, verification judgment, or Governance decision. A provider result requires at least one grounded analytical contribution. |
+| Context retrieval and isolation | `application/persistence.py`; `infrastructure/sqlite_repository.py` | `test_cross_case_claim_references_fail_closed_and_retrieval_is_isolated` | PASS | The narrow C03 extension lists Claims only by Case. C15 re-checks every linked Evidence and Source against that Case and rejects cross-Case output references. |
+| Deterministic context budget | `application/strategic_analysis.py` | budget and `test_restriction_overflow_is_visible_and_deterministic` | PASS | Only latest Case-matching C13 PASS/RESTRICT decisions are eligible; bounded synthesis orders PASS before RESTRICT, then C11 state, Evidence relevance, and opaque Claim ID. A separately bounded restriction channel retains selected gaps and records `omitted_restriction_count`; an automatic restricted knowledge gap discloses incomplete coverage without exposing omitted Claim content. |
+| Trust preservation | `application/strategic_analysis.py`; `domain/models.py` | A01–A11 adversarial focused tests | PASS | BLOCK Claims, Evidence summaries, and metadata are excluded before provider access. FACT requires one eligible PASS FACT Claim and Unicode-safe canonical equality. INFERENCE/RECOMMENDATION remain non-FACT and Case/Claim-bound; RECOMMENDATION cannot become INFERENCE. RESTRICT-derived AnalysisItems, Opportunities, and MeetingQuestions carry deterministic structured restriction flags/reason codes and qualifications; nested Case IDs must match. |
+| User/context and source safety | `application/strategic_analysis.py` | provider user-background and prompt-injection tests | PASS | Provider-generated user relevance is rejected; C15 derives it only from the supplied Case meeting goal. Evidence text enters a bounded JSON data envelope and cannot authorize Claims, override C13, or become instructions. |
+| Provider failure handling | `application/strategic_analysis.py` | malformed provider-output test | PASS | Schema-invalid/provider-failed output is rejected without accepting partial analysis. |
+| Provider-output bounds | `application/strategic_analysis.py` | `test_provider_output_bounds_fail_closed_and_accept_valid_boundary` | PASS | C15 rejects over-limit section items, Opportunities, MeetingQuestions, free-text fields, and Claim-reference cardinality rather than truncating potentially meaningful output. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** C01–C14 supplied typed Case, provenance, Verification, Governance, and provider contracts, plus future-oriented domain output models, but no Case-scoped governed-context retrieval or strategic-analysis application service.
+**Candidate After:** PASS — C15 introduces a bounded application-owned synthesis boundary. It consumes only Case-scoped C13 PASS/RESTRICT Claims, recomputes C11 metadata through the existing Verification service, truncates Evidence summaries, and validates provider output before acceptance. FACT permits formatting-only Unicode NFKC/case/whitespace canonical equivalence with one permitted supported PASS FACT Claim; it does not claim semantic paraphrase validation. The provider receives no BLOCK Claim, Evidence, or metadata. A bounded restriction channel carries selected restrictions and explicitly reports omitted coverage; final output adds structured restriction metadata, qualifications, and gaps. User relevance remains derived only from the Case meeting goal.
+**Regression Decision:** PASS — focused C15: 20 passed; relevant C09–C15 regression: 82 passed; C13: 8 passed; C14: 27 passed; affected persistence/domain: 17 passed; full suite: 131 passed; `pip check`, compile, package/config imports, `git diff --check`, and `git diff --cached --check` passed in the final repair validation.
+**Known Issues / Blockers:** F001 (TEST, resolved) — the first budget test used a fixed provider response referencing one randomly generated Claim ID, while deterministic budget ordering could exclude that Claim. C15 correctly rejected the out-of-context reference. The test was repaired to use a provenance-free empty provider analysis for ranking/budget proof. The first independent adversarial audit found A01–A05 and they were repaired: invented FACT/copied BLOCKed text via unrelated PASS ID, nested Case mismatch, restriction loss at PASS-heavy cutoff, classification escalation/unqualified restricted derivatives, and empty analysis. A second audit found A06–A11: ASCII-loss Unicode FACT equality, semantic BLOCK-paraphrase overclaim, structural-only restricted metadata, silent restriction overflow, low-value generic recommendation acceptance, and unbounded output. A06 is repaired with formatting-only Unicode canonicalization; A07 is repaired by the actual provider-context boundary, not a claim of arbitrary paraphrase detection; A08/A09/A11 are repaired with structured restriction metadata, overflow disclosure, and fail-closed output bounds. A10 remains a non-blocking residual: C15 rejects empty/structurally vacuous output but does not judge open-ended strategic usefulness.
+**Critical Path:** PASS — persisted Case + real C03 Case-scoped Claim retrieval + real C11 verification + real C13 PASS/RESTRICT/BLOCK decisions → C15 excludes all BLOCK content before a bounded PASS/RESTRICT provider context → selected restriction gaps plus explicit overflow count → fake C04-style structured provider returns bounded `StrategicAnalysis` → C15 rejects unsupported Unicode FACT changes, out-of-context references, cross-Case output, classification escalation, malformed/oversized output, and empty analysis → accepted non-FACT reasoning remains typed/provenanced while RESTRICT-derived fields are structurally marked and qualified. The fake replaces only provider generation; repository, Verification, Governance evidence, C15 policy, and output validation are real. No network use.
+**Technical Learning / Learner Takeaway:** Strategic value can be added without handing an LLM raw authority: let deterministic controls decide what is eligible, give the model a small typed data envelope, and reject output that cannot prove its links back to permitted Claims.
+**Known Limitations / Deferrals:** C15 does not persist StrategicAnalysis, generate a Brief, orchestrate a workflow, or judge open-ended semantic usefulness; those remain C16+ work and later evaluation. FACT is deliberately constrained to Unicode NFKC/case/whitespace-equivalent Claim reuse rather than semantic paraphrase. INFERENCE/RECOMMENDATION retain model-authored language but are Case/Claim-bound, explicitly non-FACT, and structurally marked/qualified when RESTRICT; C15 cannot deterministically detect arbitrary semantic paraphrases a hostile provider knows independently of its bounded input. C13 remains final-use authority. A generic provenance-bearing recommendation can satisfy C15's intentionally non-semantic minimum-value invariant; Golden Case/evaluation owns usefulness judgment.
+**Diff Review:** PASS — C15 application service, narrow Case-scoped Claim retrieval, small optional qualification fields on existing analysis outputs, focused adversarial tests, and the canonical C15 Evidence record only; no research, verification, Governance, security, Brief, UI, or C16+ implementation.
+**Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope.
+**Exit Gate Evidence:** PASS — controlled strategic reasoning uses only bounded Case-scoped governed intelligence; BLOCK material is excluded before provider access; FACT allows only formatting-equivalent reuse of one eligible PASS FACT Claim; all model reasoning remains typed and in-context; RESTRICT derivations are structurally visible downstream; restriction overflow is explicitly disclosed; and malformed, oversized, cross-Case, unsupported-FACT, classification-escalating, and empty provider output fails closed. This is a bounded-input/non-FACT reasoning guarantee, not semantic detection of arbitrary BLOCK paraphrases.
 
 
 # V1-C16 — Brief Generator

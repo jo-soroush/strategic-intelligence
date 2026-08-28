@@ -401,6 +401,8 @@ class AnalysisItem(DomainModel):
     type: ClaimType
     related_claim_ids: list[str] = Field(default_factory=list)
     rationale: str | None = None
+    is_restricted: bool = False
+    restriction_reason_codes: list[GovernanceReasonCode] = Field(default_factory=list)
 
 
 class Opportunity(DomainModel):
@@ -412,6 +414,9 @@ class Opportunity(DomainModel):
     relevance_to_goal: str = Field(min_length=1)
     confidence: str | None = None
     assumptions: list[str] = Field(default_factory=list)
+    qualification: str | None = None
+    is_restricted: bool = False
+    restriction_reason_codes: list[GovernanceReasonCode] = Field(default_factory=list)
 
 
 class MeetingQuestion(DomainModel):
@@ -421,6 +426,9 @@ class MeetingQuestion(DomainModel):
     reason: str = Field(min_length=1)
     related_claim_ids: list[str] = Field(default_factory=list)
     priority: int = Field(ge=0)
+    qualification: str | None = None
+    is_restricted: bool = False
+    restriction_reason_codes: list[GovernanceReasonCode] = Field(default_factory=list)
 
 
 class StrategicAnalysis(DomainModel):
@@ -436,6 +444,7 @@ class StrategicAnalysis(DomainModel):
     smart_questions: list[MeetingQuestion] = Field(default_factory=list)
     risks: list[AnalysisItem] = Field(default_factory=list)
     knowledge_gaps: list[AnalysisItem] = Field(default_factory=list)
+    omitted_restriction_count: int = Field(default=0, ge=0)
     created_at: datetime = Field(default_factory=utc_now)
 
 

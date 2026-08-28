@@ -104,6 +104,14 @@ class SqliteRepository:
     def get_claim(self, claim_id: str) -> Claim | None:
         return self._get("claims", Claim, claim_id)
 
+    def list_claims(self, case_id: str) -> list[Claim]:
+        """Return only one Case's persisted Claims in stable storage order."""
+
+        rows = self._connection.execute(
+            "SELECT payload FROM claims WHERE case_id = ? ORDER BY rowid", (case_id,),
+        ).fetchall()
+        return [self._load(Claim, row["payload"]) for row in rows]
+
     def get_claim_evidence_links(self, claim_id: str) -> list[ClaimEvidenceLink]:
         rows = self._connection.execute(
             "SELECT claim_id, evidence_id, relationship_type FROM claim_evidence_links WHERE claim_id = ?",
