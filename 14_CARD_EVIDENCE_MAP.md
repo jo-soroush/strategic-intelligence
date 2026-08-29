@@ -1591,7 +1591,7 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C18 — Workflow Execution and Recovery
 
-**Status:** COMPLETE_PENDING_GIT
+**Status:** COMPLETE
 **Dependencies:** V1-C03, V1-C05, V1-C16
 **Exit Gate:** PASS
 
@@ -1614,6 +1614,7 @@ is emitted as VERIFIED/SUPPORTED.
 **Diff Review:** PASS — C18 executor, typed persistence/retry surface, focused tests, narrow C07/C08 retryability propagation, and C18 contract/evidence only; no C17 work.
 **Git Status Review:** PASS — no staged files; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope.
 **Exit Gate Evidence:** PASS — first-run execution and accepted-checkpoint recovery are bounded, typed, Case-safe, idempotent for durable artifacts, and cannot corrupt or bypass current trust authority.
+**Post-Integration Composition Repair:** PASS — `application/workflow_application.py` now wires the existing approved local repository, configured providers, and C05–C16 services into the C18 executor. A future UI can execute or resume only through this typed facade; no trust, security, retry, persistence, or recovery semantics moved from their existing owners.
 
 
 # V1-C19 — Observability and Audit

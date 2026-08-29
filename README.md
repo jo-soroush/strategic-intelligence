@@ -12,8 +12,8 @@ provenance; deterministic source-quality/freshness metadata; and deterministic
 Evidence Fidelity/Verification judgment; deterministic Governance; governed
 strategic analysis; and trustworthy, traceable Quick/Full Brief generation.
 
-End-to-end workflow orchestration, local UI, recovery, and later V1
-capabilities remain governed by their owning future Cards.
+End-to-end workflow orchestration and recovery are implemented. The local UI
+and later V1 capabilities remain governed by their owning future Cards.
 The canonical Evidence Map owns actual Card delivery evidence, while Git proves
 live delivery state; this README describes durable repository capabilities
 rather than live Card state.
@@ -40,7 +40,7 @@ The project reads non-secret settings from the process environment. `.env.exampl
 |---|---|---|
 | `src/strategic_intelligence/application/` | application/use-case composition | Case intake, research planning, company/executive research, evidence provenance, source metadata, and deterministic Verification services. |
 | `src/strategic_intelligence/domain/` | domain contracts | Typed V1 models, enums, invariants, and serialization. |
-| `src/strategic_intelligence/harness/` | workflow orchestration | Reserved for the controlled orchestration/routing capability owned by future Cards. |
+| `src/strategic_intelligence/harness/` | workflow orchestration | C18's controlled orchestration, routing, retry, and recovery boundary. |
 | `src/strategic_intelligence/providers/` | provider adapters | Application-owned LLM/search contracts, explicit adapters, factory, and deterministic fakes. |
 | `src/strategic_intelligence/infrastructure/` | persistence / external infrastructure | Local SQLite repository and safe local artifact storage. |
 | `src/strategic_intelligence/security/` | security controls | Reserved for deterministic security boundaries. |
