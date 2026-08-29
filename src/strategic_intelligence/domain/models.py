@@ -514,6 +514,7 @@ class WorkflowError(DomainModel):
     error_code: WorkflowErrorCode
     message: str = Field(min_length=1)
     retryable: bool = False
+    stage: WorkflowStage | None = None
     occurred_at: datetime = Field(default_factory=utc_now)
 
 
@@ -522,6 +523,10 @@ class WorkflowRun(DomainModel):
     case_id: str = Field(min_length=1)
     status: WorkflowRunStatus = WorkflowRunStatus.RUNNING
     current_stage: WorkflowStage | None = None
+    retry_count: int = Field(default=0, ge=0)
+    errors: list[WorkflowError] = Field(default_factory=list)
+    snapshot: "WorkflowState | None" = None
+    accepted_snapshots: dict[WorkflowStage, "WorkflowState"] = Field(default_factory=dict)
     started_at: datetime = Field(default_factory=utc_now)
     completed_at: datetime | None = None
 
@@ -552,3 +557,6 @@ class WorkflowState(DomainModel):
     full_brief: MeetingBrief | None = None
     errors: list[WorkflowError] = Field(default_factory=list)
     current_stage: WorkflowStage | None = None
+
+
+WorkflowRun.model_rebuild()

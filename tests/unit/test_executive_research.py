@@ -115,10 +115,20 @@ def test_invalid_task_malformed_timeout_and_empty_results_fail_closed() -> None:
     assert timeout.status is ExecutiveResearchStatus.UNAVAILABLE
     assert timeout.errors[0].code is ExecutiveResearchErrorCode.PROVIDER_TIMEOUT
     assert timeout.attempts_used == 1
+    assert timeout.retryable_provider_failure is True
+
+    class ConfigurationSearchProvider:
+        def search(self, query: SearchQuery):
+            raise ProviderError(ProviderErrorCode.CONFIGURATION_INVALID, "token=secret", retryable=False)
+
+    configuration = ExecutiveResearchService(ConfigurationSearchProvider()).research(_case(), _task())
+    assert configuration.retryable_provider_failure is False
+    assert "secret" not in configuration.errors[0].message
 
     empty = ExecutiveResearchService(FakeSearchProvider()).research(_case(), _task())
     assert empty.status is ExecutiveResearchStatus.NOT_FOUND
     assert empty.findings == []
+    assert empty.retryable_provider_failure is None
 
 
 def test_inputs_are_deterministic_and_raw_findings_are_not_evidence() -> None:

@@ -585,7 +585,12 @@ Real composed first-run path through the implemented application services;
 persistence failure; invariant failure; recovery from accepted checkpoint;
 invalid latest fallback; resume after Research/Evidence/Verification/Governance;
 idempotent/duplicate-safe resume; and proof that orchestration preserves C05,
-C03, C09–C16 authority boundaries.
+C03, C09–C16 authority boundaries. BLOCK is proved at the owning C13→C15→C16
+trust boundary when upstream controls intentionally prevent an unsafe BLOCK input
+from reaching normal C18 first-run candidate flow; C18 must prove no bypass,
+reinterpretation, or recovery resurrection. C12 routing is proved across its
+legitimate lifecycle states: unresolved eligible Verification invokes C12, while
+a persisted/resumed resolved-current state does not; C12 never authorizes use.
 
 Run relevant existing regression tests. For AI/routing/trust/recovery/quality-affecting Cards, execute the applicable baseline/evaluation or explicitly record N/A with reason.
 

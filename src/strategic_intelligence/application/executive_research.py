@@ -70,6 +70,7 @@ class ExecutiveResearchResult(ExecutiveResearchModel):
     privacy_rejected_result_count: int = Field(default=0, ge=0)
     errors: list[ExecutiveResearchError] = Field(default_factory=list)
     gap_reason: str | None = None
+    retryable_provider_failure: bool | None = None
 
 
 class ExecutiveResearchService:
@@ -227,6 +228,7 @@ class ExecutiveResearchService:
             attempt_budget=task.max_attempts,
             errors=[ExecutiveResearchError(code=code, message="executive discovery provider is unavailable")],
             gap_reason="executive discovery provider is unavailable",
+            retryable_provider_failure=error.retryable,
         )
 
 

@@ -60,6 +60,7 @@ class CompanyResearchResult(CompanyResearchModel):
     blocked_result_count: int = Field(default=0, ge=0)
     errors: list[CompanyResearchError] = Field(default_factory=list)
     gap_reason: str | None = None
+    retryable_provider_failure: bool | None = None
 
 
 class CompanyResearchService:
@@ -234,6 +235,7 @@ class CompanyResearchService:
             attempt_budget=task.max_attempts,
             errors=[CompanyResearchError(code=code, message="company discovery provider is unavailable")],
             gap_reason="company discovery provider is unavailable",
+            retryable_provider_failure=error.retryable,
         )
 
 

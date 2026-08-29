@@ -121,6 +121,15 @@ def test_invalid_task_malformed_results_and_provider_failures_fail_closed() -> N
     assert timeout.status is CompanyResearchStatus.UNAVAILABLE
     assert timeout.errors[0].code is CompanyResearchErrorCode.PROVIDER_TIMEOUT
     assert timeout.attempts_used == 1
+    assert timeout.retryable_provider_failure is True
+
+    class ConfigurationSearchProvider:
+        def search(self, query: SearchQuery):
+            raise ProviderError(ProviderErrorCode.CONFIGURATION_INVALID, "token=secret", retryable=False)
+
+    configuration = CompanyResearchService(ConfigurationSearchProvider()).research(case, _task())
+    assert configuration.retryable_provider_failure is False
+    assert "secret" not in configuration.errors[0].message
 
 
 def test_same_inputs_retain_the_same_discovery_content_without_creating_evidence() -> None:

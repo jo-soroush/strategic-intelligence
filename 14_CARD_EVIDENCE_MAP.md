@@ -1591,29 +1591,29 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C18 — Workflow Execution and Recovery
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE_PENDING_GIT
 **Dependencies:** V1-C03, V1-C05, V1-C16
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| First-run application workflow boundary | TBD | TBD | PENDING | TBD |
-| Accepted-checkpoint protocol | TBD | TBD | PENDING | TBD |
-| Persistence/invariant rejection | TBD | TBD | PENDING | TBD |
-| Fallback to prior accepted checkpoint | TBD | TBD | PENDING | TBD |
-| Trust-stage preservation | TBD | TBD | PENDING | TBD |
-| Bounded counters | TBD | TBD | PENDING | TBD |
-| Idempotent/duplicate-safe resume | TBD | TBD | PENDING | TBD |
+| First-run application workflow boundary | `harness/workflow_executor.py` | C18 focused composition | PASS | C05→C16 typed terminal result |
+| Accepted-checkpoint protocol | workflow run snapshots + SQLite checkpoints | focused recovery tests | PASS | accepted-only resume/fallback |
+| Persistence/invariant rejection | executor checkpoint boundary | controlled repository fault | PASS | no false advancement |
+| Trust/currentness preservation | C18 routing to C11/C13/C15 | trust-side resume | PASS | resumes at `EVIDENCE_BUILT` |
+| Bounded counters | `WorkflowRun.retry_count` | retry/reload tests | PASS | one retry, persisted |
+| Idempotent/duplicate-safe resume | durable Claim reuse | research resume tests | PASS | stable provenance IDs |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Critical Path:** PASS — valid Case → planned/researched traceable Claim → Verification → eligible bounded C12 Follow-Up → current Governance → C15 → C16 → typed terminal result; persisted intermediate recovery reuses durable provenance and re-establishes current trust.
+**Cross-Card Composition:** PASS — C03 preserves Case integrity; C07/C08 normalize retryability; C09 provenance remains traceable; C10/C11/C13 own trust; C12 is bounded and non-authorizing; C15/C16 exclude BLOCKed authority; C18 owns only orchestration/recovery.
+**BLOCK / C12 Proof Surface:** Upstream C07/C08/C09/C03 intentionally prevent unsafe first-run BLOCK material. BLOCK is therefore proven at its C13→C15→C16 owner boundary; C18 has no bypass or resurrection path. Unresolved first-run Verification invokes C12; a persisted/resumed resolved-current state does not create another attempt.
+**Validation:** `tests/unit/test_workflow_executor.py` (16 passed); C13/C15/C16 BLOCK owner-boundary regression command (52 tests passed, including BLOCK exclusion coverage); full suite (158 passed); `pip check`, compile/import, and Git diff checks passed.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — C18 executor, typed persistence/retry surface, focused tests, narrow C07/C08 retryability propagation, and C18 contract/evidence only; no C17 work.
+**Git Status Review:** PASS — no staged files; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope.
+**Exit Gate Evidence:** PASS — first-run execution and accepted-checkpoint recovery are bounded, typed, Case-safe, idempotent for durable artifacts, and cannot corrupt or bypass current trust authority.
 
 
 # V1-C19 — Observability and Audit

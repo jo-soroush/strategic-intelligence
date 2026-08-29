@@ -174,6 +174,13 @@ class SqliteRepository:
         row = self._connection.execute("SELECT accepted FROM checkpoints WHERE run_id = ? AND stage = ?", (run_id, stage.value)).fetchone()
         return bool(row and row["accepted"])
 
+    def latest_accepted_checkpoint(self, run_id: str) -> WorkflowStage | None:
+        rows = self._connection.execute(
+            "SELECT stage FROM checkpoints WHERE run_id = ? AND accepted = 1 ORDER BY accepted_at DESC, rowid DESC LIMIT 1",
+            (run_id,),
+        ).fetchone()
+        return None if rows is None else WorkflowStage(rows["stage"])
+
     def link_count(self, claim_id: str) -> int:
         return self._connection.execute("SELECT COUNT(*) FROM claim_evidence_links WHERE claim_id = ?", (claim_id,)).fetchone()[0]
 
