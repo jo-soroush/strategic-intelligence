@@ -1567,7 +1567,7 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C17 — Minimal Local UI
 
-**Status:** COMPLETE_PENDING_GIT
+**Status:** COMPLETE
 **Dependencies:** V1-C05, V1-C16, V1-C18
 **Exit Gate:** PASS
 
@@ -1588,6 +1588,7 @@ is emitted as VERIFIED/SUPPORTED.
 **Diff Review:** PASS — thin standard-library UI, C17 focused tests, README launch guidance, and C17 Evidence only; no provider, persistence, workflow, trust, or security authority moved into UI.
 **Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope.
 **Exit Gate Evidence:** PASS — `python -m strategic_intelligence.ui` starts a loopback-only server at `127.0.0.1:8765`; a C05-compatible controlled submission produces and safely presents a typed C18 result. C18 remains authoritative for workflow execution and all trust semantics.
+**Git Delivery:** PASS — C17 commit `dc224bf172f68685e430d5e6804cf681fb34e85b` was pushed on `card/v1-c17-minimal-local-ui` and fast-forward integrated into canonical `main`.
 
 
 # V1-C18 — Workflow Execution and Recovery
