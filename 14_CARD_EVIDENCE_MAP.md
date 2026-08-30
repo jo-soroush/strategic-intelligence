@@ -1621,7 +1621,7 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C19 — Observability and Audit
 
-**Status:** COMPLETE_PENDING_GIT
+**Status:** COMPLETE
 **Dependencies:** V1-C03, V1-C04, V1-C13
 **Exit Gate:** PASS
 
@@ -1645,6 +1645,7 @@ is emitted as VERIFIED/SUPPORTED.
 **Diff Review:** PASS — C19 audit model/persistence/observer/report surface, focused proofs, and canonical C19 Evidence only; no authority moved from C03/C04/C11/C13/C18.
 **Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside C19 scope.
 **Exit Gate Evidence:** PASS — a developer can retrieve persisted/reloaded ordered events, bounded decision/retry/checkpoint/error context, terminal outcome, and performance metrics without secret or raw provider-content exposure.
+**Git Delivery:** PASS — C19 implementation commit `8397c3e4b11ac335e2a8fcd916c8e5e7fc1c5d77` was pushed on `card/v1-c19-observability-audit` and fast-forward integrated into canonical `main`.
 
 
 # V1-C20 — Golden Case
