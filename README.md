@@ -12,8 +12,9 @@ provenance; deterministic source-quality/freshness metadata; and deterministic
 Evidence Fidelity/Verification judgment; deterministic Governance; governed
 strategic analysis; and trustworthy, traceable Quick/Full Brief generation.
 
-End-to-end workflow orchestration and recovery are implemented. The local UI
-and later V1 capabilities remain governed by their owning future Cards.
+End-to-end workflow orchestration, recovery, and a minimal local UI are
+implemented. Later V1 capabilities remain governed by their owning future
+Cards.
 The canonical Evidence Map owns actual Card delivery evidence, while Git proves
 live delivery state; this README describes durable repository capabilities
 rather than live Card state.
@@ -34,6 +35,15 @@ python3.11 -m venv .venv
 
 The project reads non-secret settings from the process environment. `.env.example` documents safe development defaults; `.env` is intentionally ignored and no secret belongs in the repository.
 
+## Local UI
+
+Run `python -m strategic_intelligence.ui`, then open
+`http://127.0.0.1:8765`. The local form requires company name, executive name,
+and meeting goal, plus the identity support required by C05: a company website,
+company LinkedIn URL, or country/business-unit pair; and an executive LinkedIn
+URL or current title. Provider configuration remains in the existing
+environment/configuration boundary and is not collected by the UI.
+
 ## Package ownership
 
 | Location | Ownership | Current role |
@@ -46,7 +56,7 @@ The project reads non-secret settings from the process environment. `.env.exampl
 | `src/strategic_intelligence/security/` | security controls | Reserved for deterministic security boundaries. |
 | `src/strategic_intelligence/governance/` | deterministic governance | Reserved for C13 trust-policy enforcement. |
 | `src/strategic_intelligence/observability/` | logs / audit traces | Hosts the C01 logging foundation. |
-| `src/strategic_intelligence/ui/` | local interface | Reserved for C17's thin local UI. |
+| `src/strategic_intelligence/ui/` | local interface | C17's thin loopback-only browser UI over `WorkflowApplication`. |
 
 Business behavior belongs in its owning component; provider SDKs, database details, and external source content do not enter domain contracts. The Harness coordinates later runtime work but does not replace component business logic.
 

@@ -1567,26 +1567,27 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C17 — Minimal Local UI
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE_PENDING_GIT
 **Dependencies:** V1-C05, V1-C16, V1-C18
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Case input | TBD | TBD | PENDING | TBD |
-| C18 workflow invocation | TBD | TBD | PENDING | TBD |
-| Quick/Full display | TBD | TBD | PENDING | TBD |
-| Partial/failure display | TBD | TBD | PENDING | TBD |
+| Case input | `ui/local_app.py` | `tests/unit/test_local_ui.py` | PASS | C05-compatible core, identity-support, and optional fields map unchanged through the public facade. |
+| C18 workflow invocation | `ui/local_app.py` | local UI → `WorkflowApplication` adapter proof | PASS | UI imports only `WorkflowApplication` and presentation models; it constructs no lower-level runtime service. |
+| Quick/Full display | `ui/local_app.py` | focused rendering tests | PASS | Existing typed Brief fields, gaps, restrictions, and omission disclosures render escaped. |
+| Partial/failure display | `ui/local_app.py` | focused rendering tests | PASS | Terminal state, typed error code/message/stage, and only returned safe material render without tracebacks. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** C18 exposed a typed workflow result but no local browser interface.
+**Candidate After:** PASS — loopback-only standard-library WSGI UI accepts C05 payloads, delegates only to `WorkflowApplication`, and safely renders existing typed terminal results.
+**Regression Decision:** PASS — focused UI, C05, C14, C16, C18, WorkflowApplication, and full regressions passed.
+**Critical Path:** PASS — local form submission → `WorkflowApplication.execute(...)` → C18 typed result → escaped local browser presentation; deterministic fake providers prove the path without external network access.
+**Known Issues / Blockers:** None. Resume controls remain intentionally absent because C17 does not own recovery interaction.
+**Diff Review:** PASS — thin standard-library UI, C17 focused tests, README launch guidance, and C17 Evidence only; no provider, persistence, workflow, trust, or security authority moved into UI.
+**Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside scope.
+**Exit Gate Evidence:** PASS — `python -m strategic_intelligence.ui` starts a loopback-only server at `127.0.0.1:8765`; a C05-compatible controlled submission produces and safely presents a typed C18 result. C18 remains authoritative for workflow execution and all trust semantics.
 
 
 # V1-C18 — Workflow Execution and Recovery

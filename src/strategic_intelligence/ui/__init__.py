@@ -1,1 +1,1 @@
-"""Thin local UI boundary (implemented in V1-C17)."""
+"""Thin local UI boundary for V1-C17."""
