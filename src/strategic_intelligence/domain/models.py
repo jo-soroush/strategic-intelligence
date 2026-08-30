@@ -499,9 +499,12 @@ class QuickBrief(DomainModel):
 class AuditEvent(DomainModel):
     audit_event_id: str = Field(default_factory=new_id, min_length=1)
     case_id: str = Field(min_length=1)
+    run_id: str = Field(default="unbound", min_length=1)
+    sequence: int = Field(default=0, ge=0)
     event_type: str = Field(min_length=1)
     component: str = Field(min_length=1)
     target_id: str | None = None
+    stage: WorkflowStage | None = None
     status: str = Field(min_length=1)
     timestamp: datetime = Field(default_factory=utc_now)
     metadata: dict[str, str | int | float | bool | None] = Field(default_factory=dict)

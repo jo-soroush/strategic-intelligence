@@ -23,6 +23,7 @@ from strategic_intelligence.domain.models import (
     WorkflowError, WorkflowErrorCode, WorkflowRun, WorkflowRunStatus, WorkflowStage, WorkflowState,
 )
 from strategic_intelligence.governance.engine import GovernanceAssessmentStatus, GovernanceService
+from strategic_intelligence.observability.audit import AuditTrail
 
 
 class WorkflowExecutionStatus(str, Enum):
@@ -84,6 +85,7 @@ class WorkflowExecutor:
         governance: GovernanceService,
         analysis: StrategicAnalysisService,
         briefs: BriefGeneratorService,
+        audit: AuditTrail | None = None,
     ) -> None:
         self._repository = repository
         self._intake = intake
@@ -96,6 +98,7 @@ class WorkflowExecutor:
         self._governance = governance
         self._analysis = analysis
         self._briefs = briefs
+        self._audit = audit
 
     def execute(self, payload: Mapping[str, object], *, as_of: date) -> WorkflowExecutionResult:
         intake = self._intake.submit(payload)
@@ -105,6 +108,8 @@ class WorkflowExecutor:
             return WorkflowExecutionResult(status=WorkflowExecutionStatus.FAILED, workflow_run=run, state=WorkflowState(errors=[error]), errors=[error])
         state = WorkflowState(case_context=intake.case, current_stage=WorkflowStage.CASE_VALIDATED)
         run = self._repository.save_workflow_run(WorkflowRun(case_id=intake.case.case_id, current_stage=WorkflowStage.CASE_VALIDATED, snapshot=state))
+        self._activate_audit(run, state)
+        self._observe("RUN", "workflow_executor", "STARTED")
         checkpointed = self._checkpoint(run, state, WorkflowStage.CASE_VALIDATED, [("case", intake.case.case_id), ("workflow_run", run.run_id)])
         if checkpointed is None:
             return self._failed(run, state, WorkflowErrorCode.PERSISTENCE_FAILED, "Case checkpoint could not be accepted")
@@ -118,6 +123,8 @@ class WorkflowExecutor:
             failed = WorkflowRun(run_id=run_id, case_id="unknown", status=WorkflowRunStatus.FAILED)
             return self._failed(failed, state, WorkflowErrorCode.WORKFLOW_FAILED, "workflow snapshot is unavailable")
         state = run.snapshot
+        self._activate_audit(run, state)
+        self._observe("RUN", "workflow_executor", "RESUMED")
         if state.case_context.case_id != run.case_id or self._repository.get_case(run.case_id) is None:
             return self._failed(run, WorkflowState(), WorkflowErrorCode.WORKFLOW_FAILED, "workflow snapshot Case does not match persisted run")
         checkpoint = self._repository.latest_accepted_checkpoint(run_id)
@@ -177,6 +184,7 @@ class WorkflowExecutor:
         assert case is not None
         try:
             if state.current_stage is WorkflowStage.CASE_VALIDATED:
+                self._observe_stage(state.current_stage, "STARTED")
                 planned = self._planner.plan(case)
                 if planned.status is not PlanningStatus.ACCEPTED or planned.plan is None:
                     return self._failed(run, state, WorkflowErrorCode.WORKFLOW_FAILED, "research planning was rejected")
@@ -185,13 +193,16 @@ class WorkflowExecutor:
                 if checkpointed is None:
                     return self._failed(run, state, WorkflowErrorCode.PERSISTENCE_FAILED, "research-plan checkpoint failed")
                 run = checkpointed
+                self._observe_stage(state.current_stage, "COMPLETED")
             if state.current_stage is WorkflowStage.RESEARCH_PLANNED:
+                self._observe_stage(state.current_stage, "STARTED")
                 findings, partial, run = self._research(case, state.research_plan, run)
                 state = state.model_copy(update={"company_findings": findings[0], "executive_findings": findings[1], "current_stage": WorkflowStage.RESEARCH_COMPLETED})
                 checkpointed = self._checkpoint(run, state, WorkflowStage.RESEARCH_COMPLETED, [("case", case.case_id), ("workflow_run", run.run_id)])
                 if checkpointed is None:
                     return self._failed(run, state, WorkflowErrorCode.PERSISTENCE_FAILED, "research checkpoint failed")
                 run = checkpointed
+                self._observe_stage(state.current_stage, "COMPLETED", {"finding_count": len(findings[0]) + len(findings[1])})
                 if partial and not [*findings[0], *findings[1]]:
                     return self._partial(run, state, "research completed without retainable findings")
             if state.current_stage is WorkflowStage.RESEARCH_COMPLETED:
@@ -204,7 +215,10 @@ class WorkflowExecutor:
                     return self._failed(run, state, WorkflowErrorCode.PERSISTENCE_FAILED, "evidence checkpoint failed")
                 run = checkpointed
             if state.current_stage is WorkflowStage.EVIDENCE_BUILT:
+                self._observe_stage(state.current_stage, "STARTED")
                 assessments = [self._verification.verify(item.claim_id, as_of=as_of) for item in state.claims]
+                for assessment in assessments:
+                    self._observe("VERIFICATION", "verification", assessment.status.value, target_id=assessment.claim.claim_id if assessment.claim else None, metadata={"result": assessment.verification.status.value if assessment.verification else None})
                 self._follow_up_unresolved(case, state, assessments, as_of=as_of)
                 assessments = [self._verification.verify(item.claim_id, as_of=as_of) for item in state.claims]
                 state = state.model_copy(update={"verification_results": [item.verification for item in assessments if item.verification is not None], "current_stage": WorkflowStage.VERIFICATION_COMPLETED})
@@ -212,8 +226,13 @@ class WorkflowExecutor:
                 if checkpointed is None:
                     return self._failed(run, state, WorkflowErrorCode.PERSISTENCE_FAILED, "verification checkpoint failed")
                 run = checkpointed
+                self._observe_stage(state.current_stage, "COMPLETED", {"claim_count": len(state.claims)})
             if state.current_stage is WorkflowStage.VERIFICATION_COMPLETED:
-                decisions = [self._governance.evaluate(item.claim_id, as_of=as_of).decision for item in state.claims]
+                self._observe_stage(state.current_stage, "STARTED")
+                governance = [self._governance.evaluate(item.claim_id, as_of=as_of) for item in state.claims]
+                for assessment in governance:
+                    self._observe("GOVERNANCE", "governance", assessment.status.value, target_id=assessment.claim.claim_id if assessment.claim else None, metadata={"decision": assessment.decision.decision.value if assessment.decision else None})
+                decisions = [item.decision for item in governance]
                 if any(item is None for item in decisions):
                     return self._failed(run, state, WorkflowErrorCode.GOVERNANCE_BLOCKED, "Governance could not decide every persisted Claim")
                 state = state.model_copy(update={"governance_decisions": [item for item in decisions if item is not None], "current_stage": WorkflowStage.GOVERNANCE_COMPLETED})
@@ -221,6 +240,7 @@ class WorkflowExecutor:
                 if checkpointed is None:
                     return self._failed(run, state, WorkflowErrorCode.PERSISTENCE_FAILED, "Governance checkpoint failed")
                 run = checkpointed
+                self._observe_stage(state.current_stage, "COMPLETED", {"decision_count": len(decisions)})
             if state.current_stage is WorkflowStage.GOVERNANCE_COMPLETED:
                 analysis = self._analysis.analyze(case.case_id, as_of=as_of)
                 if analysis.status is not StrategicAnalysisStatus.ACCEPTED or analysis.analysis is None:
@@ -246,6 +266,7 @@ class WorkflowExecutor:
                 run = checkpointed
                 terminal = state.model_copy(update={"current_stage": WorkflowStage.CASE_COMPLETED})
                 completed = self._repository.save_workflow_run(run.model_copy(update={"status": WorkflowRunStatus.COMPLETED, "current_stage": WorkflowStage.CASE_COMPLETED, "snapshot": terminal}))
+                self._observe("TERMINAL", "workflow_executor", "COMPLETED")
                 return WorkflowExecutionResult(status=WorkflowExecutionStatus.COMPLETED, workflow_run=completed, state=terminal, brief=brief)
         except Exception:
             return self._failed(run, state, WorkflowErrorCode.WORKFLOW_FAILED, "workflow stage failed safely")
@@ -261,6 +282,7 @@ class WorkflowExecutor:
                 result = self._company_research.research(case, task)
                 if result.retryable_provider_failure is True and run.retry_count < self._MAX_RESEARCH_RETRIES:
                     run = self._repository.save_workflow_run(run.model_copy(update={"retry_count": run.retry_count + 1}))
+                    self._observe("RETRY", "workflow_executor", "PERFORMED", metadata={"retry_count": run.retry_count})
                     result = self._company_research.research(case, task)
                 company.extend(result.findings)
                 partial |= result.status is not CompanyResearchStatus.COMPLETED
@@ -268,6 +290,7 @@ class WorkflowExecutor:
                 result = self._executive_research.research(case, task)
                 if result.retryable_provider_failure is True and run.retry_count < self._MAX_RESEARCH_RETRIES:
                     run = self._repository.save_workflow_run(run.model_copy(update={"retry_count": run.retry_count + 1}))
+                    self._observe("RETRY", "workflow_executor", "PERFORMED", metadata={"retry_count": run.retry_count})
                     result = self._executive_research.research(case, task)
                 executive.extend(result.findings)
                 partial |= result.status is not ExecutiveResearchStatus.COMPLETED
@@ -340,19 +363,38 @@ class WorkflowExecutor:
                 "current_stage": stage, "snapshot": state, "accepted_snapshots": snapshots,
             }))
             self._repository.accept_checkpoint(persisted.run_id, stage, records)
+            self._observe("CHECKPOINT", "repository", "ACCEPTED", metadata={"required_record_count": len(records)})
             return persisted
         except Exception:
+            self._observe("CHECKPOINT", "repository", "REJECTED")
             return None
 
     def _partial(self, run: WorkflowRun, state: WorkflowState, message: str) -> WorkflowExecutionResult:
         error = self._error(run.case_id, WorkflowErrorCode.INSUFFICIENT_EVIDENCE, message, state.current_stage)
         persisted = self._repository.save_workflow_run(run.model_copy(update={"status": WorkflowRunStatus.PARTIAL, "current_stage": state.current_stage, "errors": [*run.errors, error], "snapshot": state.model_copy(update={"errors": [*state.errors, error]})}))
+        self._observe("ERROR", "workflow_executor", error.error_code.value, metadata={"retryable": error.retryable})
+        self._observe("TERMINAL", "workflow_executor", "PARTIAL")
         return WorkflowExecutionResult(status=WorkflowExecutionStatus.PARTIAL, workflow_run=persisted, state=persisted.snapshot or state, errors=[error])
 
     def _failed(self, run: WorkflowRun, state: WorkflowState, code: WorkflowErrorCode, message: str) -> WorkflowExecutionResult:
         error = self._error(run.case_id, code, message, state.current_stage)
         persisted = self._repository.save_workflow_run(run.model_copy(update={"status": WorkflowRunStatus.FAILED, "errors": [*run.errors, error], "snapshot": state.model_copy(update={"errors": [*state.errors, error]})}))
+        self._observe("ERROR", "workflow_executor", error.error_code.value, metadata={"retryable": error.retryable})
+        self._observe("TERMINAL", "workflow_executor", "FAILED")
         return WorkflowExecutionResult(status=WorkflowExecutionStatus.FAILED, workflow_run=persisted, state=persisted.snapshot or state, errors=[error])
+
+    def _activate_audit(self, run: WorkflowRun, state: WorkflowState) -> None:
+        if self._audit is not None and state.case_context is not None:
+            self._audit.activate(state.case_context.case_id, run.run_id, state.current_stage)
+
+    def _observe_stage(self, stage: WorkflowStage, status: str, metadata: dict[str, str | int | float | bool | None] | None = None) -> None:
+        if self._audit is not None:
+            self._audit.stage(stage)
+        self._observe("STAGE", "workflow_executor", status, metadata=metadata)
+
+    def _observe(self, event_type: str, component: str, status: str, *, target_id: str | None = None, metadata: dict[str, str | int | float | bool | None] | None = None) -> None:
+        if self._audit is not None:
+            self._audit.record(event_type, component, status, target_id=target_id, metadata=metadata)
 
     @staticmethod
     def _error(case_id: str, code: WorkflowErrorCode, message: str, stage: WorkflowStage | None) -> WorkflowError:

@@ -23,15 +23,17 @@ from strategic_intelligence.config import Settings
 from strategic_intelligence.governance.engine import GovernanceService
 from strategic_intelligence.harness.workflow_executor import WorkflowExecutionResult, WorkflowExecutor
 from strategic_intelligence.infrastructure.sqlite_repository import SqliteRepository
+from strategic_intelligence.observability.audit import AuditReport, AuditTrail, ObservedLLMProvider, ObservedSearchProvider
 from strategic_intelligence.providers.factory import Providers, build_providers
 
 
 class WorkflowApplication:
     """Application-owned entry point for executing or resuming the V1 workflow."""
 
-    def __init__(self, executor: WorkflowExecutor, repository: SqliteRepository) -> None:
+    def __init__(self, executor: WorkflowExecutor, repository: SqliteRepository, audit: AuditTrail) -> None:
         self._executor = executor
         self._repository = repository
+        self._audit = audit
 
     @classmethod
     def from_environment(cls) -> "WorkflowApplication":
@@ -53,22 +55,25 @@ class WorkflowApplication:
         """
         resolved_providers = providers or build_providers(settings)
         repository = SqliteRepository(settings.database_path)
+        audit = AuditTrail(repository)
+        observed = Providers(llm=ObservedLLMProvider(resolved_providers.llm, audit), search=ObservedSearchProvider(resolved_providers.search, audit))
         verification = VerificationService(repository)
         evidence = EvidenceLayerService(repository)
         executor = WorkflowExecutor(
             repository,
             CaseIntakeService(repository),
-            ResearchPlanner(llm=resolved_providers.llm),
-            CompanyResearchService(resolved_providers.search),
-            ExecutiveResearchService(resolved_providers.search),
+            ResearchPlanner(llm=observed.llm),
+            CompanyResearchService(observed.search),
+            ExecutiveResearchService(observed.search),
             evidence,
             verification,
             FollowUpResearchService(repository, evidence, verification),
             GovernanceService(repository, verification),
-            StrategicAnalysisService(repository, resolved_providers.llm, verification),
+            StrategicAnalysisService(repository, observed.llm, verification),
             BriefGeneratorService(repository),
+            audit=audit,
         )
-        return cls(executor, repository)
+        return cls(executor, repository, audit)
 
     def execute(self, payload: Mapping[str, object], *, as_of: date) -> WorkflowExecutionResult:
         """Delegate first-run execution to the C18 workflow authority."""
@@ -77,6 +82,10 @@ class WorkflowApplication:
     def resume(self, run_id: str, *, as_of: date) -> WorkflowExecutionResult:
         """Delegate recovery to the C18 accepted-checkpoint authority."""
         return self._executor.resume(run_id, as_of=as_of)
+
+    def audit_report(self, run_id: str) -> AuditReport:
+        """Return C19's typed, redacted reconstruction for one workflow run."""
+        return self._audit.report(run_id)
 
     def close(self) -> None:
         """Release the local repository after the owning presentation exits."""

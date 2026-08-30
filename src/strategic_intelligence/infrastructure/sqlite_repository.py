@@ -10,7 +10,7 @@ from typing import Sequence, TypeVar
 from pydantic import BaseModel
 
 from strategic_intelligence.domain.models import (
-    Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, WorkflowRun, WorkflowStage,
+    AuditEvent, Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, WorkflowRun, WorkflowStage,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS claim_evidence_links (claim_id TEXT NOT NULL REFERENC
 CREATE TABLE IF NOT EXISTS follow_up_attempts (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL REFERENCES claims(id), payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS governance_decisions (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), target_id TEXT NOT NULL, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS checkpoints (run_id TEXT NOT NULL REFERENCES workflow_runs(id), stage TEXT NOT NULL, accepted INTEGER NOT NULL, required_records TEXT NOT NULL, accepted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(run_id, stage));
+CREATE TABLE IF NOT EXISTS audit_events (id TEXT PRIMARY KEY, run_id TEXT NOT NULL, sequence INTEGER NOT NULL, payload TEXT NOT NULL, UNIQUE(run_id, sequence));
 """
 
 
@@ -69,6 +70,20 @@ class SqliteRepository:
 
     def get_workflow_run(self, run_id: str) -> WorkflowRun | None:
         return self._get("workflow_runs", WorkflowRun, run_id)
+
+    def save_audit_event(self, event: AuditEvent) -> AuditEvent:
+        with self._connection:
+            self._connection.execute(
+                "INSERT INTO audit_events(id, run_id, sequence, payload) VALUES (?, ?, ?, ?)",
+                (event.audit_event_id, event.run_id, event.sequence, self._dump(event)),
+            )
+        return event
+
+    def list_audit_events(self, run_id: str) -> list[AuditEvent]:
+        rows = self._connection.execute(
+            "SELECT payload FROM audit_events WHERE run_id = ? ORDER BY sequence, rowid", (run_id,),
+        ).fetchall()
+        return [self._load(AuditEvent, row["payload"]) for row in rows]
 
     def save_source(self, source: Source) -> Source:
         row = self._connection.execute("SELECT payload FROM sources WHERE case_id = ? AND url = ?", (source.case_id, source.url)).fetchone()

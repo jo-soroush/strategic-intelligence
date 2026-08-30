@@ -1621,28 +1621,30 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C19 — Observability and Audit
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE_PENDING_GIT
 **Dependencies:** V1-C03, V1-C04, V1-C13
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Structured harness trace | TBD | TBD | PENDING | TBD |
-| Verification/Governance events | TBD | TBD | PENDING | TBD |
-| Checkpoint decisions | TBD | TBD | PENDING | TBD |
-| Retry/error events | TBD | TBD | PENDING | TBD |
-| Secret redaction | TBD | TBD | PENDING | TBD |
-| Performance baseline telemetry | TBD | TBD | PENDING | TBD |
+| Structured harness trace | `observability/audit.py`; C03 repository | `tests/unit/test_observability.py` | PASS | Typed, ordered, content-minimized events persist and reload by workflow run. |
+| Verification/Governance events | C18 observer hooks | real governed workflow composition | PASS | Existing C11/C13 outcomes are recorded without reinterpretation. |
+| Checkpoint decisions | C18 `_checkpoint` observation | controlled C03 rejection composition | PASS | Accepted and rejected owner outcomes are observed; no false acceptance is emitted. |
+| Retry/error events | C04 provider observer + C18 retry hook | real retryable C18 provider path | PASS | Existing single retry, provider failure, terminal result, and sanitized metadata are reconstructed. |
+| Observer-failure isolation | `AuditTrail.record(...)` | real C18 execution with controlled audit-write failure | PASS | An audit-store failure cannot convert an accepted checkpoint or C18 terminal outcome into a different workflow result; the incomplete trace makes no false terminal claim. |
+| Secret redaction | existing `redact_secrets` | adversarial secret-bearing provider/checkpoint paths | PASS | Persisted events and reports contain no controlled secret, raw provider content, or traceback. |
+| Performance baseline telemetry | `AuditReport` | trace/report and reload assertions | PASS | Total/stage durations plus provider, retry, error, checkpoint, Verification, and Governance counts reconcile to persisted events. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** C18 persisted workflow/checkpoint state but no structured run audit trace or application-owned reconstruction report.
+**Candidate After:** PASS — C19 observes existing C03/C04/C11/C13/C18 outcomes through typed, redacted persisted events and `WorkflowApplication.audit_report(...)`.
+**Regression Decision:** PASS — C19 focused (7), C03/C04/C11/C12/C13/C14/C18/WorkflowApplication regression (98), and full suite (174) passed.
+**Critical Path:** PASS — real governed workflow → ordered persisted C19 trace/report → close/reopen → same reconstructed metrics and terminal outcome, without secrets.
+**Known Issues / Blockers:** None.
+**Diff Review:** PASS — C19 audit model/persistence/observer/report surface, focused proofs, and canonical C19 Evidence only; no authority moved from C03/C04/C11/C13/C18.
+**Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside C19 scope.
+**Exit Gate Evidence:** PASS — a developer can retrieve persisted/reloaded ordered events, bounded decision/retry/checkpoint/error context, terminal outcome, and performance metrics without secret or raw provider-content exposure.
 
 
 # V1-C20 — Golden Case
