@@ -41,7 +41,7 @@ class PlanningError(PlanningModel):
 class ResearchPlanningGuidance(PlanningModel):
     """Optional provider output can only emphasize existing approved categories."""
 
-    emphasized_categories: list[str] = Field(default_factory=list, max_length=13)
+    emphasized_categories: list[ResearchCategory] = Field(default_factory=list, max_length=13)
 
 
 class ResearchPlanningResult(PlanningModel):
@@ -172,8 +172,10 @@ class ResearchPlanner:
     @staticmethod
     def _guidance_prompt(case: Case) -> str:
         context = f" Context: {case.extra_context}." if case.extra_context else ""
+        categories = ", ".join(category.value for category in ResearchCategory)
         return (
-            "Select only approved research categories to emphasize for a meeting goal. "
+            "Select zero or more exact tokens from the approved research categories list; do not invent labels. "
+            f"Approved categories: {categories}. "
             f"Company: {case.company_name}. Executive: {case.executive_name}. Goal: {case.meeting_goal}.{context}"
         )
 

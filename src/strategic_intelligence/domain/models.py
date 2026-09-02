@@ -114,6 +114,13 @@ class AccessStatus(str, Enum):
     FAILED = "FAILED"
 
 
+class ContentOrigin(str, Enum):
+    """Distinguishes discovery snippets from safely retrieved public content."""
+
+    SEARCH_SNIPPET = "SEARCH_SNIPPET"
+    PUBLIC_PAGE = "PUBLIC_PAGE"
+
+
 class ClaimType(str, Enum):
     FACT = "FACT"
     INFERENCE = "INFERENCE"
@@ -310,10 +317,12 @@ class RawFinding(DomainModel):
     case_id: str = Field(min_length=1)
     research_task_id: str = Field(min_length=1)
     source_url: str = Field(min_length=1)
+    discovery_url: str | None = None
     title: str = Field(min_length=1)
     publisher: str | None = None
     publication_date: date | None = None
     extracted_content: str = Field(min_length=1)
+    content_origin: ContentOrigin = ContentOrigin.SEARCH_SNIPPET
     topic: str = Field(min_length=1)
     relevance: str = Field(min_length=1)
     discovered_at: datetime = Field(default_factory=utc_now)
@@ -323,6 +332,7 @@ class Source(DomainModel):
     source_id: str = Field(default_factory=new_id, min_length=1)
     case_id: str = Field(min_length=1)
     url: str = Field(min_length=1)
+    discovery_url: str | None = None
     title: str = Field(min_length=1)
     publisher: str | None = None
     source_type: SourceType
@@ -330,6 +340,7 @@ class Source(DomainModel):
     retrieval_date: date = Field(default_factory=lambda: utc_now().date())
     quality_class: SourceQuality = SourceQuality.OTHER
     access_status: AccessStatus = AccessStatus.AVAILABLE
+    content_origin: ContentOrigin = ContentOrigin.SEARCH_SNIPPET
     origin_source_id: str | None = None
 
 
@@ -405,6 +416,18 @@ class AnalysisItem(DomainModel):
     restriction_reason_codes: list[GovernanceReasonCode] = Field(default_factory=list)
 
 
+class MeetingTakeaway(DomainModel):
+    """A bounded, traceable presentation projection of governed non-FACT material."""
+
+    takeaway_id: str = Field(default_factory=new_id, min_length=1)
+    text: str = Field(min_length=1)
+    type: ClaimType
+    supporting_claim_ids: list[str] = Field(default_factory=list)
+    rationale: str | None = None
+    is_restricted: bool = False
+    restriction_reason_codes: list[GovernanceReasonCode] = Field(default_factory=list)
+
+
 class Opportunity(DomainModel):
     opportunity_id: str = Field(default_factory=new_id, min_length=1)
     case_id: str = Field(min_length=1)
@@ -465,6 +488,7 @@ class MeetingBrief(DomainModel):
     case_id: str = Field(min_length=1)
     version: int = Field(ge=1)
     executive_summary: str | None = None
+    meeting_takeaways: list[MeetingTakeaway] = Field(default_factory=list)
     company_situation: list[AnalysisItem] = Field(default_factory=list)
     strategy_direction: list[AnalysisItem] = Field(default_factory=list)
     projects_client_cases: list[AnalysisItem] = Field(default_factory=list)

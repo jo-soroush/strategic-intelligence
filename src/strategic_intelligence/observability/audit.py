@@ -130,7 +130,14 @@ class ObservedLLMProvider:
         try:
             result = call()
         except ProviderError as error:
-            self._audit.record("PROVIDER_CALL", "llm", error.code.value, metadata={"operation": operation, "duration_ms": int((perf_counter() - started) * 1000), "retryable": error.retryable})
+            metadata: dict[str, str | int | float | bool] = {
+                "operation": operation,
+                "duration_ms": int((perf_counter() - started) * 1000),
+                "retryable": error.retryable,
+            }
+            if error.structured_output_failure_reason is not None:
+                metadata["structured_output_failure_reason"] = error.structured_output_failure_reason.value
+            self._audit.record("PROVIDER_CALL", "llm", error.code.value, metadata=metadata)
             raise
         except Exception:
             self._audit.record("PROVIDER_CALL", "llm", "ERROR", metadata={"operation": operation, "duration_ms": int((perf_counter() - started) * 1000)})

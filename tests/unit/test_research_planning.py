@@ -125,11 +125,13 @@ def test_fake_structured_llm_guidance_is_bounded_and_private_categories_are_reje
     ai_task = next(task for task in valid.plan.tasks if task.category is ResearchCategory.AI_ACTIVITY)
     assert ai_task.priority == 3
     assert len(valid_provider.calls) == 1
+    assert "AI_ACTIVITY" in valid_provider.calls[0].prompt
+    assert "PERSONAL_LIFE" not in valid_provider.calls[0].prompt
 
     private_provider = FakeLLMProvider(response_text='{"emphasized_categories":["PERSONAL_LIFE"]}')
     rejected = ResearchPlanner(llm=private_provider).plan(_case())
     assert rejected.status is PlanningStatus.REJECTED
-    assert rejected.errors[0].code is PlanningErrorCode.PRIVACY_BOUNDARY
+    assert rejected.errors[0].code is PlanningErrorCode.INVALID_GUIDANCE
 
     malformed_provider = FakeLLMProvider(response_text='{"emphasized_categories":"not-a-list"}')
     malformed = ResearchPlanner(llm=malformed_provider).plan(_case())

@@ -9,9 +9,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from strategic_intelligence.application.persistence import PersistenceRepository
 from strategic_intelligence.domain.models import (
-    Claim, ClaimEvidenceLink, ClaimEvidenceRelationship, ClaimType, Evidence,
+    Claim, ClaimEvidenceLink, ClaimEvidenceRelationship, ClaimType, ContentOrigin, Evidence,
     RawFinding, Source, SourceQuality, SourceType,
 )
+from urllib.parse import urlsplit
 from strategic_intelligence.security import UnsafeExternalUrlError, normalize_external_url
 
 
@@ -76,7 +77,8 @@ class EvidenceLayerService:
             sources = [self._repository.save_source(Source(
                 case_id=item.case_id, url=item.source_url, title=item.title,
                 publisher=item.publisher, publication_date=item.publication_date,
-                source_type=SourceType.OTHER, quality_class=SourceQuality.OTHER,
+                discovery_url=item.discovery_url, content_origin=item.content_origin,
+                source_type=self._source_type(item), quality_class=SourceQuality.OTHER,
             )) for item in findings]
             evidence_items = [self._repository.save_evidence(Evidence(
                 case_id=item.case_id, source_id=source.source_id,
@@ -108,6 +110,7 @@ class EvidenceLayerService:
             source = self._repository.save_source(Source(
                 case_id=finding.case_id, url=finding.source_url, title=finding.title,
                 publisher=finding.publisher, publication_date=finding.publication_date,
+                discovery_url=finding.discovery_url, content_origin=finding.content_origin,
                 source_type=source_type, quality_class=quality_class,
             ))
             evidence = self._repository.save_evidence(Evidence(
@@ -125,6 +128,16 @@ class EvidenceLayerService:
         except UnsafeExternalUrlError:
             return False
         return bool(finding.case_id and finding.research_task_id and finding.title.strip() and finding.extracted_content.strip())
+
+    def _source_type(self, finding: RawFinding) -> SourceType:
+        """Only acquired first-party public pages receive a first-party type."""
+        if finding.content_origin is ContentOrigin.PUBLIC_PAGE:
+            host = urlsplit(finding.source_url).hostname or ""
+            case = self._repository.get_case(finding.case_id)
+            company_host = "" if case is None or not case.company_website else (urlsplit(case.company_website).hostname or "")
+            if company_host and (host == company_host or host.endswith(f".{company_host}")):
+                return SourceType.OFFICIAL_COMPANY
+        return SourceType.OTHER
 
     @staticmethod
     def _relationships_for(

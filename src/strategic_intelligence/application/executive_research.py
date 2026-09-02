@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import re
+from urllib.parse import urlsplit
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from strategic_intelligence.domain.models import Case, RawFinding, ResearchCategory, ResearchTask, ResearchTaskStatus, TargetType
+from strategic_intelligence.domain.models import Case, ContentOrigin, RawFinding, ResearchCategory, ResearchTask, ResearchTaskStatus, TargetType
+from strategic_intelligence.application.source_acquisition import PublicSourceRetriever, SourceSuitability, assess_source_suitability
 from strategic_intelligence.providers.contracts import ProviderError, ProviderErrorCode, SearchProvider, SearchQuery, SearchResult
 from strategic_intelligence.security import UnsafeExternalUrlError, normalize_external_url
 
@@ -76,16 +78,22 @@ class ExecutiveResearchResult(ExecutiveResearchModel):
 class ExecutiveResearchService:
     """Consumes one C06 executive task through the provider-neutral C04 boundary."""
 
-    def __init__(self, search: SearchProvider, *, max_results_per_task: int = 5, timeout_seconds: float = 5.0) -> None:
+    def __init__(self, search: SearchProvider, *, max_results_per_task: int = 5, timeout_seconds: float = 5.0, source_retriever: PublicSourceRetriever | None = None, max_acquisitions_per_task: int = 2, max_candidate_acquisitions_per_task: int | None = None) -> None:
         if not 1 <= max_results_per_task <= 10:
             raise ValueError("max_results_per_task must be between one and ten")
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be positive")
+        candidate_budget = max_results_per_task if max_candidate_acquisitions_per_task is None else max_candidate_acquisitions_per_task
+        if not 1 <= max_acquisitions_per_task <= candidate_budget <= max_results_per_task:
+            raise ValueError("source acquisition budgets are invalid")
         self._search = search
         self._max_results_per_task = max_results_per_task
         self._timeout_seconds = timeout_seconds
+        self._source_retriever = source_retriever
+        self._max_acquisitions_per_task = max_acquisitions_per_task
+        self._max_candidate_acquisitions_per_task = candidate_budget
 
-    def research(self, case: Case, task: ResearchTask) -> ExecutiveResearchResult:
+    def research(self, case: Case, task: ResearchTask, *, excluded_source_urls: set[str] | frozenset[str] | None = None, excluded_content: set[str] | frozenset[str] | None = None) -> ExecutiveResearchResult:
         task_error = self._validate_task(case, task)
         if task_error is not None:
             return ExecutiveResearchResult(
@@ -127,9 +135,12 @@ class ExecutiveResearchService:
             )
 
         findings: list[RawFinding] = []
-        seen_urls: set[str] = set()
+        seen_urls = _canonical_urls(excluded_source_urls or ())
+        seen_content = {_content_key(value) for value in (excluded_content or ())}
         rejected_count = identity_rejected = privacy_rejected = malformed_count = 0
-        for result in results[:self._max_results_per_task]:
+        retained = 0
+        candidate_acquisitions = 0
+        for result in sorted(results[:self._max_results_per_task], key=lambda item: self._acquisition_priority(case, item)):
             finding, reason = self._to_finding(case, task, result)
             if finding is None:
                 rejected_count += 1
@@ -137,12 +148,44 @@ class ExecutiveResearchService:
                 privacy_rejected += int(reason == "privacy")
                 malformed_count += int(reason == "malformed")
                 continue
-            source_key = finding.source_url.casefold()
+            candidate_key = _canonical_url(finding.source_url)
+            if candidate_key in seen_urls:
+                rejected_count += 1
+                continue
+            if self._source_retriever is not None:
+                if retained >= self._max_acquisitions_per_task or candidate_acquisitions >= self._max_candidate_acquisitions_per_task:
+                    rejected_count += 1
+                    continue
+                candidate_acquisitions += 1
+                acquired = self._source_retriever.retrieve(finding.source_url)
+                if acquired.content is None:
+                    rejected_count += 1
+                    continue
+                if assess_source_suitability(acquired.content) is not SourceSuitability.SUBSTANTIVE:
+                    rejected_count += 1
+                    continue
+                finding = finding.model_copy(update={
+                    "source_url": acquired.content.final_url,
+                    "discovery_url": acquired.content.requested_url,
+                    "title": acquired.content.title,
+                    "publication_date": acquired.content.publication_date,
+                    "extracted_content": acquired.content.text,
+                    "content_origin": ContentOrigin.PUBLIC_PAGE,
+                })
+            content_key = _content_key(finding.extracted_content)
+            if content_key in seen_content:
+                rejected_count += 1
+                continue
+            source_key = _canonical_url(finding.source_url)
             if source_key in seen_urls:
                 rejected_count += 1
                 continue
             seen_urls.add(source_key)
+            if finding.discovery_url:
+                seen_urls.add(_canonical_url(finding.discovery_url))
+            seen_content.add(content_key)
             findings.append(finding)
+            retained += 1
 
         errors = ([ExecutiveResearchError(
             code=ExecutiveResearchErrorCode.INVALID_PROVIDER_RESULT,
@@ -220,6 +263,14 @@ class ExecutiveResearchService:
         )
 
     @staticmethod
+    def _acquisition_priority(case: Case, result: object) -> int:
+        if not isinstance(result, SearchResult) or not case.company_website:
+            return 1
+        expected = urlsplit(case.company_website).hostname or ""
+        actual = urlsplit(result.url).hostname or ""
+        return 0 if actual == expected or actual.endswith(f".{expected}") else 1
+
+    @staticmethod
     def _provider_failure(task: ResearchTask, error: ProviderError) -> ExecutiveResearchResult:
         code = ExecutiveResearchErrorCode.PROVIDER_TIMEOUT if error.code is ProviderErrorCode.TIMEOUT else ExecutiveResearchErrorCode.PROVIDER_UNAVAILABLE
         return ExecutiveResearchResult(
@@ -246,3 +297,21 @@ def _public_discovery_url(value: str) -> str | None:
         return normalize_external_url(value)
     except UnsafeExternalUrlError:
         return None
+
+
+def _canonical_url(value: str) -> str:
+    return normalize_external_url(value)
+
+
+def _canonical_urls(values: set[str] | frozenset[str]) -> set[str]:
+    canonical: set[str] = set()
+    for value in values:
+        try:
+            canonical.add(_canonical_url(value))
+        except UnsafeExternalUrlError:
+            continue
+    return canonical
+
+
+def _content_key(value: str) -> str:
+    return " ".join(value.casefold().split())

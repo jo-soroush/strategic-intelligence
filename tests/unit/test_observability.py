@@ -2,6 +2,8 @@ import json
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from strategic_intelligence.application.workflow_application import WorkflowApplication
 from strategic_intelligence.application.brief_generator import BriefGeneratorService
 from strategic_intelligence.application.case_input import CaseIntakeService
@@ -10,15 +12,28 @@ from strategic_intelligence.application.evidence_layer import EvidenceLayerServi
 from strategic_intelligence.application.executive_research import ExecutiveResearchService
 from strategic_intelligence.application.follow_up_research import FollowUpResearchService
 from strategic_intelligence.application.research_planning import ResearchPlanner
-from strategic_intelligence.application.strategic_analysis import StrategicAnalysisService
+from strategic_intelligence.application.strategic_analysis import (
+    StrategicAnalysisFidelityFailureMode,
+    StrategicAnalysisPostParseValidatorRule,
+    StrategicAnalysisRejectionReason,
+    StrategicAnalysisSemanticPayload,
+    StrategicAnalysisService,
+)
 from strategic_intelligence.application.verification import VerificationService
 from strategic_intelligence.config import Settings
 from strategic_intelligence.domain.models import AnalysisItem, ClaimType, WorkflowStage
 from strategic_intelligence.governance.engine import GovernanceService
 from strategic_intelligence.harness.workflow_executor import WorkflowExecutor, WorkflowExecutionStatus
 from strategic_intelligence.infrastructure.sqlite_repository import CheckpointRejectedError, SqliteRepository
-from strategic_intelligence.observability.audit import AuditTrail, ObservedSearchProvider
-from strategic_intelligence.providers.contracts import LLMRequest, ProviderError, ProviderErrorCode, SearchQuery, SearchResult
+from strategic_intelligence.observability.audit import AuditTrail, ObservedLLMProvider, ObservedSearchProvider
+from strategic_intelligence.providers.contracts import (
+    LLMRequest,
+    ProviderError,
+    ProviderErrorCode,
+    SearchQuery,
+    SearchResult,
+    StructuredOutputFailureReason,
+)
 from strategic_intelligence.providers.factory import Providers
 from strategic_intelligence.providers.fakes import FakeSearchProvider
 
@@ -57,6 +72,34 @@ def test_provider_observer_keeps_c04_result_and_records_bounded_metadata(tmp_pat
     repository.close()
 
 
+def test_llm_observer_records_only_safe_structured_output_reason(tmp_path: Path) -> None:
+    class FailingProvider:
+        def generate(self, request: LLMRequest):
+            raise AssertionError("structured path required")
+
+        def generate_structured(self, request: LLMRequest, schema):
+            raise ProviderError(
+                ProviderErrorCode.STRUCTURED_OUTPUT_INVALID,
+                "raw model output token=secret-value",
+                structured_output_failure_reason=StructuredOutputFailureReason.PYDANTIC_VALIDATION_FAILED,
+            )
+
+    repository = SqliteRepository(tmp_path / "audit.db")
+    trail = AuditTrail(repository)
+    trail.activate("case", "run")
+    provider = ObservedLLMProvider(FailingProvider(), trail)
+
+    with pytest.raises(ProviderError):
+        provider.generate_structured(LLMRequest("raw prompt secret-value"), StrategicAnalysisSemanticPayload)
+
+    event = trail.report("run").events[0]
+    assert event.status == ProviderErrorCode.STRUCTURED_OUTPUT_INVALID.value
+    assert event.metadata["structured_output_failure_reason"] == "PYDANTIC_VALIDATION_FAILED"
+    assert "secret-value" not in str(event)
+    assert "raw prompt" not in str(event)
+    repository.close()
+
+
 def test_audit_traces_are_isolated_by_run_after_reload(tmp_path: Path) -> None:
     path = tmp_path / "audit.db"
     repository = SqliteRepository(path)
@@ -89,9 +132,51 @@ class _ComposedProvider:
             return schema()
         context = json.loads(request.prompt.split("TRUSTED_CONTEXT_JSON:\n", 1)[1])
         claim = context["claims"][0]
-        return schema(case_id=context["case_id"], company_direction=[AnalysisItem(
-            text=claim["text"], type=ClaimType.FACT, related_claim_ids=[claim["claim_id"]],
+        return schema(fact_selections=[{
+            "section": "company_direction", "fact_claim_alias": claim["claim_alias"],
+        }])
+
+
+class _DuplicateC15AliasProvider(_ComposedProvider):
+    """C15 schema succeeds; C15 itself must reject the duplicate transient alias."""
+
+    def generate_structured(self, request: LLMRequest, schema):
+        if "TRUSTED_CONTEXT_JSON" not in request.prompt:
+            return super().generate_structured(request, schema)
+        context = json.loads(request.prompt.split("TRUSTED_CONTEXT_JSON:\n", 1)[1])
+        claim = context["claims"][0]
+        return schema(strategic_signals=[AnalysisItem(
+            text="token=c15-observation-secret duplicate alias",
+            type=ClaimType.INFERENCE,
+            related_claim_ids=[claim["claim_alias"], claim["claim_alias"]],
         )])
+
+
+class _OverLimitC15Provider(_ComposedProvider):
+    """Schema-valid C15 output which must preserve C18's existing partial path."""
+
+    def generate_structured(self, request: LLMRequest, schema):
+        if "TRUSTED_CONTEXT_JSON" not in request.prompt:
+            return super().generate_structured(request, schema)
+        context = json.loads(request.prompt.split("TRUSTED_CONTEXT_JSON:\n", 1)[1])
+        claim = context["claims"][0]
+        return schema(strategic_signals=[AnalysisItem(
+            text="A bounded signal may matter.",
+            type=ClaimType.INFERENCE,
+            related_claim_ids=[claim["claim_alias"]],
+        )] * 21)
+
+
+class _GovernedFactRejectionC15Provider(_ComposedProvider):
+    """Schema-valid ineligible FACT selection that C15 rejects while C18 remains fail closed."""
+
+    def generate_structured(self, request: LLMRequest, schema):
+        if "TRUSTED_CONTEXT_JSON" not in request.prompt:
+            return super().generate_structured(request, schema)
+        context = json.loads(request.prompt.split("TRUSTED_CONTEXT_JSON:\n", 1)[1])
+        return StrategicAnalysisSemanticPayload.model_validate({
+            "fact_selections": [{"section": "company_direction", "fact_claim_alias": "CLAIM_999"}],
+        })
 
 
 def test_real_workflow_persists_reconstructable_observations(tmp_path: Path) -> None:
@@ -149,6 +234,118 @@ def test_real_c18_retry_is_observed_without_changing_retry_semantics(tmp_path: P
     assert report.provider_call_count == len([event for event in report.events if event.event_type == "PROVIDER_CALL"])
     assert "retry-secret" not in str(report)
     app.close()
+
+
+def test_c15_post_provider_rejection_is_persisted_before_c18_keeps_generic_partial(tmp_path: Path) -> None:
+    settings = Settings(
+        environment="test", log_level="INFO", data_dir=tmp_path / "data", log_dir=tmp_path / "logs",
+        llm_provider="fake", llm_model="fake", llm_timeout_seconds=1.0,
+        ollama_base_url="http://127.0.0.1:11434", search_provider="fake", cloud_providers_enabled=False,
+    )
+    app = WorkflowApplication.from_settings(settings, providers=Providers(
+        llm=_DuplicateC15AliasProvider(),
+        search=FakeSearchProvider(results=[SearchResult(
+            title="Ava Example at Example Co", url="https://example.test/announcement",
+            snippet="Example Co opened a research lab.", publisher="Example Co", published_at=date(2026, 8, 1),
+        )]),
+    ))
+    result = app.execute({
+        "company_name": "Example Co", "executive_name": "Ava Example", "meeting_goal": "Prepare",
+        "company_website": "https://example.test", "executive_current_title": "Director",
+    }, as_of=date(2026, 8, 27))
+    report = app.audit_report(result.workflow_run.run_id)
+    c15_events = [event for event in report.events if event.event_type == "C15_REJECTION"]
+
+    assert result.status is WorkflowExecutionStatus.PARTIAL
+    assert result.errors[0].error_code.value == "INSUFFICIENT_EVIDENCE"
+    assert len(c15_events) == 1
+    assert c15_events[0].stage is WorkflowStage.GOVERNANCE_COMPLETED
+    assert c15_events[0].metadata == {
+        "reason_code": StrategicAnalysisRejectionReason.DUPLICATE_CLAIM_REFERENCE.value,
+        "validator_stage": "ALIAS_RESOLUTION",
+    }
+    assert "c15-observation-secret" not in str(report)
+    run_id = result.workflow_run.run_id
+    app.close()
+
+    reopened = WorkflowApplication.from_settings(settings, providers=Providers(llm=_DuplicateC15AliasProvider(), search=FakeSearchProvider()))
+    reloaded = [event for event in reopened.audit_report(run_id).events if event.event_type == "C15_REJECTION"]
+    assert len(reloaded) == 1 and reloaded[0].metadata == c15_events[0].metadata
+    reopened.close()
+
+
+def test_c15_fidelity_subrule_persists_before_c18_keeps_generic_partial(tmp_path: Path) -> None:
+    settings = Settings(
+        environment="test", log_level="INFO", data_dir=tmp_path / "data", log_dir=tmp_path / "logs",
+        llm_provider="fake", llm_model="fake", llm_timeout_seconds=1.0,
+        ollama_base_url="http://127.0.0.1:11434", search_provider="fake", cloud_providers_enabled=False,
+    )
+    app = WorkflowApplication.from_settings(settings, providers=Providers(
+        llm=_GovernedFactRejectionC15Provider(),
+        search=FakeSearchProvider(results=[SearchResult(
+            title="Ava Example at Example Co", url="https://example.test/announcement",
+            snippet="Example Co opened a research lab.", publisher="Example Co", published_at=date(2026, 8, 1),
+        )]),
+    ))
+    result = app.execute({
+        "company_name": "Example Co", "executive_name": "Ava Example", "meeting_goal": "Prepare",
+        "company_website": "https://example.test", "executive_current_title": "Director",
+    }, as_of=date(2026, 8, 27))
+    report = app.audit_report(result.workflow_run.run_id)
+    c15_events = [event for event in report.events if event.event_type == "C15_REJECTION"]
+
+    assert result.status is WorkflowExecutionStatus.PARTIAL
+    assert result.errors[0].error_code.value == "INSUFFICIENT_EVIDENCE"
+    assert len(c15_events) == 1
+    assert c15_events[0].metadata == {
+        "reason_code": StrategicAnalysisRejectionReason.ALIAS_RESOLUTION_FAILED.value,
+        "validator_stage": "ALIAS_RESOLUTION",
+    }
+    assert "c15-fidelity-secret" not in str(report)
+    run_id = result.workflow_run.run_id
+    app.close()
+
+    reopened = WorkflowApplication.from_settings(settings, providers=Providers(llm=_GovernedFactRejectionC15Provider(), search=FakeSearchProvider()))
+    reloaded = [event for event in reopened.audit_report(run_id).events if event.event_type == "C15_REJECTION"]
+    assert len(reloaded) == 1 and reloaded[0].metadata == c15_events[0].metadata
+    reopened.close()
+
+
+def test_generic_c15_rule_persists_without_changing_c18_partial_semantics(tmp_path: Path) -> None:
+    settings = Settings(
+        environment="test", log_level="INFO", data_dir=tmp_path / "data", log_dir=tmp_path / "logs",
+        llm_provider="fake", llm_model="fake", llm_timeout_seconds=1.0,
+        ollama_base_url="http://127.0.0.1:11434", search_provider="fake", cloud_providers_enabled=False,
+    )
+    app = WorkflowApplication.from_settings(settings, providers=Providers(
+        llm=_OverLimitC15Provider(),
+        search=FakeSearchProvider(results=[SearchResult(
+            title="Ava Example at Example Co", url="https://example.test/announcement",
+            snippet="Example Co opened a research lab.", publisher="Example Co", published_at=date(2026, 8, 1),
+        )]),
+    ))
+    result = app.execute({
+        "company_name": "Example Co", "executive_name": "Ava Example", "meeting_goal": "Prepare",
+        "company_website": "https://example.test", "executive_current_title": "Director",
+    }, as_of=date(2026, 8, 27))
+    report = app.audit_report(result.workflow_run.run_id)
+    c15_events = [event for event in report.events if event.event_type == "C15_REJECTION"]
+
+    assert result.status is WorkflowExecutionStatus.PARTIAL
+    assert result.errors[0].error_code.value == "INSUFFICIENT_EVIDENCE"
+    assert len(c15_events) == 1
+    assert c15_events[0].metadata == {
+        "reason_code": StrategicAnalysisRejectionReason.POST_PARSE_VALIDATION_FAILED.value,
+        "validator_stage": "POST_PARSE_VALIDATION",
+        "post_parse_validator_rule": StrategicAnalysisPostParseValidatorRule.SECTION_ITEM_LIMIT_EXCEEDED.value,
+    }
+    run_id = result.workflow_run.run_id
+    app.close()
+
+    reopened = WorkflowApplication.from_settings(settings, providers=Providers(llm=_OverLimitC15Provider(), search=FakeSearchProvider()))
+    reloaded = [event for event in reopened.audit_report(run_id).events if event.event_type == "C15_REJECTION"]
+    assert len(reloaded) == 1 and reloaded[0].metadata == c15_events[0].metadata
+    reopened.close()
 
 
 def test_real_c03_checkpoint_failure_is_observed_and_reloads(tmp_path: Path, monkeypatch) -> None:

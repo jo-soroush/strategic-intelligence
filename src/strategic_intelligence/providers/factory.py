@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 from strategic_intelligence.config import Settings
 from strategic_intelligence.providers.contracts import LLMProvider, ProviderError, ProviderErrorCode, SearchProvider
+from strategic_intelligence.providers.brave import BraveSearchAdapter
+from strategic_intelligence.providers.gemini import GeminiAdapter
 from strategic_intelligence.providers.fakes import FakeLLMProvider, FakeSearchProvider
 from strategic_intelligence.providers.ollama import OllamaAdapter
 from strategic_intelligence.providers.search import DuckDuckGoSearchAdapter
@@ -20,6 +22,10 @@ class Providers:
 def build_providers(settings: Settings) -> Providers:
     if settings.llm_provider == "ollama":
         llm: LLMProvider = OllamaAdapter(settings.ollama_base_url, settings.llm_model, settings.llm_timeout_seconds, allow_remote=settings.cloud_providers_enabled)
+    elif settings.llm_provider == "gemini":
+        if not settings.cloud_providers_enabled:
+            raise ProviderError(ProviderErrorCode.CONFIGURATION_INVALID, "Gemini requires explicit cloud-provider enablement")
+        llm = GeminiAdapter(settings.gemini_api_key, settings.llm_model, settings.llm_timeout_seconds)
     elif settings.llm_provider == "fake":
         llm = FakeLLMProvider()
     else:
@@ -30,6 +36,8 @@ def build_providers(settings: Settings) -> Providers:
         search: SearchProvider = FakeSearchProvider()
     elif settings.search_provider == "duckduckgo":
         search = DuckDuckGoSearchAdapter()
+    elif settings.search_provider == "brave":
+        search = BraveSearchAdapter(settings.brave_search_api_key)
     else:
         raise ProviderError(ProviderErrorCode.CONFIGURATION_INVALID, "configured search provider has no approved adapter")
     return Providers(llm=llm, search=search)

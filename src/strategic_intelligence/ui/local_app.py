@@ -9,7 +9,7 @@ from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
 
 from strategic_intelligence.application.workflow_application import WorkflowApplication
-from strategic_intelligence.domain.models import AnalysisItem, MeetingBrief, MeetingQuestion, Opportunity, QuickBrief, WorkflowError
+from strategic_intelligence.domain.models import AnalysisItem, MeetingBrief, MeetingQuestion, MeetingTakeaway, Opportunity, QuickBrief, WorkflowError
 from strategic_intelligence.harness.workflow_executor import WorkflowExecutionResult
 from strategic_intelligence.observability.logging import configured_secret_values, redact_secrets
 
@@ -40,6 +40,18 @@ def _item(item: AnalysisItem) -> str:
 def _items(title: str, values: Iterable[AnalysisItem]) -> str:
     rendered = "".join(_item(value) for value in values)
     return "" if not rendered else f"<section><h3>{_text(title)}</h3><ul>{rendered}</ul></section>"
+
+
+def _takeaways(values: Iterable[MeetingTakeaway]) -> str:
+    rendered: list[str] = []
+    for value in values:
+        restriction = ""
+        if value.is_restricted:
+            reasons = ", ".join(reason.value for reason in value.restriction_reason_codes) or "qualification required"
+            restriction = f" <strong>RESTRICTED:</strong> {_text(reasons)}"
+        rationale = f" <em>{_text(value.rationale)}</em>" if value.rationale else ""
+        rendered.append(f"<li>{_text(value.text)}{restriction}{rationale}</li>")
+    return "" if not rendered else f"<section><h3>Meeting takeaways</h3><ul>{''.join(rendered)}</ul></section>"
 
 
 def _opportunities(values: Iterable[Opportunity]) -> str:
@@ -91,6 +103,7 @@ def _full_brief(brief: MeetingBrief) -> str:
     return (
         "<section><h2>Full Brief</h2>"
         f"<p>{_text(brief.executive_summary or '')}</p>"
+        f"{_takeaways(brief.meeting_takeaways)}"
         f"{_items('Company situation', brief.company_situation)}{_items('Strategy direction', brief.strategy_direction)}"
         f"{_items('Projects and client cases', brief.projects_client_cases)}{_items('AI activity', brief.ai_activity)}"
         f"{_items('Executive intelligence', brief.executive_intelligence)}{_items('Strategic signals', brief.strategic_signals)}"

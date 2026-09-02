@@ -11,9 +11,11 @@ from strategic_intelligence.application.strategic_analysis import (
     StrategicAnalysisResult,
     StrategicAnalysisStatus,
     TrustedClaimContext,
+    normalize_formatting_equivalent_text,
 )
 from strategic_intelligence.domain.models import (
-    AnalysisItem, Case, Claim, ClaimType, GovernanceDecisionStatus, MeetingBrief, QuickBrief, StrategicAnalysis,
+    AnalysisItem, Case, Claim, ClaimType, GovernanceDecisionStatus, MeetingBrief, MeetingQuestion, MeetingTakeaway, Opportunity,
+    QuickBrief, StrategicAnalysis,
 )
 
 
@@ -50,6 +52,7 @@ class BriefGeneratorService:
 
     _QUICK_ITEM_LIMIT = 5
     _QUICK_GAP_LIMIT = 5
+    _MEETING_TAKEAWAY_LIMIT = 5
     _MAX_ANALYSIS_ITEMS_PER_SECTION = 20
     _MAX_KNOWLEDGE_GAPS = 20
     _MAX_TEXT_LENGTH = 2_000
@@ -94,6 +97,7 @@ class BriefGeneratorService:
             case_id=case_id,
             version=1,
             executive_summary=f"Prepare {case.executive_name} meeting: {case.meeting_goal}",
+            meeting_takeaways=self._meeting_takeaways(analysis),
             company_situation=analysis.company_direction,
             strategy_direction=analysis.project_meaning,
             projects_client_cases=analysis.project_meaning,
@@ -168,7 +172,11 @@ class BriefGeneratorService:
         if len(analysis.knowledge_gaps) > self._MAX_KNOWLEDGE_GAPS:
             return "brief input exceeds the knowledge-gap limit"
         values = [
+            # Canonical FACT text is validated immediately afterwards against
+            # its persisted PASS FACT Claim.  It is not model-authored output
+            # and therefore is not subject to the LLM-output text bound.
             item.text for item in self._all_items(analysis)
+            if item.type is not ClaimType.FACT
         ]
         values.extend(item.rationale for item in self._all_items(analysis) if item.rationale is not None)
         values.extend(
@@ -236,13 +244,66 @@ class BriefGeneratorService:
             *analysis.company_direction, *analysis.executive_priorities, *analysis.project_meaning,
             *analysis.strategic_signals, *analysis.user_relevance, *analysis.meeting_topics,
             *analysis.risks, *analysis.knowledge_gaps,
-            *[AnalysisItem(text=item.title, type=ClaimType.INFERENCE, related_claim_ids=item.related_claim_ids) for item in analysis.opportunity_areas],
-            *[AnalysisItem(text=item.question, type=ClaimType.RECOMMENDATION, related_claim_ids=item.related_claim_ids) for item in analysis.smart_questions],
+            *[BriefGeneratorService._opportunity_as_item(item) for item in analysis.opportunity_areas],
+            *[BriefGeneratorService._question_as_item(item) for item in analysis.smart_questions],
         ]
+
+    @staticmethod
+    def _opportunity_as_item(item: Opportunity) -> AnalysisItem:
+        """Preserve C15-governed metadata when validating nested Brief input."""
+
+        return AnalysisItem(
+            text=item.title,
+            type=ClaimType.INFERENCE,
+            related_claim_ids=item.related_claim_ids,
+            rationale=item.qualification,
+            is_restricted=item.is_restricted,
+            restriction_reason_codes=item.restriction_reason_codes,
+        )
+
+    @staticmethod
+    def _question_as_item(item: MeetingQuestion) -> AnalysisItem:
+        """Preserve C15-governed metadata when validating nested Brief input."""
+
+        return AnalysisItem(
+            text=item.question,
+            type=ClaimType.RECOMMENDATION,
+            related_claim_ids=item.related_claim_ids,
+            rationale=item.qualification,
+            is_restricted=item.is_restricted,
+            restriction_reason_codes=item.restriction_reason_codes,
+        )
 
     @staticmethod
     def _facts(analysis: StrategicAnalysis) -> list[AnalysisItem]:
         return [item for item in [*analysis.company_direction, *analysis.executive_priorities] if item.type is ClaimType.FACT]
+
+    @classmethod
+    def _meeting_takeaways(cls, analysis: StrategicAnalysis) -> list[MeetingTakeaway]:
+        """Select concise, already-validated C15 non-FACT material for meeting use.
+
+        This is presentation-only: it copies exact text and authoritative
+        qualification/provenance metadata without interpreting it.
+        """
+
+        candidates = [
+            *(item for item in analysis.executive_priorities if item.type is not ClaimType.FACT),
+            *(item for item in analysis.strategic_signals if item.type is not ClaimType.FACT),
+            *(cls._opportunity_as_item(item) for item in analysis.opportunity_areas),
+            *(cls._question_as_item(item) for item in analysis.smart_questions),
+            *(item for item in analysis.risks if item.type is not ClaimType.FACT),
+        ]
+        return [
+            MeetingTakeaway(
+                text=item.text,
+                type=item.type,
+                supporting_claim_ids=list(item.related_claim_ids),
+                rationale=item.rationale,
+                is_restricted=item.is_restricted,
+                restriction_reason_codes=list(item.restriction_reason_codes),
+            )
+            for item in candidates[: cls._MEETING_TAKEAWAY_LIMIT]
+        ]
 
     @staticmethod
     def _limited(items: list[AnalysisItem]) -> list[AnalysisItem]:
@@ -261,7 +322,7 @@ class BriefGeneratorService:
 
     @staticmethod
     def _normalized(value: str) -> str:
-        return " ".join(value.casefold().split())
+        return normalize_formatting_equivalent_text(value)
 
     @staticmethod
     def _rejected(code: BriefGenerationErrorCode, message: str) -> BriefGenerationResult:

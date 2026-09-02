@@ -27,14 +27,25 @@ AS_OF = date(2026, 8, 27)
 
 
 class _ComposedProvider:
+    def __init__(self) -> None:
+        self.calls = 0
+
     def generate_structured(self, request: LLMRequest, schema):
+        self.calls += 1
         context = json.loads(request.prompt.split("TRUSTED_CONTEXT_JSON:\n", 1)[1])
         claim = context["claims"][0]
-        item_type = ClaimType.FACT if claim["governance_decision"] == "PASS" else ClaimType.INFERENCE
+        fact_selections = []
+        company_direction = []
+        if claim["governance_decision"] == "PASS" and claim["claim_type"] == "FACT":
+            fact_selections = [{"section": "company_direction", "fact_claim_alias": claim["claim_alias"]}]
+        else:
+            company_direction = [AnalysisItem(
+                text="A governed item is available.", type=ClaimType.INFERENCE, related_claim_ids=[claim["claim_alias"]],
+            )]
         return schema(
-            case_id=context["case_id"],
-            company_direction=[AnalysisItem(text=claim["text"], type=item_type, related_claim_ids=[claim["claim_id"]])],
-            strategic_signals=[AnalysisItem(text="A governed signal is available.", type=ClaimType.INFERENCE, related_claim_ids=[claim["claim_id"]])],
+            fact_selections=fact_selections,
+            company_direction=company_direction,
+            strategic_signals=[AnalysisItem(text="A governed signal is available.", type=ClaimType.INFERENCE, related_claim_ids=[claim["claim_alias"]])],
             # C16's provenance boundary requires all presentation items derived
             # from restricted material to carry restriction metadata. Keep this
             # composition fixture intentionally narrow: it proves the C18 path
@@ -74,6 +85,7 @@ def test_critical_path_executes_and_reloads_completed_workflow(tmp_path: Path) -
 
     assert result.status is WorkflowExecutionStatus.COMPLETED
     assert result.brief and result.brief.quick_brief and result.brief.full_brief
+    assert executor._analysis._provider.calls == 1
     assert repository.latest_accepted_checkpoint(result.workflow_run.run_id).value == "BRIEF_GENERATED"
     repository.close()
 

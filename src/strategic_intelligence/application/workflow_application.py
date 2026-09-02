@@ -18,8 +18,10 @@ from strategic_intelligence.application.executive_research import ExecutiveResea
 from strategic_intelligence.application.follow_up_research import FollowUpResearchService
 from strategic_intelligence.application.research_planning import ResearchPlanner
 from strategic_intelligence.application.strategic_analysis import StrategicAnalysisService
+from strategic_intelligence.application.source_acquisition import PublicSourceRetriever
 from strategic_intelligence.application.verification import VerificationService
 from strategic_intelligence.config import Settings
+from strategic_intelligence.evaluation.golden_case import GoldenCaseRuntimeSnapshot
 from strategic_intelligence.governance.engine import GovernanceService
 from strategic_intelligence.harness.workflow_executor import WorkflowExecutionResult, WorkflowExecutor
 from strategic_intelligence.infrastructure.sqlite_repository import SqliteRepository
@@ -59,17 +61,18 @@ class WorkflowApplication:
         observed = Providers(llm=ObservedLLMProvider(resolved_providers.llm, audit), search=ObservedSearchProvider(resolved_providers.search, audit))
         verification = VerificationService(repository)
         evidence = EvidenceLayerService(repository)
+        source_retriever = None if settings.search_provider == "fake" else PublicSourceRetriever(audit=audit)
         executor = WorkflowExecutor(
             repository,
             CaseIntakeService(repository),
             ResearchPlanner(llm=observed.llm),
-            CompanyResearchService(observed.search),
-            ExecutiveResearchService(observed.search),
+            CompanyResearchService(observed.search, source_retriever=source_retriever),
+            ExecutiveResearchService(observed.search, source_retriever=source_retriever),
             evidence,
             verification,
             FollowUpResearchService(repository, evidence, verification),
             GovernanceService(repository, verification),
-            StrategicAnalysisService(repository, observed.llm, verification),
+            StrategicAnalysisService(repository, observed.llm, verification, audit=audit),
             BriefGeneratorService(repository),
             audit=audit,
         )
@@ -86,6 +89,28 @@ class WorkflowApplication:
     def audit_report(self, run_id: str) -> AuditReport:
         """Return C19's typed, redacted reconstruction for one workflow run."""
         return self._audit.report(run_id)
+
+    def golden_case_snapshot(self, run_id: str) -> GoldenCaseRuntimeSnapshot:
+        """Expose persisted C03/C19 truth for post-run C20 evaluation only."""
+        run = self._repository.get_workflow_run(run_id)
+        if run is None:
+            raise KeyError("workflow run was not found")
+        claims = self._repository.list_claims(run.case_id)
+        evidence = [
+            item for claim in claims for evidence_id in claim.evidence_ids
+            if (item := self._repository.get_evidence(evidence_id)) is not None
+        ]
+        sources = [
+            item for evidence_item in evidence
+            if (item := self._repository.get_source(evidence_item.source_id)) is not None
+        ]
+        state = run.snapshot
+        return GoldenCaseRuntimeSnapshot(
+            workflow_run=run, claims=claims, evidence=evidence, sources=sources,
+            verification_results=[] if state is None else state.verification_results,
+            governance_decisions=[] if state is None else state.governance_decisions,
+            audit_report=self.audit_report(run_id),
+        )
 
     def close(self) -> None:
         """Release the local repository after the owning presentation exits."""

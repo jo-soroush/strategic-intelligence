@@ -24,6 +24,7 @@ from strategic_intelligence.domain.models import (
 )
 from strategic_intelligence.governance.engine import GovernanceAssessmentStatus, GovernanceService
 from strategic_intelligence.observability.audit import AuditTrail
+from strategic_intelligence.security import UnsafeExternalUrlError, normalize_external_url
 
 
 class WorkflowExecutionStatus(str, Enum):
@@ -252,8 +253,11 @@ class WorkflowExecutor:
                 run = checkpointed
             if state.current_stage is WorkflowStage.ANALYSIS_COMPLETED:
                 # Analysis is currentness-sensitive and its controlled context is
-                # intentionally transient; re-establish it before final use.
-                analysis_result = self._analysis.analyze(case.case_id, as_of=as_of)
+                # intentionally transient; deterministically re-establish it
+                # before final use without regenerating accepted semantics.
+                if state.strategic_analysis is None:
+                    return self._partial(run, state, "current governed analysis is unavailable")
+                analysis_result = self._analysis.revalidate_current(case.case_id, state.strategic_analysis, as_of=as_of)
                 if analysis_result.status is not StrategicAnalysisStatus.ACCEPTED:
                     return self._partial(run, state, "current governed analysis could not be re-established")
                 brief = self._briefs.generate(case.case_id, analysis_result)
@@ -275,24 +279,30 @@ class WorkflowExecutor:
     def _research(self, case: Case, plan, run: WorkflowRun) -> tuple[tuple[list[RawFinding], list[RawFinding]], bool, WorkflowRun]:
         company: list[RawFinding] = []
         executive: list[RawFinding] = []
+        retained_source_urls: set[str] = set()
+        retained_content: set[str] = set()
         partial = False
         for task in plan.tasks:
             result: CompanyResearchResult | ExecutiveResearchResult
             if task.target_type is TargetType.COMPANY:
-                result = self._company_research.research(case, task)
+                result = self._company_research.research(case, task, excluded_source_urls=retained_source_urls, excluded_content=retained_content)
                 if result.retryable_provider_failure is True and run.retry_count < self._MAX_RESEARCH_RETRIES:
                     run = self._repository.save_workflow_run(run.model_copy(update={"retry_count": run.retry_count + 1}))
                     self._observe("RETRY", "workflow_executor", "PERFORMED", metadata={"retry_count": run.retry_count})
-                    result = self._company_research.research(case, task)
+                    result = self._company_research.research(case, task, excluded_source_urls=retained_source_urls, excluded_content=retained_content)
                 company.extend(result.findings)
+                retained_source_urls.update(_finding_urls(result.findings))
+                retained_content.update(_finding_content(result.findings))
                 partial |= result.status is not CompanyResearchStatus.COMPLETED
             else:
-                result = self._executive_research.research(case, task)
+                result = self._executive_research.research(case, task, excluded_source_urls=retained_source_urls, excluded_content=retained_content)
                 if result.retryable_provider_failure is True and run.retry_count < self._MAX_RESEARCH_RETRIES:
                     run = self._repository.save_workflow_run(run.model_copy(update={"retry_count": run.retry_count + 1}))
                     self._observe("RETRY", "workflow_executor", "PERFORMED", metadata={"retry_count": run.retry_count})
-                    result = self._executive_research.research(case, task)
+                    result = self._executive_research.research(case, task, excluded_source_urls=retained_source_urls, excluded_content=retained_content)
                 executive.extend(result.findings)
+                retained_source_urls.update(_finding_urls(result.findings))
+                retained_content.update(_finding_content(result.findings))
                 partial |= result.status is not ExecutiveResearchStatus.COMPLETED
         return (company, executive), partial, run
 
@@ -399,3 +409,22 @@ class WorkflowExecutor:
     @staticmethod
     def _error(case_id: str, code: WorkflowErrorCode, message: str, stage: WorkflowStage | None) -> WorkflowError:
         return WorkflowError(case_id=case_id, component="workflow_executor", error_code=code, message=message, stage=stage)
+
+
+def _finding_urls(findings: list[RawFinding]) -> set[str]:
+    """Return run-scoped canonical discovery identities for retained findings."""
+
+    urls: set[str] = set()
+    for finding in findings:
+        for value in (finding.source_url, finding.discovery_url):
+            if value is None:
+                continue
+            try:
+                urls.add(normalize_external_url(value))
+            except UnsafeExternalUrlError:
+                continue
+    return urls
+
+
+def _finding_content(findings: list[RawFinding]) -> set[str]:
+    return {" ".join(finding.extracted_content.casefold().split()) for finding in findings}

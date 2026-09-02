@@ -26,7 +26,15 @@ class OllamaAdapter(LLMProvider):
             raise ProviderError(ProviderErrorCode.CONFIGURATION_INVALID, "remote Ollama requires explicit cloud-provider enablement")
 
     def generate(self, request: LLMRequest) -> LLMResponse:
-        payload = json.dumps({"model": request.model or self._model, "prompt": request.prompt, "stream": False}).encode()
+        return self._request(request)
+
+    def _request(self, request: LLMRequest, *, response_format: dict | None = None, think: bool | None = None) -> LLMResponse:
+        payload_data: dict[str, object] = {"model": request.model or self._model, "prompt": request.prompt, "stream": False}
+        if response_format is not None:
+            payload_data["format"] = response_format
+        if think is not None:
+            payload_data["think"] = think
+        payload = json.dumps(payload_data).encode()
         try:
             outbound = Request(f"{self._base_url}/api/generate", data=payload, headers={"Content-Type": "application/json"})
             opener = urlopen if self._is_loopback else open_external_request
@@ -46,6 +54,10 @@ class OllamaAdapter(LLMProvider):
 
     def generate_structured(self, request: LLMRequest, schema):
         try:
-            return schema.model_validate_json(self.generate(request).text)
+            # The provider boundary, not a workflow stage, supplies the schema
+            # contract.  Disabling optional reasoning avoids spending the
+            # bounded local request budget on text that cannot satisfy it.
+            response = self._request(request, response_format=schema.model_json_schema(), think=False)
+            return schema.model_validate_json(response.text)
         except ValueError as error:
             raise ProviderError(ProviderErrorCode.STRUCTURED_OUTPUT_INVALID, "provider output did not satisfy the requested schema") from error

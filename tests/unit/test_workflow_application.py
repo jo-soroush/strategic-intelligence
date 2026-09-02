@@ -26,16 +26,15 @@ class _ComposedProvider:
         context = json.loads(request.prompt.split("TRUSTED_CONTEXT_JSON:\n", 1)[1])
         claim = context["claims"][0]
         return schema(
-            case_id=context["case_id"],
             company_direction=[AnalysisItem(
                 text=claim["text"],
                 type=ClaimType.FACT if claim["governance_decision"] == "PASS" else ClaimType.INFERENCE,
-                related_claim_ids=[claim["claim_id"]],
+                related_claim_ids=[claim["claim_alias"]],
             )],
             strategic_signals=[AnalysisItem(
                 text="A governed signal is available.",
                 type=ClaimType.INFERENCE,
-                related_claim_ids=[claim["claim_id"]],
+                related_claim_ids=[claim["claim_alias"]],
             )],
         )
 

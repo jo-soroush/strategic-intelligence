@@ -21,11 +21,27 @@ class ProviderErrorCode(str, Enum):
     CONFIGURATION_INVALID = "PROVIDER_CONFIGURATION_INVALID"
 
 
+class StructuredOutputFailureReason(str, Enum):
+    """Safe, bounded detail for structured-output failures."""
+
+    DYNAMIC_SCHEMA_GENERATION_FAILED = "DYNAMIC_SCHEMA_GENERATION_FAILED"
+    INNER_JSON_DECODE_FAILED = "INNER_JSON_DECODE_FAILED"
+    PYDANTIC_VALIDATION_FAILED = "PYDANTIC_VALIDATION_FAILED"
+
+
 class ProviderError(RuntimeError):
-    def __init__(self, code: ProviderErrorCode, message: str, *, retryable: bool = False) -> None:
+    def __init__(
+        self,
+        code: ProviderErrorCode,
+        message: str,
+        *,
+        retryable: bool = False,
+        structured_output_failure_reason: StructuredOutputFailureReason | None = None,
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.retryable = retryable
+        self.structured_output_failure_reason = structured_output_failure_reason
 
 
 @dataclass(frozen=True)
