@@ -1713,27 +1713,27 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C21 — Hardening and Regression
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE_PENDING_GIT
 **Dependencies:** V1-C20
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| Issue→root-cause fix | TBD | TBD | PENDING | TBD |
-| Regression tests | TBD | TBD | PENDING | TBD |
-| Governance/security regression | TBD | TBD | PENDING | TBD |
-| Baseline comparison | TBD | TBD | PENDING | TBD |
-| No critical known defect | TBD | TBD | PENDING | TBD |
+| Issue→root-cause fix | No production change | C21 post-C20 risk-scoped inspection | PASS / N/A | No confirmed C20 integration or Golden Case defect was reproduced; no speculative hardening was introduced. |
+| Regression tests | Existing C03/C04/C11/C13/C15/C16/C18/C19/C20 surfaces | 219-test focused governance/security/provider/persistence/recovery/C15/C16/observability/Golden Case regression | PASS | All focused tests passed without provider calls. |
+| Governance/security regression | Existing deterministic authorities | `test_governance.py`; `test_security_boundaries.py`; provider contract regressions | PASS | Governance, security/redaction, provider typed-error, and boundary behavior remain unchanged. |
+| Baseline comparison | C20 integrated baseline | Full `pytest` | PASS | 307 passed, matching the post-C20 baseline; no regression observed. |
+| No critical known defect | C21 risk-scoped review | Focused plus full regression, compile/import, dependency, and diff checks | PASS | No known critical V1 defect remains in the exercised contract surface. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** C20 integrated baseline: 307 tests passing.
+**Candidate After:** C21 risk-scoped regression: 219 passed; full suite: 307 passed; compile/import, `pip check`, and diff checks passed.
+**Regression Decision:** PASS — no baseline regression and no confirmed integration, Golden Case, Governance, Security, recovery, provider, C15/C16, or persistence defect was found.
+**Known Issues / Blockers:** None found. No mandatory C21 live-provider baseline exists, so no provider call was made.
+**Diff Review:** PASS — only the canonical C21 Evidence record changed.
+**Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside C21 scope.
+**Exit Gate Evidence:** PASS — no known critical V1 defect remains in the risk-scoped post-C20 surface and relevant quality baseline did not regress.
 
 
 # V1-C22 — Documentation and Demo Readiness
