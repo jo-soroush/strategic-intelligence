@@ -1713,7 +1713,7 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C21 — Hardening and Regression
 
-**Status:** COMPLETE_PENDING_GIT
+**Status:** COMPLETE
 **Dependencies:** V1-C20
 **Exit Gate:** PASS
 
@@ -1734,6 +1734,7 @@ is emitted as VERIFIED/SUPPORTED.
 **Diff Review:** PASS — only the canonical C21 Evidence record changed.
 **Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside C21 scope.
 **Exit Gate Evidence:** PASS — no known critical V1 defect remains in the risk-scoped post-C20 surface and relevant quality baseline did not regress.
+**Git Delivery:** PASS — C21 Evidence-only commit `81d7af46bae24b8d02347d344b1de39113bae2d0` was pushed on `card/v1-c21-hardening-regression`, fast-forward integrated into canonical `main`, and verified against `github/main`.
 
 
 # V1-C22 — Documentation and Demo Readiness
