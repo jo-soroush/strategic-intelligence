@@ -1650,7 +1650,7 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C20 — Golden Case
 
-**Status:** COMPLETE_PENDING_GIT
+**Status:** COMPLETE
 **Dependencies:** V1-C07 through V1-C19
 **Exit Gate:** PASS
 
@@ -1708,6 +1708,7 @@ is emitted as VERIFIED/SUPPORTED.
 **Diff Review:** PASS — all current changes are C20 scope: evaluation-only Golden Case contracts, public-source/provider composition, content-minimized observability, C15/C16 trust-boundary hardening, and C16/C17 meeting-ready presentation; no protected untracked item is included.
 **Git Status Review:** PASS — no files staged; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain outside C20 scope.
 **Exit Gate Evidence:** PASS — the final Golden Case has independently reviewed 60.0% verified Ground Truth coverage, PASS mandatory trust invariants, and PASS meeting-preparation value while preserving C03/C11/C13/C15/C16/C18/C19 authority boundaries.
+**Git Delivery:** PASS — C20 implementation commit `15f017c464a8298392fb6dda461dacf2bcd72ef8` was pushed on `card/v1-c20-golden-case`, fast-forward integrated into canonical `main`, and verified against `github/main`.
 
 
 # V1-C21 — Hardening and Regression
