@@ -1766,4 +1766,18 @@ is emitted as VERIFIED/SUPPORTED.
 
 Before V1 COMPLETE, record real evidence for: full automated suite; provider integration; persistence; recovery; Governance; security/prompt-injection; Golden Case; entity accuracy; research recall/coverage; Evidence Fidelity; important factual traceability; known unsupported factual claims=0; BLOCK leakage=0; RESTRICT preservation; Knowledge Gaps; context preservation; local-first/no-silent-cloud behavior; observability/performance baseline; final diff/status; documentation accuracy; no unresolved critical issue.
 
-**V1 FINAL STATUS:** NOT_STARTED
+| Final V1 requirement | Evidence | Result |
+|---|---|---|
+| Automated regression | Current `pytest` on integrated `main` | PASS — 307 passed. |
+| Governance, security, BLOCK, and RESTRICT invariants | C13/C14/C15/C16/C21 evidence and current regression | PASS — deterministic C13 remains sole PASS/RESTRICT/BLOCK authority; BLOCK does not enter C15/C16; RESTRICT remains qualified and traceable; security/redaction and prompt-injection boundaries remain exercised. |
+| Persistence and recovery | C03/C18/C19 evidence and C21 regression | PASS — accepted checkpoints, run-state recovery, provenance, ordered audit reconstruction, and close/reopen behavior remain durable and typed. |
+| Provider integration | C04/C14 and C20 provider-composition evidence | PASS — approved providers remain behind typed C04/C14 boundaries, explicit configuration has no silent cloud fallback, and provider errors remain bounded and redacted. |
+| Golden Case, coverage, traceability, and fidelity | C20 final run `bb68d5b2-adda-4f68-a34f-da484f73931f` | PASS — 12/20 (60.0%) independently reviewed coverage, Source→Evidence→Claim traceability, current C11/C13 outcomes, C15/C16 provenance, PASS mandatory trust invariants, and PASS MeetingValueReview. |
+| Observability and performance | C19 audit reconstruction and C20 final-run report | PASS — final-run audit trace persisted/reloaded with 51,369 ms total duration, 20 provider calls, 0 retries, 0 errors, 8 accepted checkpoints, and 84 ordered events. |
+| Post-Golden-Case hardening | C21 risk-scoped regression | PASS — 219 relevant tests and the 307-test full baseline found no known critical V1 defect or baseline regression. |
+| Documentation and demo readiness | C22 documentation evidence and C17 local UI critical path | PASS — clean setup, configuration, architecture, trust/security, Golden Case, limitations, and local loopback UI instructions are current; the completed local UI path delegates through `WorkflowApplication` to a safely rendered typed result. |
+| Known limitations | `README.md`; C14/C15/C16/C17/C22 records | PASS — documented V1 limitations (including local-first operation, bounded semantics, absent resume UI, and deferred V2 deployment/telemetry capabilities) are intentional and non-critical to the approved V1 contract. |
+
+**Final V1 Gate Decision:** PASS — canonical Card evidence, the current full regression, the C20 Golden Case, C21 hardening result, C22 reproducibility evidence, and Git-integrated V1 delivery agree. No unresolved critical V1 issue is recorded.
+
+**V1 FINAL STATUS:** COMPLETE
