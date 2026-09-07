@@ -8,7 +8,7 @@ from strategic_intelligence.application.brief_generator import BriefGenerationRe
 from strategic_intelligence.application.workflow_application import WorkflowApplication
 from strategic_intelligence.config import Settings
 from strategic_intelligence.domain.models import (
-    AnalysisItem, ClaimType, GovernanceReasonCode, MeetingBrief, MeetingTakeaway, QuickBrief, WorkflowError, WorkflowErrorCode,
+    AnalysisItem, Claim, ClaimType, GovernanceReasonCode, MeetingBrief, MeetingTakeaway, QuickBrief, ResearchCategory, WorkflowError, WorkflowErrorCode,
     WorkflowRun, WorkflowRunStatus, WorkflowStage, WorkflowState,
 )
 from strategic_intelligence.harness.workflow_executor import WorkflowExecutionResult, WorkflowExecutionStatus
@@ -112,18 +112,73 @@ def test_form_maps_supported_case_input_without_reimplementing_c05_validation() 
     assert "resume" not in page.casefold()
 
 
+def test_entry_screen_has_branded_two_column_context_and_collapsed_support() -> None:
+    status, page = _call(LocalUi(None), method="GET")
+
+    assert status == "200 OK"
+    assert "Strategic Intelligence" in page
+    assert 'class="entry-layout"' in page and 'class="context-panel"' in page
+    assert "Public-source research" in page
+    assert "Governed evidence" in page
+    assert "Meeting-ready insights" in page
+    assert "Prepare brief" in page
+    assert '<details class="form-support">' in page
+    assert "Brief Preview" in page and "From research to ready." in page
+    assert 'class="meeting-room-image"' in page
+    assert "/assets/strategic-intelligence-meeting-room.webp" in page
+    assert 'class="panel-overlay"' in page
+    assert 'class="visual-orb"' not in page
+    assert 'class="visual-nav"' in page
+    assert 'class="visual-search"' in page
+    for item in ("Home", "Library", "Insights", "Settings"):
+        assert item in page
+    for label in ("Meeting Brief", "What You Need to Know", "Executive Intelligence", "Strategic View", "Questions to Ask", "Knowledge Gaps"):
+        assert label in page
+    assert 'href="' not in page
+
+
+def test_local_meeting_room_asset_is_served_as_a_static_local_asset() -> None:
+    captured: dict[str, object] = {}
+    body = LocalUi(None)({
+        "REQUEST_METHOD": "GET",
+        "PATH_INFO": "/assets/strategic-intelligence-meeting-room.webp",
+    }, lambda status, headers: captured.update(status=status, headers=headers))
+
+    assert captured["status"] == "200 OK"
+    assert b"image/png" in str(captured["headers"]).encode()
+    assert b"\x89PNG" in b"".join(body)
+
+
 def test_completed_result_escapes_and_preserves_brief_trust_disclosures() -> None:
     page = render_result(_completed())
+    default = page.split("<details", 1)[0]
 
     assert "Status: COMPLETED" in page
-    assert "Quick Brief" in page and "Full Brief" in page
+    assert "Meeting Snapshot" in default
+    assert "What You Need to Know" in default
+    assert "Executive Intelligence" in default
+    assert "Strategic View" in default
+    assert "Questions to Ask" in default
+    assert "Knowledge Gaps" in default
+    assert "Full Brief" in page
+    assert "Key facts" not in default
+    assert "&lt;fact&gt;" not in default
     assert "RESTRICTED:" in page
     assert "2 governed restriction(s)" in page and "3 knowledge gap(s)" in page
     assert "Do not assume" in page
-    assert "Meeting takeaways" in page
+    assert "Company situation" in page
+    assert "&lt;detailed fact&gt;" in page
+    assert "Sources" in page and "Provenance" in page and "Governance" in page
+    assert ">-<" not in page
+    assert "What You Need to Know" in page
+    assert "Executive evidence is limited." in default
     assert "&lt;summary&gt;" in page and "&lt;unsafe&gt;" in page and "&lt;takeaway&gt;" in page
-    assert "<summary>" not in page and "<unsafe>" not in page and "<takeaway>" not in page
-    assert page.index("Meeting takeaways") < page.index("Company situation")
+    assert "<unsafe>" not in page and "<takeaway>" not in page
+    assert page.index("What You Need to Know") < page.index("Company situation")
+    assert '<details class="disclosure">' in page
+    assert '<details class="nested-disclosure">' in page
+    assert page.index('<details class="disclosure">') > page.index("Executive Intelligence")
+    assert 'class="brief-grid"' in page and 'class="status-pill"' in page
 
 
 def test_partial_and_failed_results_render_only_typed_sanitized_error_fields() -> None:
@@ -167,7 +222,7 @@ def test_local_request_uses_real_workflow_application_and_renders_typed_result(t
         status, page = _call(LocalUi(workflow), method="POST", values=_valid_form())
         assert status == "200 OK"
         assert "Status: COMPLETED" in page
-        assert "Quick Brief" in page and "Full Brief" in page
+        assert "Meeting Snapshot" in page and "Strategic View" in page
     finally:
         workflow.close()
 
@@ -179,3 +234,66 @@ def test_ui_module_depends_only_on_the_public_workflow_boundary_and_models() -> 
         "FollowUpResearchService", "GovernanceService", "StrategicAnalysisService", "BriefGeneratorService", "brief_generator",
     ):
         assert forbidden not in source
+
+
+def test_default_view_applies_approved_counts_and_display_only_text_clamp() -> None:
+    long_text = "x" * 300
+    completed = _completed()
+    assert completed.brief is not None and completed.brief.quick_brief is not None and completed.brief.full_brief is not None
+    quick = completed.brief.quick_brief.model_copy(update={
+        "key_signals": [AnalysisItem(text=f"signal-{index}", type=ClaimType.INFERENCE) for index in range(5)],
+        "top_opportunities": [completed.brief.quick_brief.top_opportunities[0]] * 3 if completed.brief.quick_brief.top_opportunities else [],
+        "major_risks": [AnalysisItem(text=f"risk-{index}", type=ClaimType.INFERENCE) for index in range(4)],
+        "top_questions": [],
+        "knowledge_gaps": [AnalysisItem(text=f"gap-{index}", type=ClaimType.INFERENCE) for index in range(5)],
+    })
+    full = completed.brief.full_brief.model_copy(update={
+        "meeting_takeaways": [MeetingTakeaway(text=long_text, type=ClaimType.INFERENCE, supporting_claim_ids=["claim"]) for _ in range(6)],
+        "executive_intelligence": [AnalysisItem(text=f"executive-{index}", type=ClaimType.INFERENCE, related_claim_ids=[f"exec-{index}"]) for index in range(6)],
+    })
+    state = completed.state.model_copy(update={
+        "claims": [Claim(claim_id=f"exec-{index}", case_id="case", text=f"executive-{index}", claim_type=ClaimType.RECOMMENDATION, topic=ResearchCategory.EXECUTIVE_ROLE.value) for index in range(6)],
+    })
+    result = completed.model_copy(update={
+        "state": state,
+        "brief": BriefGenerationResult(status=BriefGenerationStatus.ACCEPTED, quick_brief=quick, full_brief=full),
+    })
+    page = render_result(result)
+    default = page.split("<details", 1)[0]
+
+    assert default.count("signal-") == 3
+    assert default.count("risk-") == 2
+    assert default.count("executive-") == 5
+    assert default.count("gap-") == 3
+    assert default.count("…") >= 1
+    assert long_text not in default
+    assert long_text in page
+
+
+def test_executive_card_filters_company_items_and_evidence_is_safe() -> None:
+    completed = _completed()
+    assert completed.brief is not None and completed.brief.full_brief is not None
+    executive = AnalysisItem(text="Executive role evidence", type=ClaimType.FACT, related_claim_ids=["exec-claim"])
+    company = AnalysisItem(text="General AI activity", type=ClaimType.FACT, related_claim_ids=["company-claim"])
+    full = completed.brief.full_brief.model_copy(update={
+        "executive_intelligence": [executive, company],
+        "source_references": ["-", "https://example.test/executive"],
+    })
+    state = completed.state.model_copy(update={
+        "claims": [
+            Claim(claim_id="exec-claim", case_id="case", text="Executive role evidence", claim_type=ClaimType.RECOMMENDATION, topic=ResearchCategory.EXECUTIVE_ROLE.value),
+            Claim(claim_id="company-claim", case_id="case", text="General AI activity", claim_type=ClaimType.RECOMMENDATION, topic=ResearchCategory.AI_ACTIVITY.value),
+        ],
+    })
+    page = render_result(completed.model_copy(update={
+        "state": state,
+        "brief": BriefGenerationResult(status=BriefGenerationStatus.ACCEPTED, quick_brief=completed.brief.quick_brief, full_brief=full),
+    }))
+    default = page.split("<details", 1)[0]
+
+    assert "Executive role evidence" in default
+    assert "General AI activity" not in default
+    assert "Executive evidence is limited." not in default
+    assert "https://example.test/executive" in page
+    assert "Claim reference: exec-claim" in page
+    assert ">-<" not in page
