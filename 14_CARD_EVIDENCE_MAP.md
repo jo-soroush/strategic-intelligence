@@ -1739,7 +1739,7 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C22 — Documentation and Demo Readiness
 
-**Status:** COMPLETE_PENDING_GIT
+**Status:** COMPLETE / INTEGRATED
 **Dependencies:** V1-C21
 **Exit Gate:** PASS
 
@@ -1759,7 +1759,7 @@ is emitted as VERIFIED/SUPPORTED.
 **Regression Decision:** PASS — no production behavior, provider configuration semantics, or runtime authority changed.
 **Known Issues / Blockers:** None. The Final V1 Evidence Gate is intentionally not started by C22.
 **Diff Review:** PASS — C22 scope is limited to durable onboarding, navigation, provider-configuration, and V1-boundary documentation plus this canonical C22 record.
-**Git Status Review:** PASS — staging remains empty; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain untouched; no commit, push, or merge occurred.
+**Git Status Review:** PASS — C22 commit `06c434c` was pushed on `card/v1-c22-documentation-demo-readiness`, fast-forward integrated into `main`, and synchronized with `github/main`; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain untouched.
 **Exit Gate Evidence:** PASS — validated documentation, configuration template, architecture navigation, command references, and current regression evidence make V1 reproducible and understandable without prior chat context. Final V1 completion remains separately governed.
 
 # Final V1 Evidence Gate
