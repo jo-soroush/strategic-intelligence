@@ -42,6 +42,95 @@ material composition surface and require an executable Critical Path or
 regression for it. The scope is risk-proportionate and does not create a new
 delivery stage.
 
+## V1.2 Extension Contract
+
+V1.2 is authorized after V1 completion and contains exactly eight strictly
+sequential Cards: G01 → G02 → G03 → G04 → G05 → G06 → G07 → G08. Existing V1
+and V1.1 trust, governance, persistence, recovery, local-first, and evidence
+semantics remain unchanged.
+
+### V1.2-G01 — Graph Intelligence Contract
+
+**Dependencies:** None. Define the bounded ontology (Company, Person,
+Technology, Project, Event), relations (LEADS, PARTNERED_WITH, DEVELOPS, USES,
+INVOLVED_IN), memory/refresh behavior, provenance, query taxonomy,
+15–20-question evaluation shape, success criteria, temporal fields, conflict
+handling, and explicit non-goals. Define `CURRENT`, `STALE`, `CONFLICTING`, and
+`SUPERSEDED` relationship semantics and preserve PASS/RESTRICT/BLOCK rules.
+**Exit Gate:** Contract tests/schema review prove scope, provenance, temporal,
+conflict, trust, and evaluation boundaries are explicit.
+
+### V1.2-G02 — Persistent Company Memory
+
+**Dependencies:** G01 only. Persist user-selected companies in insertion
+order, exact/normalized company duplicate keys, cross-case run associations,
+and every reusable durable artifact by reference to existing V1 records:
+Source, Evidence, Claim, ClaimEvidenceLink, VerificationResult,
+GovernanceDecision, WorkflowRun, checkpoints, follow-up attempts, and audit
+events. Check memory before research. New companies may undergo initial
+research; existing companies research only on explicit Refresh. Refresh adds a
+run and preserves prior history/provenance. G02 does not resolve non-company
+entities or create duplicate trust records.
+**Exit Gate:** Restarted application reopens ordered company memory and all
+reusable governed artifacts without automatic re-search.
+
+### V1.2-G03 — Entity Resolution
+
+**Dependencies:** G02 only. Create stable IDs and conservative alias,
+ambiguity, and duplicate handling for the five G01 entity types. Ambiguous
+matches fail closed; company-memory duplicate keys remain G02-owned.
+**Exit Gate:** Repeated and ambiguous aliases resolve conservatively with stable
+IDs and no uncontrolled duplicate entities.
+
+### V1.2-G04 — Governed Relationship Extraction
+
+**Dependencies:** G03 only. Extract only G01 relations when supported by
+governed Claim/Evidence/Source data and a GovernanceDecision. Preserve temporal
+research-run/timestamp provenance and conflicting support; unsupported or BLOCK
+relations are rejected, and RESTRICT remains qualified.
+**Exit Gate:** Every usable relationship is bounded, governed, temporally
+provenanced, and traceable to canonical evidence.
+
+### V1.2-G05 — Knowledge Graph Persistence
+
+**Dependencies:** G04 only. Persist a local-first graph projection, not a
+second source of truth. Projection is incremental, idempotent, restart-safe,
+and reconciliation-capable. Each relationship carries:
+`relationship_id`, `research_run_id`, `created_at`, optional `valid_from`,
+`valid_to`, `superseded_by`, and `temporal_status` (`CURRENT`, `STALE`,
+`CONFLICTING`, `SUPERSEDED`). Refresh/supersession/invalidation changes graph
+eligibility without deleting canonical history.
+**Exit Gate:** Incremental projection survives restart, is idempotent, and can
+be reconciled to canonical intelligence.
+
+### V1.2-G06 — Evidence-backed GraphRAG
+
+**Dependencies:** G05 only. Execute:
+`Question → Entity Resolution → Graph Retrieval/bounded Path → Supporting
+Evidence → Governed Context → LLM Answer`. Return structured provenance,
+qualification, and no-path responses. Graph queries never trigger web research,
+Refresh, or other research side effects.
+**Exit Gate:** Supported relationship and bounded multi-hop questions return
+evidence-backed answers or an explicit no-path result without web calls.
+
+### V1.2-G07 — Graph Intelligence UI
+
+**Dependencies:** G06 only. Expose ordered Companies in Memory, stored Company
+Intelligence, Connections, inspectable Graph View, relationship Evidence
+Inspection, bounded Ask Graph, explicit Refresh, and safe empty/loading/failure
+states without implying unsupported certainty.
+**Exit Gate:** Users can inspect memory, graph relationships, and provenance;
+opening memory does not research and Refresh is explicit.
+
+### V1.2-G08 — Evaluation and Portfolio Evidence
+
+**Dependencies:** G07 only. Run a fixed 15–20-question relationship-oriented
+evaluation against a truthful non-graph baseline, measuring relevance,
+completeness, evidence traceability, faithfulness, and latency. Produce
+reproducible evaluation and portfolio artifacts; claims must match evidence.
+**Exit Gate:** Fixed evaluation results compare GraphRAG with a truthful
+non-graph baseline and preserve existing trust regressions.
+
 # V1-C01 — Repository Baseline
 
 ## Goal

@@ -63,3 +63,31 @@ preserved for traceability.
 V1 is complete only when its Cards have delivered the approved local-first
 workflow and the final V1 contract is proven. Actual completion evidence is
 recorded only in `14_CARD_EVIDENCE_MAP.md`.
+
+## V1.2 — Persistent Intelligence Memory and GraphRAG
+
+V1.2 is an authorized extension after V1 completion. It preserves V1/V1.1
+trust, governance, local-first, and evidence semantics. The eight Cards are
+strictly sequential; no later Card may start before its predecessor completes:
+
+| Card | High-level delivery intent | Dependency |
+|---|---|---|
+| V1.2-G01 — Graph Intelligence Contract | Bound entities, relations, memory/refresh, temporal provenance, conflicts, query categories, evaluation, and non-goals. | None |
+| V1.2-G02 — Persistent Company Memory | Persist user-selected companies in order, reusable research artifacts, exact/normalized company duplicates, and memory-first explicit Refresh behavior. | G01 |
+| V1.2-G03 — Entity Resolution | Create stable identities and conservative alias/ambiguity handling for Company, Person, Technology, Project, and Event. | G02 |
+| V1.2-G04 — Governed Relationship Extraction | Extract only bounded, evidence-backed relations with Source→Evidence→Claim→Verification→Governance provenance, temporal support, and conflict handling. | G03 |
+| V1.2-G05 — Knowledge Graph Persistence | Persist an incremental, idempotent, restart-safe graph projection without creating a second trust store. | G04 |
+| V1.2-G06 — Evidence-backed GraphRAG | Resolve question entities, retrieve bounded graph paths, assemble supporting evidence/context, and generate qualified answers without automatic web research. | G05 |
+| V1.2-G07 — Graph Intelligence UI | Expose ordered memory, company intelligence, connections, graph inspection, provenance, Ask Graph, and explicit Refresh. | G06 |
+| V1.2-G08 — Evaluation and Portfolio Evidence | Evaluate GraphRAG against a truthful non-graph baseline and produce reproducible technical/portfolio evidence. | G07 |
+
+G02 reuses existing V1 Source, Evidence, Claim, Verification, Governance,
+WorkflowRun, checkpoint, and audit records. G03/G04 add entity/relationship
+projections; G05 owns only graph projection storage. New relationship records
+use `relationship_id`, `research_run_id`, `created_at`, optional `valid_from`,
+`valid_to`, `superseded_by`, and `temporal_status` (`CURRENT`, `STALE`,
+`CONFLICTING`, `SUPERSEDED`). BLOCK content is never usable graph knowledge.
+
+V1.2 completion requires all eight Cards and their recorded Exit Gates. Actual
+status and execution evidence remain owned exclusively by
+`14_CARD_EVIDENCE_MAP.md`.

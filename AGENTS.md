@@ -3,7 +3,8 @@
 ## Strategic Intelligence Project — Execution Rules
 
 This repository implements a local-first, cloud-ready Strategic Intelligence
-system. These rules protect repository truth, approved V1 scope, architecture
+system. V1.2 is authorized as the strictly sequential G01–G08 extension after
+V1 completion. These rules protect repository truth, approved scope, architecture
 boundaries, evidence quality, safety, and learning value without maintaining a
 second project-state dashboard.
 
@@ -13,15 +14,19 @@ One fact has one canonical owner:
 
 | Fact | Owner |
 |---|---|
-| Card sequence and phase intent | `12_V1_ROADMAP.md` |
-| Planned Card contract, dependencies, learning goal, ownership, tests, expected Critical Path, and Exit Gate | `13_CARD_SPECIFICATIONS.md` |
-| Actual Card status, execution/learning evidence, Critical Path result, defects, and historical delivery evidence | `14_CARD_EVIDENCE_MAP.md` — one record per Card |
+| Card sequence and phase intent | `12_V1_ROADMAP.md` (V1 C01–C22 and authorized V1.2 G01–G08) |
+| Planned Card contract, dependencies, learning goal, ownership, tests, expected Critical Path, and Exit Gate | `13_CARD_SPECIFICATIONS.md` (V1 and V1.2) |
+| Actual Card status, execution/learning evidence, Critical Path result, defects, and historical delivery evidence | `14_CARD_EVIDENCE_MAP.md` — one record per V1/V1.2 Card |
 | Git branch, SHA, upstream, remote equality, staging, worktree, and integration truth | Git |
 | Git delivery procedure | `15_CODEX_EXECUTION_PROTOCOL.md` |
 | Durable product capability and onboarding | `README.md` and the affected product/architecture document |
 
 `PROJECT_CONTROL.md` is retired. Do not create a replacement dashboard or copy
 live Git/Card state into documentation.
+
+The retained `v1,2/` files are proposal/reference copies only. After V1.2
+authorization, canonical sequence, contracts, and evidence are owned by the
+three documents above; proposal copies are not status or execution authority.
 
 Repository reality and approved architecture override prompt/chat assumptions.
 If authoritative repository facts materially conflict, STOP, inspect, and
@@ -43,7 +48,9 @@ Derive state; do not maintain it manually:
 4. if exactly one Evidence record is `IN_PROGRESS`, resume only that Card;
 5. otherwise derive the next eligible Card from Roadmap + Evidence.
 
-Only one Card may be active. The user must explicitly authorize a new Card.
+Only one Card may be active across V1 and V1.2. The user must explicitly
+authorize a new Card. V1.2 Cards may begin only after V1 completion and in
+strict G01 → G02 → G03 → G04 → G05 → G06 → G07 → G08 order.
 After a Card is COMPLETE or BLOCKED, STOP until separately authorized.
 
 Routine reversible work inside an authorized Card is allowed: inspection,
@@ -113,7 +120,8 @@ does not substitute for that proof.
 Update its one Card section only when execution proves a meaningful fact. Keep
 technical proof, learning, defects/diagnosis/repair, limitations/deferrals,
 actual Critical Path, and historical delivery evidence together. Never invent
-evidence or rewrite C01–C11 historical evidence for formatting.
+evidence or rewrite completed V1 historical evidence for formatting. V1.2
+evidence belongs only in its initialized G Card record.
 
 One normal Final Closure is required before reporting a Card COMPLETE:
 

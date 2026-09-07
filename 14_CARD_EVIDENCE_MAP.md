@@ -1781,3 +1781,75 @@ Before V1 COMPLETE, record real evidence for: full automated suite; provider int
 **Final V1 Gate Decision:** PASS — canonical Card evidence, the current full regression, the C20 Golden Case, C21 hardening result, C22 reproducibility evidence, and Git-integrated V1 delivery agree. No unresolved critical V1 issue is recorded.
 
 **V1 FINAL STATUS:** COMPLETE
+
+# V1.2 Card Evidence — Authorized, Not Started
+
+V1.2 is authorized after V1 completion. These records are initialized only;
+no implementation, test, provider, or Critical-Path evidence is claimed.
+
+## V1.2-G01 — Graph Intelligence Contract
+
+**Status:** NOT_STARTED
+**Dependencies:** None
+**Exit Gate:** PENDING
+
+Evidence: PENDING — contract, temporal policy, conflict rules, evaluation set,
+and non-goals have not yet been executed or validated.
+
+## V1.2-G02 — Persistent Company Memory
+
+**Status:** NOT_STARTED
+**Dependencies:** G01
+**Exit Gate:** PENDING
+
+Evidence: PENDING — no durable company-memory implementation or validation.
+
+## V1.2-G03 — Entity Resolution
+
+**Status:** NOT_STARTED
+**Dependencies:** G02
+**Exit Gate:** PENDING
+
+Evidence: PENDING — no entity-resolution implementation or validation.
+
+## V1.2-G04 — Governed Relationship Extraction
+
+**Status:** NOT_STARTED
+**Dependencies:** G03
+**Exit Gate:** PENDING
+
+Evidence: PENDING — no relationship extraction or governance composition
+implementation or validation.
+
+## V1.2-G05 — Knowledge Graph Persistence
+
+**Status:** NOT_STARTED
+**Dependencies:** G04
+**Exit Gate:** PENDING
+
+Evidence: PENDING — no graph projection or persistence implementation.
+
+## V1.2-G06 — Evidence-backed GraphRAG
+
+**Status:** NOT_STARTED
+**Dependencies:** G05
+**Exit Gate:** PENDING
+
+Evidence: PENDING — no graph retrieval, bounded path, context assembly, or
+answer-generation implementation.
+
+## V1.2-G07 — Graph Intelligence UI
+
+**Status:** NOT_STARTED
+**Dependencies:** G06
+**Exit Gate:** PENDING
+
+Evidence: PENDING — no Graph Intelligence UI implementation.
+
+## V1.2-G08 — Evaluation and Portfolio Evidence
+
+**Status:** NOT_STARTED
+**Dependencies:** G07
+**Exit Gate:** PENDING
+
+Evidence: PENDING — no evaluation execution or portfolio artifact evidence.
