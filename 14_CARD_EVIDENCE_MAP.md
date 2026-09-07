@@ -1739,28 +1739,28 @@ is emitted as VERIFIED/SUPPORTED.
 
 # V1-C22 — Documentation and Demo Readiness
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE_PENDING_GIT
 **Dependencies:** V1-C21
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
 ### Evidence
 
 | Requirement | Implementation Location | Test / Evaluation | Result | Evidence |
 |---|---|---|---|---|
-| README/setup/run | TBD | TBD | PENDING | TBD |
-| Architecture index | TBD | TBD | PENDING | TBD |
-| Verified commands | TBD | TBD | PENDING | TBD |
-| Limitations/status | TBD | TBD | PENDING | TBD |
-| Golden Case/demo | TBD | TBD | PENDING | TBD |
-| Final reproducibility evidence | TBD | TBD | PENDING | TBD |
+| README/setup/run | `README.md`; `.env.example` | Corrected local-link check; environment-template settings check; UI entry-module import | PASS | Documents clean setup, process-environment-only configuration, loopback UI launch, test commands, and no silent cloud fallback. |
+| Architecture index | `README.md`; `02_SYSTEM_ARCHITECTURE.md`; `08_PROVIDER_ARCHITECTURE.md` | Eight local README links and actual `WorkflowExecutor` architecture references checked | PASS | Navigation and architecture now describe the checked-in V1 composition rather than a LangGraph implementation. |
+| Verified commands | `README.md` | `pytest`; `compileall`; package/config/provider/application/UI imports; `pip check`; diff checks | PASS | Full regression: 307 passed; commands and paths are documented from the current implementation. |
+| Limitations/status | `README.md` | Documentation review | PASS | Clearly separates V1 local-first boundaries from deferred V2 capabilities; Final V1 Evidence Gate remains a separate, unstarted activity. |
+| Golden Case/demo | `README.md`; `16_GOLDEN_CASE_EVALUATION_CONTRACT.md` | Contract and documentation review | PASS | Explains the evaluation-only Ground Truth boundary, approved historical Golden Case evidence, and that a live demo requires separately authorized configured providers. |
+| Final reproducibility evidence | `README.md`; this record | Closure validation and scope review | PASS | A future developer can navigate, configure, validate, and run V1 without chat history; C22 made no provider calls or runtime changes. |
 
-**Baseline Before:** PENDING / N/A with reason
-**Candidate After:** PENDING / N/A with reason
-**Regression Decision:** PENDING / N/A with reason
-**Known Issues / Blockers:** None recorded.
-**Diff Review:** PENDING
-**Git Status Review:** PENDING
-**Exit Gate Evidence:** TBD
+**Baseline Before:** C21 integrated baseline: 307 tests passing.
+**Candidate After:** C22 documentation-only change set: `README.md`, `.env.example`, `02_SYSTEM_ARCHITECTURE.md`, and `08_PROVIDER_ARCHITECTURE.md`; full regression remains 307 passing.
+**Regression Decision:** PASS — no production behavior, provider configuration semantics, or runtime authority changed.
+**Known Issues / Blockers:** None. The Final V1 Evidence Gate is intentionally not started by C22.
+**Diff Review:** PASS — C22 scope is limited to durable onboarding, navigation, provider-configuration, and V1-boundary documentation plus this canonical C22 record.
+**Git Status Review:** PASS — staging remains empty; protected untracked `REPAIR_INSTRUCTIONS.md` and `eference/` remain untouched; no commit, push, or merge occurred.
+**Exit Gate Evidence:** PASS — validated documentation, configuration template, architecture navigation, command references, and current regression evidence make V1 reproducible and understandable without prior chat context. Final V1 completion remains separately governed.
 
 # Final V1 Evidence Gate
 

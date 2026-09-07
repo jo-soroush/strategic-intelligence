@@ -19,6 +19,23 @@ Core principle:
 
 **Controlled Workflow + Specialized Components + Evidence-First Governance**
 
+## Current V1 implementation
+
+The implemented runtime is a local Python composition rooted at
+`WorkflowApplication`, not LangGraph. Its actual execution path is:
+
+```text
+Validated Case → Research Planning → public discovery/retrieval
+→ Source → Evidence → Claim → Verification → bounded Follow-Up
+→ Governance → Strategic Analysis → Brief → accepted checkpoints/audit
+```
+
+`WorkflowExecutor` owns bounded sequencing, retry, and recovery. SQLite owns
+durable Case, provenance, checkpoint, and audit persistence. The local WSGI UI
+is loopback-only and delegates only to `WorkflowApplication`. The sections
+below describe the V1 concepts; this section and the checked-in code are the
+authority for current implementation details.
+
 ---
 
 # 2. High-Level Architecture
@@ -84,9 +101,8 @@ AI components should not be able to bypass these controls.
 
 # 4. Orchestration
 
-V1 uses a structured workflow orchestrator.
-
-LangGraph is the preferred orchestration framework for V1.
+V1 uses the checked-in `WorkflowExecutor` structured workflow orchestrator.
+It has no third-party orchestration runtime.
 
 The workflow should have clear stages:
 
@@ -117,7 +133,9 @@ END
 
 Independent research branches may run in parallel where practical.
 
-Workflow state must remain explicit and structured.
+Workflow state remains explicit and structured. C18 persists only accepted
+checkpoints; C19 records redacted execution observations without controlling
+workflow decisions.
 
 ---
 
@@ -496,7 +514,7 @@ V1 separates workflow state from persistent storage.
 
 ## 13.1 Workflow State
 
-LangGraph state represents the current execution.
+`WorkflowState` represents the current execution.
 
 Example state contains:
 
@@ -993,7 +1011,7 @@ The product should not exist to demonstrate architectural complexity.
 Supporting architecture:
 
 ```text
-LangGraph Structured State
+WorkflowState
         +
 Repository Interfaces
         +
@@ -1016,7 +1034,7 @@ Testing / Evaluation
 
 V1 is a:
 
-> **Local-first, cloud-ready, evidence-first strategic intelligence system built around a controlled LangGraph workflow, modular AI components, deterministic verification and governance gates, structured state, traceable evidence, and provider-independent infrastructure.**
+> **Local-first, cloud-ready, evidence-first strategic intelligence system built around a controlled workflow executor, modular AI components, deterministic verification and governance gates, structured state, traceable evidence, and provider-independent infrastructure.**
 
 The architecture intentionally avoids unnecessary autonomous multi-agent complexity.
 

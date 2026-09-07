@@ -8,6 +8,19 @@ Core principle:
 
 > Business components depend on provider contracts, not vendor SDKs.
 
+## Current V1 implementation
+
+The checked-in provider factory supports `ollama`, explicit cloud-enabled
+`gemini`, and deterministic `fake` LLMs; it supports `fake`, `duckduckgo`, and
+`brave` search. `Settings` reads only process environment values. Gemini
+requires `CLOUD_PROVIDERS_ENABLED=true` and `GEMINI_API_KEY`; Brave requires
+`BRAVE_SEARCH_API_KEY`. No provider silently falls back to another provider.
+
+Provider calls are made only through application-owned `LLMProvider` and
+`SearchProvider` contracts. The external request boundary validates public
+destinations and redirects, and adapters emit typed errors rather than raw
+vendor exceptions. See `README.md` for exact local configuration commands.
+
 The architecture must remain:
 
 - Local-first
@@ -120,7 +133,7 @@ Core components should not contain Ollama imports or model-specific request form
 
 ## 7. Future Hosted LLM Adapters
 
-The architecture should allow future adapters such as:
+The architecture may allow future adapters such as:
 
 ```text
 LLMProvider
