@@ -10,8 +10,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import date
 
-from strategic_intelligence.application.brief_generator import BriefGeneratorService
+from strategic_intelligence.application.brief_generator import BriefGenerationResult, BriefGenerationStatus, BriefGeneratorService
 from strategic_intelligence.application.case_input import CaseIntakeService
+from strategic_intelligence.application.company_memory import CompanyMemoryService
 from strategic_intelligence.application.company_research import CompanyResearchService
 from strategic_intelligence.application.evidence_layer import EvidenceLayerService
 from strategic_intelligence.application.executive_research import ExecutiveResearchService
@@ -23,7 +24,7 @@ from strategic_intelligence.application.verification import VerificationService
 from strategic_intelligence.config import Settings
 from strategic_intelligence.evaluation.golden_case import GoldenCaseRuntimeSnapshot
 from strategic_intelligence.governance.engine import GovernanceService
-from strategic_intelligence.harness.workflow_executor import WorkflowExecutionResult, WorkflowExecutor
+from strategic_intelligence.harness.workflow_executor import WorkflowExecutionResult, WorkflowExecutionStatus, WorkflowExecutor
 from strategic_intelligence.infrastructure.sqlite_repository import SqliteRepository
 from strategic_intelligence.observability.audit import AuditReport, AuditTrail, ObservedLLMProvider, ObservedSearchProvider
 from strategic_intelligence.providers.factory import Providers, build_providers
@@ -32,10 +33,11 @@ from strategic_intelligence.providers.factory import Providers, build_providers
 class WorkflowApplication:
     """Application-owned entry point for executing or resuming the V1 workflow."""
 
-    def __init__(self, executor: WorkflowExecutor, repository: SqliteRepository, audit: AuditTrail) -> None:
+    def __init__(self, executor: WorkflowExecutor, repository: SqliteRepository, audit: AuditTrail, memory: CompanyMemoryService) -> None:
         self._executor = executor
         self._repository = repository
         self._audit = audit
+        self._memory = memory
 
     @classmethod
     def from_environment(cls) -> "WorkflowApplication":
@@ -76,11 +78,40 @@ class WorkflowApplication:
             BriefGeneratorService(repository),
             audit=audit,
         )
-        return cls(executor, repository, audit)
+        return cls(executor, repository, audit, CompanyMemoryService(repository))
 
-    def execute(self, payload: Mapping[str, object], *, as_of: date) -> WorkflowExecutionResult:
-        """Delegate first-run execution to the C18 workflow authority."""
-        return self._executor.execute(payload, as_of=as_of)
+    def execute(self, payload: Mapping[str, object], *, as_of: date, refresh: bool = False) -> WorkflowExecutionResult:
+        """Load active company memory first, or execute a new explicit run."""
+        company_name = str(payload.get("company_name", ""))
+        tracked = None if refresh else self._memory.lookup(company_name)
+        if tracked is not None and tracked.active_run_id:
+            run = self._repository.get_workflow_run(tracked.active_run_id)
+            if run is not None and run.snapshot is not None:
+                return self._result_from_persisted_run(run)
+        result = self._executor.execute(payload, as_of=as_of)
+        case = result.state.case_context
+        if case is not None:
+            self._memory.record_run(
+                company_id=case.company_id,
+                company_name=case.company_name,
+                run_id=result.workflow_run.run_id,
+                successful=result.status is WorkflowExecutionStatus.COMPLETED,
+            )
+        return result
+
+    def refresh(self, payload: Mapping[str, object], *, as_of: date) -> WorkflowExecutionResult:
+        """Run explicit refresh while preserving the prior active memory run."""
+        return self.execute(payload, as_of=as_of, refresh=True)
+
+    @staticmethod
+    def _result_from_persisted_run(run) -> WorkflowExecutionResult:
+        state = run.snapshot
+        assert state is not None
+        if run.status.value == "COMPLETED":
+            brief = BriefGenerationResult(status=BriefGenerationStatus.ACCEPTED, quick_brief=state.quick_brief, full_brief=state.full_brief)
+            return WorkflowExecutionResult(status=WorkflowExecutionStatus.COMPLETED, workflow_run=run, state=state, brief=brief)
+        status = WorkflowExecutionStatus.PARTIAL if run.status.value == "PARTIAL" else WorkflowExecutionStatus.FAILED
+        return WorkflowExecutionResult(status=status, workflow_run=run, state=state, errors=run.errors)
 
     def resume(self, run_id: str, *, as_of: date) -> WorkflowExecutionResult:
         """Delegate recovery to the C18 accepted-checkpoint authority."""

@@ -217,6 +217,29 @@ class Company(DomainModel):
     updated_at: datetime = Field(default_factory=utc_now)
 
 
+class TrackedCompany(DomainModel):
+    """Durable user-controlled company memory index; trust artifacts stay canonical."""
+
+    tracked_company_id: str = Field(default_factory=new_id, min_length=1)
+    company_id: str = Field(min_length=1)
+    display_name: str = Field(min_length=1)
+    exact_name: str = Field(min_length=1)
+    normalized_name: str = Field(min_length=1)
+    insertion_order: int = Field(ge=0)
+    run_ids: list[str] = Field(default_factory=list)
+    active_run_id: str | None = None
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def _run_history_is_consistent(self) -> "TrackedCompany":
+        if len(self.run_ids) != len(set(self.run_ids)):
+            raise ValueError("tracked company run history cannot contain duplicates")
+        if self.active_run_id is not None and self.active_run_id not in self.run_ids:
+            raise ValueError("active run must belong to tracked company history")
+        return self
+
+
 class Executive(DomainModel):
     executive_id: str = Field(default_factory=new_id, min_length=1)
     full_name: str = Field(min_length=1)

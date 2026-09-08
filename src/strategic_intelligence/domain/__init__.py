@@ -4,12 +4,12 @@ from strategic_intelligence.domain.models import (
     AuditEvent, Case, Claim, ClaimEvidenceLink, Company, Evidence, Executive,
     GovernanceDecision, MeetingBrief, QuickBrief, RawFinding, ResearchCoverage,
     ResearchCoverageRequirement, ResearchPlan, ResearchTask, Source, StrategicAnalysis, VerificationResult, WorkflowError,
-    WorkflowRun, WorkflowState,
+    TrackedCompany, WorkflowRun, WorkflowState,
 )
 
 __all__ = [
     "AuditEvent", "Case", "Claim", "ClaimEvidenceLink", "Company", "Evidence",
     "Executive", "GovernanceDecision", "MeetingBrief", "QuickBrief", "RawFinding",
     "ResearchCoverage", "ResearchCoverageRequirement", "ResearchPlan", "ResearchTask", "Source", "StrategicAnalysis",
-    "VerificationResult", "WorkflowError", "WorkflowRun", "WorkflowState",
+    "TrackedCompany", "VerificationResult", "WorkflowError", "WorkflowRun", "WorkflowState",
 ]

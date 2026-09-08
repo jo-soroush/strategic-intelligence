@@ -10,7 +10,7 @@ from typing import Sequence, TypeVar
 from pydantic import BaseModel
 
 from strategic_intelligence.domain.models import (
-    AuditEvent, Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, WorkflowRun, WorkflowStage,
+    AuditEvent, Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, TrackedCompany, WorkflowRun, WorkflowStage,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -20,11 +20,12 @@ class CheckpointRejectedError(ValueError):
     """Raised when a checkpoint's required persisted records are absent."""
 
 
-_SCHEMA_VERSION = "001_initial"
+_SCHEMA_VERSION = "002_company_memory"
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS cases (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS workflow_runs (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS tracked_companies (id TEXT PRIMARY KEY, normalized_name TEXT NOT NULL UNIQUE, insertion_order INTEGER NOT NULL UNIQUE, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS sources (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), url TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, url));
 CREATE TABLE IF NOT EXISTS evidence (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), source_id TEXT NOT NULL REFERENCES sources(id), content TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, source_id, content));
 CREATE TABLE IF NOT EXISTS claims (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), text TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, text));
@@ -70,6 +71,26 @@ class SqliteRepository:
 
     def get_workflow_run(self, run_id: str) -> WorkflowRun | None:
         return self._get("workflow_runs", WorkflowRun, run_id)
+
+    def save_tracked_company(self, company: TrackedCompany) -> TrackedCompany:
+        with self._connection:
+            self._connection.execute(
+                "INSERT INTO tracked_companies(id, normalized_name, insertion_order, payload) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET normalized_name=excluded.normalized_name, insertion_order=excluded.insertion_order, payload=excluded.payload",
+                (company.tracked_company_id, company.normalized_name, company.insertion_order, self._dump(company)),
+            )
+        return company
+
+    def get_tracked_company(self, tracked_company_id: str) -> TrackedCompany | None:
+        return self._get("tracked_companies", TrackedCompany, tracked_company_id)
+
+    def get_tracked_company_by_normalized_name(self, normalized_name: str) -> TrackedCompany | None:
+        row = self._connection.execute("SELECT payload FROM tracked_companies WHERE normalized_name = ?", (normalized_name,)).fetchone()
+        return None if row is None else self._load(TrackedCompany, row["payload"])
+
+    def list_tracked_companies(self) -> list[TrackedCompany]:
+        rows = self._connection.execute("SELECT payload FROM tracked_companies ORDER BY insertion_order").fetchall()
+        return [self._load(TrackedCompany, row["payload"]) for row in rows]
 
     def save_audit_event(self, event: AuditEvent) -> AuditEvent:
         with self._connection:

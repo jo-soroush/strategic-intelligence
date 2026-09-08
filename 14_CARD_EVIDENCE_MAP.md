@@ -1818,11 +1818,40 @@ no implementation, test, provider, or Critical-Path evidence is claimed.
 
 ## V1.2-G02 — Persistent Company Memory
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** G01
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
-Evidence: PENDING — no durable company-memory implementation or validation.
+### Evidence
+
+- **Implementation:** `src/strategic_intelligence/domain/models.py` adds the
+  typed `TrackedCompany` memory index; `src/strategic_intelligence/application/company_memory.py`
+  owns exact/normalized company lookup and run-history promotion; the
+  `PersistenceRepository`/`SqliteRepository` add durable ordered tracked
+  company records. Existing WorkflowRun and Source/Evidence/Claim/
+  Verification/Governance records remain canonical and are referenced by ID,
+  not copied.
+- **Memory-first/Refresh boundary:** `WorkflowApplication.execute` returns an
+  active persisted completed run for an existing normalized company without
+  invoking the executor. `WorkflowApplication.refresh` forces a new workflow
+  run; successful completion promotes it, while failed refreshes retain the
+  prior active run and append history.
+- **Focused tests:** `.venv/bin/python -m pytest
+  tests/unit/test_company_memory.py tests/unit/test_persistence.py -q` — PASS,
+  12 passed. Covers insertion order, reopen persistence, exact/normalized
+  duplicate handling, failed-refresh safety, and memory-first no-execution.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 318 passed.
+- **Provider calls:** None; tests use repository/stub boundaries and no live
+  provider execution.
+- **Critical Path:** typed TrackedCompany → SQLite persistence/reopen → active
+  WorkflowRun lookup → application memory-first return; explicit refresh and
+  failed-refresh preservation are covered by focused tests.
+- **Known Limitations / Deferrals:** G03+ entity resolution, graph storage,
+  GraphRAG, and graph UI remain NOT_STARTED. G02 performs only exact/normalized
+  company duplicate handling and does not merge aliases or other entity types.
+- **Exact Exit Gate Proof:** PASS — ordered tracked companies and reusable run
+  associations survive repository reopen; existing memory avoids re-execution;
+  explicit refresh creates history without erasing prior valid memory.
 
 ## V1.2-G03 — Entity Resolution
 
