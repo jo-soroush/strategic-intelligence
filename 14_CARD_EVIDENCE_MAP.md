@@ -1977,12 +1977,42 @@ second source of truth.
 
 ## V1.2-G06 — Evidence-backed GraphRAG
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** G05
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
-Evidence: PENDING — no graph retrieval, bounded path, context assembly, or
-answer-generation implementation.
+Evidence: Implemented read-only GraphRAG orchestration in
+`application/graph_rag.py` over the G05 durable projection. The bounded flow
+is query entity resolution → eligible graph retrieval/path search → canonical
+Claim/Evidence/Source retrieval → governed context assembly → LLM answer.
+
+- Only the six G01 query categories are accepted, with a hard maximum of three
+  edges. Directed relations remain directed; `PARTNERED_WITH` remains
+  symmetric. Query-time `as_of` filtering honors validity intervals.
+- Retrieval includes only usable PASS/CURRENT relationships. BLOCK, RESTRICT,
+  stale, conflicting, superseded, invalid, and unsupported paths are excluded;
+  unresolved or unsupported questions return an explicit `NO_PATH`/rejection
+  without an LLM call.
+- Every surfaced relationship returns structured provenance for relationship,
+  Claim, Evidence, Source, GovernanceDecision, research run, and temporal
+  status. Context is built only from persisted canonical records.
+- Graph queries perform no search, Refresh, research run, persistence mutation,
+  or memory update. LLM failures are returned as bounded provider failures.
+- **Focused tests:** `tests/unit/test_graph_rag.py` plus G04/G05 suites — 12
+  passed, covering evidence-backed answers, provenance, no-path behavior,
+  stale exclusion, six-category closure, directional paths, and the 3-edge
+  bound.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 334 passed.
+- **Provider calls:** No search/provider discovery calls; focused tests use a
+  deterministic fake LLM only.
+- **Critical Path:** PASS — persisted query entities → durable eligible graph
+  path → canonical supporting Claim/Evidence/Source and governance metadata →
+  bounded context → LLM answer with structured provenance, plus explicit
+  no-path without provider invocation.
+
+**Exact Exit Gate Proof:** PASS — supported relationships and bounded paths
+produce evidence-backed answers or explicit no-path results without web search,
+Refresh, or research side effects.
 
 ## V1.2-G07 — Graph Intelligence UI
 
