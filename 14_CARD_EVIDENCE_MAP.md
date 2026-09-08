@@ -1789,12 +1789,32 @@ no implementation, test, provider, or Critical-Path evidence is claimed.
 
 ## V1.2-G01 — Graph Intelligence Contract
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** None
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
-Evidence: PENDING — contract, temporal policy, conflict rules, evaluation set,
-and non-goals have not yet been executed or validated.
+### Evidence
+
+- **Contract:** `13_CARD_SPECIFICATIONS.md` now defines exactly five entity
+  types, five relation types, seven allowed source→target pairs, required
+  canonical provenance references, temporal/conflict/supersession semantics,
+  PASS/RESTRICT/BLOCK eligibility, memory-vs-Refresh boundaries, six query
+  categories, and a maximum three-edge traversal depth.
+- **Tests:** `.venv/bin/python -m pytest tests/unit/test_v1_2_g01_contract.py -q`
+  — PASS, 4 tests. Tests assert ontology/pair bounds, provenance and temporal
+  fields, trust/memory/query boundaries, evaluation metrics, and non-goals.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 315 tests.
+- **Provider calls:** None. No runtime or provider implementation changed.
+- **Critical Path:** Contract text → schema/contract assertions → full
+  regression; PASS for the documentation-owned G01 boundary.
+- **Known Limitations / Deferrals:** G02–G08 remain NOT_STARTED. This Card
+  defines references to existing V1 trust records but does not implement
+  company memory, entities, relationships, graph storage, retrieval, UI, or
+  evaluation execution.
+- **Exact Exit Gate Proof:** PASS — bounded ontology and pair restrictions,
+  provenance, temporal/conflict/trust rules, memory/Refresh boundary, query
+  taxonomy and hop bound, evaluation contract, and non-goals are explicit and
+  covered by focused contract tests.
 
 ## V1.2-G02 — Persistent Company Memory
 

@@ -51,14 +51,70 @@ semantics remain unchanged.
 
 ### V1.2-G01 — Graph Intelligence Contract
 
-**Dependencies:** None. Define the bounded ontology (Company, Person,
-Technology, Project, Event), relations (LEADS, PARTNERED_WITH, DEVELOPS, USES,
-INVOLVED_IN), memory/refresh behavior, provenance, query taxonomy,
-15–20-question evaluation shape, success criteria, temporal fields, conflict
-handling, and explicit non-goals. Define `CURRENT`, `STALE`, `CONFLICTING`, and
-`SUPERSEDED` relationship semantics and preserve PASS/RESTRICT/BLOCK rules.
-**Exit Gate:** Contract tests/schema review prove scope, provenance, temporal,
-conflict, trust, and evaluation boundaries are explicit.
+**Dependencies:** None.
+
+**Bounded ontology:** Entity types are exactly `Company`, `Person`,
+`Technology`, `Project`, and `Event`. Relation types are exactly `LEADS`,
+`PARTNERED_WITH`, `DEVELOPS`, `USES`, and `INVOLVED_IN`.
+
+**Allowed source → target pairs:**
+
+| Relation | Allowed pairs | Direction |
+|---|---|---|
+| `LEADS` | Person → Company; Person → Project | Directed |
+| `PARTNERED_WITH` | Company → Company | Canonically ordered/symmetric |
+| `DEVELOPS` | Company → Technology; Company → Project | Directed |
+| `USES` | Company → Technology | Directed |
+| `INVOLVED_IN` | Person → Project; Person → Event; Company → Project; Company → Event | Directed |
+
+Unsupported entity or relation types and unsupported pairs fail closed. G01
+does not permit inferred transitive relations or automatic ontology growth.
+
+**Required relationship provenance:** Every candidate/usable relationship must
+carry `relationship_id`, source and target entity IDs, `relation_type`,
+`claim_id`, `evidence_id`, `source_id`, `governance_id` and governance status,
+`research_run_id`, and timezone-aware `created_at`. Optional `valid_from`,
+`valid_to`, and `superseded_by` are allowed only when supported by canonical
+evidence. These are references/projection metadata; Source, Evidence, Claim,
+VerificationResult, and GovernanceDecision remain canonical V1 records.
+
+**Temporal/conflict contract:** At query `as_of`, a relationship is `CURRENT`
+only when supporting verification is eligible and not stale. It is `STALE`
+when supporting freshness is stale; `CONFLICTING` when governed support
+contains contradiction; and `SUPERSEDED` when `superseded_by` identifies a
+replacement. `valid_to` is exclusive. Missing temporal support means the
+interval is unknown, not that the relation is timeless. Historical, stale, and
+conflicting records remain inspectable and qualified. A BLOCK decision always
+removes a relationship from usable retrieval; RESTRICT remains explicitly
+qualified; PASS may be eligible but never overrides verification.
+
+**Memory/refresh boundary:** G02 checks durable memory before any research.
+New companies may run initial research. Existing companies load stored
+intelligence without web calls; only an explicit Refresh starts a new run and
+preserves prior runs/provenance. Graph queries never refresh or research.
+
+**Query categories:** direct relationship, neighborhood, shared connection,
+cross-company relationship, recurring entity, and bounded multi-hop path.
+Maximum traversal depth is **3 edges**; no unrestricted traversal is in scope.
+
+**Evaluation contract and success criteria:** Freeze 15–20 questions covering
+all query categories, with expected entity/relation/provenance scope. Compare
+truthfully labelled existing memory/retrieval against GraphRAG on retrieval
+relevance, answer completeness, evidence traceability, faithfulness to governed
+context, and latency. Success means the contract is executable, every surfaced
+relationship is provenance-complete and trust-eligible, no-path answers do not
+hallucinate, and relationship/multi-hop value is measurable; GraphRAG need not
+win direct factual lookups.
+
+**Explicit non-goals:** automatic company recommendation, autonomous crawling,
+unbounded ontology growth, LinkedIn/social scraping, heavy/distributed graph
+infrastructure, multi-user permissions, automatic strategic decisions/actions,
+and replacement or bypass of the existing trust pipeline.
+
+**Exit Gate:** Contract/schema tests prove ontology and pair restrictions,
+provenance, temporal/conflict/supersession semantics, trust eligibility,
+memory/refresh boundaries, query categories and 3-hop bound, evaluation
+criteria, and non-goals are explicit.
 
 ### V1.2-G02 — Persistent Company Memory
 
