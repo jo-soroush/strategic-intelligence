@@ -278,6 +278,61 @@ class EntityRecord(DomainModel):
     updated_at: datetime = Field(default_factory=utc_now)
 
 
+class RelationshipType(str, Enum):
+    LEADS = "LEADS"
+    PARTNERED_WITH = "PARTNERED_WITH"
+    DEVELOPS = "DEVELOPS"
+    USES = "USES"
+    INVOLVED_IN = "INVOLVED_IN"
+
+
+class RelationshipTemporalStatus(str, Enum):
+    CURRENT = "CURRENT"
+    STALE = "STALE"
+    CONFLICTING = "CONFLICTING"
+    SUPERSEDED = "SUPERSEDED"
+
+
+class RelationshipRecord(DomainModel):
+    """In-memory G04 projection; durable graph storage belongs to G05."""
+
+    relationship_id: str = Field(default_factory=new_id, min_length=1)
+    source_entity_id: str = Field(min_length=1)
+    target_entity_id: str = Field(min_length=1)
+    relation_type: RelationshipType
+    claim_ids: list[str] = Field(min_length=1)
+    evidence_ids: list[str] = Field(min_length=1)
+    source_ids: list[str] = Field(min_length=1)
+    governance_ids: list[str] = Field(min_length=1)
+    governance_status: GovernanceDecisionStatus
+    research_run_id: str = Field(min_length=1)
+    created_at: datetime = Field(default_factory=utc_now)
+    valid_from: datetime | None = None
+    valid_to: datetime | None = None
+    superseded_by: str | None = None
+    temporal_status: RelationshipTemporalStatus = RelationshipTemporalStatus.CURRENT
+    usable: bool = True
+
+    @model_validator(mode="after")
+    def _relationship_is_consistent(self) -> "RelationshipRecord":
+        for values, label in (
+            (self.claim_ids, "claim"),
+            (self.evidence_ids, "evidence"),
+            (self.source_ids, "source"),
+            (self.governance_ids, "governance"),
+        ):
+            if len(values) != len(set(values)):
+                raise ValueError(f"relationship {label} identifiers cannot repeat")
+        if self.valid_from is not None and self.valid_to is not None and self.valid_to <= self.valid_from:
+            raise ValueError("relationship valid_to must be after valid_from")
+        if self.temporal_status is RelationshipTemporalStatus.SUPERSEDED and not self.superseded_by:
+            raise ValueError("superseded relationship requires superseded_by")
+        if self.governance_status is GovernanceDecisionStatus.BLOCK or self.temporal_status is not RelationshipTemporalStatus.CURRENT:
+            if self.usable:
+                raise ValueError("non-eligible relationship cannot be usable")
+        return self
+
+
 class Executive(DomainModel):
     executive_id: str = Field(default_factory=new_id, min_length=1)
     full_name: str = Field(min_length=1)

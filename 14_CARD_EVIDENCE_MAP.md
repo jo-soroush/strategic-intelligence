@@ -1894,12 +1894,45 @@ no implementation, test, provider, or Critical-Path evidence is claimed.
 
 ## V1.2-G04 — Governed Relationship Extraction
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** G03
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
-Evidence: PENDING — no relationship extraction or governance composition
-implementation or validation.
+Evidence: Implemented the bounded, transient G04 relationship projection in
+`application/relationship_extraction.py` and typed relationship contracts in
+`domain/models.py`. Only G01 relations and approved entity pairs are accepted:
+`LEADS`, `PARTNERED_WITH`, `DEVELOPS`, `USES`, and `INVOLVED_IN`.
+
+- Every accepted relationship resolves persisted source/target `EntityRecord`s,
+  persisted same-case `Claim` and `Evidence` records, a persisted `Source`, an
+  exact `ClaimEvidenceLink(SUPPORTS)`, persisted verification, and the latest
+  persisted `GovernanceDecision`; caller-supplied IDs/statuses are never trusted
+  without repository proof.
+- Research-run membership and case equality are checked against persisted
+  workflow snapshots. Missing, forged, cross-case/cross-run, ambiguous, or
+  unsupported inputs fail closed. `BLOCK` is rejected; `RESTRICT` is retained as
+  qualified but is not usable graph knowledge.
+- Relationship records retain multiple claims/evidence/source/governance IDs,
+  run and timestamp provenance, optional validity/supersession fields, and
+  deterministic `CURRENT`, `STALE`, `CONFLICTING`, or `SUPERSEDED` status.
+  `PARTNERED_WITH` endpoints are canonically ordered. No graph storage or
+  traversal was added; that remains G05-owned.
+- **Focused tests:** `tests/unit/test_relationship_extraction.py` — 5 passed,
+  covering governed support, pair/type bounds, forged/missing/run proof,
+  RESTRICT/BLOCK, stale/conflicting/superseded status, and symmetric ordering.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 327 passed.
+- **Provider calls:** None.
+- **Critical Path:** PASS — persisted EntityRecord endpoints → persisted
+  same-run Claim/Evidence/Source and SUPPORTS link → persisted VerificationResult
+  and latest GovernanceDecision → bounded temporal relationship record, with
+  BLOCK and invalid provenance rejected.
+- **Known Limitations / Deferrals:** G05 graph persistence/projection,
+  incremental reconciliation, G06 GraphRAG, and later UI remain NOT_STARTED.
+
+**Exact Exit Gate Proof:** PASS — every usable relationship emitted by the G04
+service is bounded to the approved ontology/pairs, carries canonical evidence
+and governance provenance, is tied to one persisted research run, and is
+temporally classified; ineligible or BLOCKed material cannot become usable.
 
 ## V1.2-G05 — Knowledge Graph Persistence
 
