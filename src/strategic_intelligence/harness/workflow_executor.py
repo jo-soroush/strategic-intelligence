@@ -243,6 +243,8 @@ class WorkflowExecutor:
                 run = checkpointed
                 self._observe_stage(state.current_stage, "COMPLETED", {"decision_count": len(decisions)})
             if state.current_stage is WorkflowStage.GOVERNANCE_COMPLETED:
+                if case.meeting_goal is None:
+                    return self._partial(run, state, "meeting goal was not supplied; company intelligence remains available")
                 analysis = self._analysis.analyze(case.case_id, as_of=as_of)
                 if analysis.status is not StrategicAnalysisStatus.ACCEPTED or analysis.analysis is None:
                     return self._partial(run, state, "no current governed analysis is available")

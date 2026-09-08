@@ -98,12 +98,13 @@ class ResearchPlanner:
             return self._rejected(guidance_error)
 
         coverage_by_key = {(item.target_type, item.category): item for item in coverage}
+        templates = tuple(template for template in _TASK_TEMPLATES if case.executive_name or template.target_type is TargetType.COMPANY)
         required_coverage = [
             ResearchCoverageRequirement(target_type=template.target_type, category=template.category, priority=template.priority)
-            for template in _TASK_TEMPLATES
+            for template in templates
         ]
         eligible = [
-            template for template in _TASK_TEMPLATES
+            template for template in templates
             if coverage_by_key.get((template.target_type, template.category), None) is None
             or coverage_by_key[(template.target_type, template.category)].status not in {
                 ResearchCoverageStatus.COVERED,
@@ -176,7 +177,7 @@ class ResearchPlanner:
         return (
             "Select zero or more exact tokens from the approved research categories list; do not invent labels. "
             f"Approved categories: {categories}. "
-            f"Company: {case.company_name}. Executive: {case.executive_name}. Goal: {case.meeting_goal}.{context}"
+            f"Company: {case.company_name}. Executive: {case.executive_name or 'not supplied'}. Goal: {case.meeting_goal or 'company intelligence'}.{context}"
         )
 
     @staticmethod
@@ -190,13 +191,13 @@ class ResearchPlanner:
         return None
 
     def _task(self, case: Case, template: _TaskTemplate, priority: int) -> ResearchTask:
-        subject = case.company_name if template.target_type is TargetType.COMPANY else case.executive_name
+        subject = case.company_name if template.target_type is TargetType.COMPANY else (case.executive_name or case.company_name)
         context = f" Context: {case.extra_context}" if case.extra_context else ""
         return ResearchTask(
             case_id=case.case_id,
             target_type=template.target_type,
             category=template.category,
-            query=f"{subject}: {template.topic} for {case.meeting_goal}.{context}",
+            query=f"{subject}: {template.topic} for {case.meeting_goal or 'company intelligence'}.{context}",
             priority=priority,
             max_attempts=self._attempt_budget_per_task,
         )

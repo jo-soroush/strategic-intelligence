@@ -63,8 +63,8 @@ def _identity(value: str) -> str:
 
 class CaseSubmission(CaseInputModel):
     company_name: str = Field(min_length=1)
-    executive_name: str = Field(min_length=1)
-    meeting_goal: str = Field(min_length=1)
+    executive_name: str | None = None
+    meeting_goal: str | None = None
     company_website: str | None = None
     company_linkedin_url: str | None = None
     executive_linkedin_url: str | None = None
@@ -73,10 +73,15 @@ class CaseSubmission(CaseInputModel):
     company_business_unit: str | None = None
     executive_current_title: str | None = None
 
-    @field_validator("company_name", "executive_name", "meeting_goal")
+    @field_validator("company_name")
     @classmethod
     def normalize_required_text(cls, value: str, info) -> str:
         return _normalize_text(value, info.field_name)
+
+    @field_validator("executive_name", "meeting_goal")
+    @classmethod
+    def normalize_optional_required_text(cls, value: str | None, info) -> str | None:
+        return None if value is None else _normalize_optional_text(value, info.field_name)
 
     @field_validator("extra_context", "company_country", "company_business_unit", "executive_current_title")
     @classmethod
@@ -181,7 +186,7 @@ class CaseIntakeService:
             linkedin_url=submission.company_linkedin_url,
             country=submission.company_country,
         )
-        executive = Executive(
+        executive = None if submission.executive_name is None else Executive(
             full_name=submission.executive_name,
             company_id=company.company_id,
             current_title=submission.executive_current_title,
@@ -190,9 +195,9 @@ class CaseIntakeService:
         )
         case = Case(
             company_id=company.company_id,
-            executive_id=executive.executive_id,
+            executive_id=None if executive is None else executive.executive_id,
             company_name=company.name,
-            executive_name=executive.full_name,
+            executive_name=None if executive is None else executive.full_name,
             meeting_goal=submission.meeting_goal,
             extra_context=submission.extra_context,
             company_website=submission.company_website,
@@ -237,7 +242,7 @@ class CaseIntakeService:
     ) -> EntityResolution:
         reasons: list[IntakeError] = []
         company_matches = [candidate for candidate in company_candidates if _identity(candidate.name) == _identity(submission.company_name)]
-        executive_matches = [candidate for candidate in executive_candidates if _identity(candidate.full_name) == _identity(submission.executive_name)]
+        executive_matches = [] if submission.executive_name is None else [candidate for candidate in executive_candidates if _identity(candidate.full_name) == _identity(submission.executive_name)]
 
         if len(company_matches) > 1:
             reasons.append(IntakeError(code=IntakeErrorCode.ENTITY_AMBIGUOUS, field="company_name", message="multiple company candidates match the supplied name"))
@@ -257,11 +262,6 @@ class CaseIntakeService:
                 reasons.append(IntakeError(code=IntakeErrorCode.ENTITY_CONFLICT, field="executive_name", message="matched executive is associated with a different company"))
             if submission.executive_linkedin_url and candidate.public_profile_url and submission.executive_linkedin_url != candidate.public_profile_url:
                 reasons.append(IntakeError(code=IntakeErrorCode.ENTITY_CONFLICT, field="executive_linkedin_url", message="executive profile URL conflicts with the matched executive candidate"))
-
-        if not company_matches and not (submission.company_website or submission.company_linkedin_url or (submission.company_country and submission.company_business_unit)):
-            reasons.append(IntakeError(code=IntakeErrorCode.ENTITY_AMBIGUOUS, field="company_name", message="company requires a website, public company URL, country/business-unit pair, or a unique candidate"))
-        if not executive_matches and not (submission.executive_linkedin_url or submission.executive_current_title):
-            reasons.append(IntakeError(code=IntakeErrorCode.ENTITY_AMBIGUOUS, field="executive_name", message="executive requires a public professional URL, current title, or a unique candidate"))
 
         return EntityResolution(
             status=EntityResolutionStatus.AMBIGUOUS if reasons else EntityResolutionStatus.CONFIRMED,

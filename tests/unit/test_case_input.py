@@ -37,14 +37,26 @@ def test_critical_path_validates_normalizes_resolves_and_persists_with_real_repo
         repository.close()
 
 
-def test_missing_required_input_returns_structured_rejection_without_persistence(tmp_path: Path) -> None:
+def test_optional_enrichment_is_accepted_at_each_compatibility_level(tmp_path: Path) -> None:
+    service, repository = _service(tmp_path)
+    try:
+        company = service.submit({"company_name": "Example Co"})
+        assert company.status is IntakeStatus.ACCEPTED
+        executive = service.submit({"company_name": "Example Co", "executive_name": "Ava Example", "executive_current_title": "Director"})
+        assert executive.status is IntakeStatus.ACCEPTED
+        full = service.submit({"company_name": "Example Co", "executive_name": "Ava Example", "meeting_goal": "Prepare"})
+        assert full.status is IntakeStatus.ACCEPTED
+    finally:
+        repository.close()
+
+
+def test_company_only_input_is_accepted_without_fabricated_enrichment(tmp_path: Path) -> None:
     service, repository = _service(tmp_path)
     try:
         result = service.submit({"company_name": "Example", "meeting_goal": "Prepare"})
-        assert result.status is IntakeStatus.REJECTED
-        assert result.case is None
-        assert result.errors[0].code is IntakeErrorCode.INVALID_INPUT
-        assert result.errors[0].field == "executive_name"
+        assert result.status is IntakeStatus.ACCEPTED
+        assert result.case is not None and result.case.executive_name is None
+        assert result.executive is None
     finally:
         repository.close()
 
@@ -114,12 +126,11 @@ def test_conflicting_company_url_and_ambiguous_business_unit_are_blocked(tmp_pat
         repository.close()
 
 
-def test_insufficient_identity_evidence_blocks_research_entry(tmp_path: Path) -> None:
+def test_executive_name_alone_is_accepted_as_optional_enrichment(tmp_path: Path) -> None:
     service, repository = _service(tmp_path)
     try:
         result = service.submit({"company_name": "Example", "executive_name": "Ava Example", "meeting_goal": "Prepare"})
-        assert result.status is IntakeStatus.REJECTED
-        assert result.resolution is not None and result.resolution.status is EntityResolutionStatus.AMBIGUOUS
-        assert {error.field for error in result.errors} == {"company_name", "executive_name"}
+        assert result.status is IntakeStatus.ACCEPTED
+        assert result.case is not None and result.case.executive_name == "Ava Example"
     finally:
         repository.close()

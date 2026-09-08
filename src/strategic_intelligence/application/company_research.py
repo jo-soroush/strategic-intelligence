@@ -261,7 +261,7 @@ class CompanyResearchService:
     def _is_relevant(case: Case, task: ResearchTask, result: SearchResult) -> bool:
         corpus = _terms(" ".join(filter(None, (result.title, result.snippet, result.publisher))))
         company_terms = _terms(case.company_name)
-        goal_terms = _terms(case.meeting_goal)
+        goal_terms = _terms(case.meeting_goal or "company intelligence")
         category_terms = _terms(task.category.value.replace("_", " "))
         return bool(corpus & company_terms or corpus & goal_terms or corpus & category_terms)
 

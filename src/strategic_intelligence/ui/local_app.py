@@ -197,8 +197,8 @@ def _meeting_snapshot(result: WorkflowExecutionResult) -> str:
     return (
         '<section class="snapshot brief-section"><h2>Meeting Snapshot</h2>'
         f"<p class=\"snapshot-company\">{_text(case.company_name)}</p>"
-        f"<p><strong>Executive:</strong> {_text(case.executive_name)}</p>"
-        f"<p><strong>Goal:</strong> {_display_text(case.meeting_goal)}</p></section>"
+        f"<p><strong>Executive:</strong> {_text(case.executive_name or 'Not supplied')}</p>"
+        f"<p><strong>Goal:</strong> {_display_text(case.meeting_goal or 'Company intelligence')}</p></section>"
     )
 
 
@@ -229,6 +229,22 @@ def _quick_brief(brief: QuickBrief, full: MeetingBrief | None, result: WorkflowE
         f'<section class="result-card">{questions}</section>'
         f'<section class="result-card"><section class="brief-section"><h2>Knowledge Gaps</h2><ul>{gaps}</ul></section></section>'
         f"</div>{_omissions(brief)}</section>"
+    )
+
+
+def _company_intelligence(result: WorkflowExecutionResult) -> str:
+    """Show governed company-only output without inventing meeting fields."""
+    blocked = {
+        decision.target_id for decision in result.state.governance_decisions
+        if decision.decision is GovernanceDecisionStatus.BLOCK
+    }
+    claims = [claim for claim in result.state.claims if claim.claim_id not in blocked]
+    items = "".join(f'<li class="brief-card">{_display_text(claim.text)}</li>' for claim in claims[:5])
+    items = items or '<li class="empty">No governed company claims are available yet.</li>'
+    return (
+        '<section class="result-card company-intelligence"><section class="brief-section"><h2>Company Intelligence</h2>'
+        '<p class="supporting-text">Governed company research is available. Add an executive or meeting goal to enrich this into full Meeting Intelligence.</p>'
+        f'<ul>{items}</ul></section></section>'
     )
 
 
@@ -395,8 +411,8 @@ def render_result(result: WorkflowExecutionResult) -> str:
     snapshot = (
         '<p class="eyebrow">Meeting Brief · Meeting Snapshot</p>'
         f'<h2>{_text(case.company_name) if case else "Meeting Brief"}</h2>'
-        f'<p class="result-context"><strong>Executive:</strong> {_text(case.executive_name) if case else "Not available"} '
-        f'<span aria-hidden="true">·</span> <strong>Goal:</strong> {_display_text(case.meeting_goal) if case else "Not available"}</p>'
+        f'<p class="result-context"><strong>Executive:</strong> {_text(case.executive_name if case and case.executive_name else "Not supplied")} '
+        f'<span aria-hidden="true">·</span> <strong>Goal:</strong> {_display_text(case.meeting_goal if case and case.meeting_goal else "Company intelligence")}</p>'
     )
     presentation = [
         f'<section class="result {status_class}" aria-live="polite">',
@@ -407,6 +423,8 @@ def render_result(result: WorkflowExecutionResult) -> str:
         presentation.append(_quick_brief(brief.quick_brief, brief.full_brief, result))
     if brief and brief.full_brief:
         presentation.append(_full_brief(brief.full_brief, result))
+    if not brief and case is not None and case.executive_name is None:
+        presentation.append(_company_intelligence(result))
     presentation.append(_errors(result.errors))
     presentation.append("</section>")
     return "".join(presentation)
@@ -428,10 +446,10 @@ def _form(values: Mapping[str, str] | None = None) -> str:
       <fieldset><legend>Meeting context</legend>
         <label for="company_name">Company name <span aria-hidden="true">*</span></label>
         <input id="company_name" name="company_name" required autocomplete="organization" value="{value('company_name')}">
-        <label for="executive_name">Executive name <span aria-hidden="true">*</span></label>
-        <input id="executive_name" name="executive_name" required autocomplete="name" value="{value('executive_name')}">
-        <label for="meeting_goal">Meeting goal <span aria-hidden="true">*</span></label>
-        <textarea id="meeting_goal" name="meeting_goal" required rows="3">{value('meeting_goal')}</textarea>
+        <label for="executive_name">Executive name <span class="supporting-text">Optional</span></label>
+        <input id="executive_name" name="executive_name" autocomplete="name" value="{value('executive_name')}">
+        <label for="meeting_goal">Meeting goal <span class="supporting-text">Optional enrichment</span></label>
+        <textarea id="meeting_goal" name="meeting_goal" rows="3">{value('meeting_goal')}</textarea>
       </fieldset>
       <p id="form-note" class="form-note">Identity support helps C05 resolve the intended company and executive. Validation remains application-owned.</p>
       <details class="form-support"><summary>Identity support <span>Optional context for entity resolution</span></summary>
@@ -573,7 +591,7 @@ class LocalUi:
         except (UnicodeDecodeError, ValueError):
             return {}, {}, "Invalid form request."
         values = {name: parsed.get(name, [""])[0] for name in _FORM_FIELDS}
-        payload = {name: value for name, value in values.items() if value or name in {"company_name", "executive_name", "meeting_goal"}}
+        payload = {name: value for name, value in values.items() if value or name in {"company_name"}}
         return payload, values, None
 
     @staticmethod

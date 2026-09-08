@@ -357,10 +357,10 @@ class Executive(DomainModel):
 class Case(DomainModel):
     case_id: str = Field(default_factory=new_id, min_length=1)
     company_id: str = Field(min_length=1)
-    executive_id: str = Field(min_length=1)
+    executive_id: str | None = None
     company_name: str = Field(min_length=1)
-    executive_name: str = Field(min_length=1)
-    meeting_goal: str = Field(min_length=1)
+    executive_name: str | None = None
+    meeting_goal: str | None = None
     extra_context: str | None = None
     company_website: str | None = None
     company_linkedin_url: str | None = None

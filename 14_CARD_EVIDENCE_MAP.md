@@ -2039,8 +2039,10 @@ inspection, Ask Graph, and explicit Refresh Research.
 - **Focused tests:** `tests/unit/test_graph_ui.py` plus the existing local UI
   suite — 13 passed, covering read-only memory opening, explicit refresh,
   graph/provenance inspection, Ask Graph routing, and preserved V1.1 UI trust
-  rendering.
-- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 337 passed.
+  rendering. V2 compatibility tests additionally cover company-only intake and
+  research, optional executive/goal enrichment, preserved full V1.1 flow, and
+  no automatic research when opening stored memory.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 339 passed.
 - **Provider calls:** None during validation; tests use deterministic doubles.
 - **Critical Path:** PASS — persisted company memory → read-only Company
   Intelligence → durable graph nodes/edges → safe relationship provenance
@@ -2050,7 +2052,9 @@ inspection, Ask Graph, and explicit Refresh Research.
 **Exact Exit Gate Proof:** PASS — users can inspect stored company memory,
 relationships, and provenance; opening memory does not research; Refresh is
 explicit; and graph questions use bounded read-only GraphRAG without web or
-research side effects.
+research side effects. The canonical V2 compatibility invariant is preserved:
+company-only input is sufficient, enrichment is optional, and no V1.1 fields
+are fabricated or removed.
 
 ## V1.2-G08 — Evaluation and Portfolio Evidence
 

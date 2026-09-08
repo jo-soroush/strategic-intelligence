@@ -178,6 +178,17 @@ states without implying unsupported certainty.
 **Exit Gate:** Users can inspect memory, graph relationships, and provenance;
 opening memory does not research and Refresh is explicit.
 
+**Canonical V2 compatibility invariant:** V1.1 remains a stable preserved
+version. V2 retains every V1.1 capability and adds Persistent Memory, Entity
+Resolution, Relationships, Knowledge Graph, GraphRAG, and Graph UI. Company name
+alone is sufficient to start company research; executive name/title, meeting
+goal, company website, profile/LinkedIn URL, identity support, and research
+focus are optional enrichment inputs. Company-only input yields Company
+Intelligence; Company + Executive yields Company + Executive Intelligence; and
+Company + Executive + Meeting Goal yields full V1.1 Meeting Intelligence plus
+V2 capabilities. V2 must not require fabricated fields or remove V1.1
+behavior.
+
 ### V1.2-G08 — Evaluation and Portfolio Evidence
 
 **Dependencies:** G07 only. Run a fixed 15–20-question relationship-oriented

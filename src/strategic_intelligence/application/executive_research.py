@@ -236,7 +236,7 @@ class ExecutiveResearchService:
         if _contains_excluded_personal_data(corpus_text):
             return None, "privacy"
         corpus = _terms(corpus_text)
-        if not _terms(case.executive_name).issubset(corpus):
+        if not case.executive_name or not _terms(case.executive_name).issubset(corpus):
             return None, "identity"
         if not self._is_professionally_relevant(case, task, corpus):
             return None, "relevance"
@@ -254,10 +254,10 @@ class ExecutiveResearchService:
 
     @staticmethod
     def _is_professionally_relevant(case: Case, task: ResearchTask, corpus: set[str]) -> bool:
-        company_context_terms = _terms(case.company_name) - _terms(case.executive_name)
+        company_context_terms = _terms(case.company_name) - _terms(case.executive_name or "")
         return bool(
             corpus & company_context_terms
-            or corpus & _terms(case.meeting_goal)
+            or corpus & _terms(case.meeting_goal or "")
             or corpus & _terms(task.category.value.replace("_", " "))
             or corpus & _PROFESSIONAL_TERMS
         )

@@ -82,6 +82,25 @@ def test_public_application_facade_executes_and_resumes_without_service_assembly
         application.close()
 
 
+def test_company_only_input_starts_company_research_without_fabricated_fields(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    search = FakeSearchProvider(results=[SearchResult(
+        title="Example Co strategy update", url="https://example.test/news",
+        snippet="Example Co announced a public strategy update.", publisher="Example Co",
+        published_at=date(2026, 8, 1),
+    )])
+    application = _application(search)
+    try:
+        result = application.execute({"company_name": "Example Co"}, as_of=AS_OF)
+        assert result.status is WorkflowExecutionStatus.PARTIAL
+        assert result.state.case_context is not None
+        assert result.state.case_context.executive_name is None
+        assert result.state.company_findings
+        assert search.calls
+    finally:
+        application.close()
+
+
 def test_public_application_facade_preserves_partial_and_sanitized_failure_results(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     application = _application(FakeSearchProvider())
@@ -90,10 +109,9 @@ def test_public_application_facade_preserves_partial_and_sanitized_failure_resul
         assert partial.status is WorkflowExecutionStatus.PARTIAL
         assert partial.errors[0].stage is WorkflowStage.RESEARCH_COMPLETED
 
-        failed = application.execute({"company_name": "Example Co"}, as_of=AS_OF)
-        assert failed.status is WorkflowExecutionStatus.FAILED
-        assert failed.errors[0].stage is WorkflowStage.CASE_VALIDATED
-        assert "secret" not in failed.errors[0].message
+        company_only = application.execute({"company_name": "Example Co"}, as_of=AS_OF)
+        assert company_only.status is WorkflowExecutionStatus.PARTIAL
+        assert company_only.errors[0].stage is WorkflowStage.RESEARCH_COMPLETED
     finally:
         application.close()
 
