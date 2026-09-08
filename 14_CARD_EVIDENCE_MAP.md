@@ -1855,11 +1855,42 @@ no implementation, test, provider, or Critical-Path evidence is claimed.
 
 ## V1.2-G03 — Entity Resolution
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** G02
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
-Evidence: PENDING — no entity-resolution implementation or validation.
+### Evidence
+
+- **Implementation:** `src/strategic_intelligence/domain/models.py` defines
+  `EntityType`, `EntityRecord`, and governed `EntityAlias` contracts;
+  `src/strategic_intelligence/application/entity_resolution.py` owns safe
+  canonicalization, conservative resolution, and evidence-backed alias reuse;
+  `SqliteRepository` persists stable entity records across restarts.
+- **Scope:** Exactly Company, Person, Technology, Project, and Event are
+  supported. Entity types remain isolated. No relationship, graph, GraphRAG,
+  UI, or provider behavior was added.
+- **Alias trust invariant:** Alias reuse now resolves persisted Claim,
+  Evidence, Claim↔Evidence SUPPORTS linkage, and the latest persisted
+  GovernanceDecision before merging. Caller-supplied IDs or status labels alone
+  fail closed.
+- **Focused tests:** `.venv/bin/python -m pytest
+  tests/unit/test_entity_resolution.py tests/unit/test_company_memory.py
+  tests/unit/test_persistence.py -q` — PASS, 16 passed. Covers all entity
+  types, type isolation, same-name people requiring context, governed alias
+  support, stable IDs after reopen, and fail-closed ambiguity.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 322 passed.
+- **Provider calls:** None.
+- **Critical Path:** canonical label → typed EntityRecord → SQLite persistence
+  and reopen → stable ID reuse; alias resolution requires Claim/Evidence IDs
+  plus PASS governance and ambiguous candidates do not merge.
+- **Known Limitations / Deferrals:** G04+ relationship extraction, graph
+  projection/storage, GraphRAG, and UI remain NOT_STARTED. G03 does not infer
+  aliases without caller-supplied governed support and does not resolve
+  entities from names alone when ambiguity remains.
+- **Exact Exit Gate Proof:** PASS — stable IDs persist across runs/restarts,
+  all five bounded entity types are isolated, conservative canonicalization is
+  implemented, evidence-backed aliases can be reused, and ambiguous entities
+  fail closed.
 
 ## V1.2-G04 — Governed Relationship Extraction
 

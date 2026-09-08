@@ -240,6 +240,44 @@ class TrackedCompany(DomainModel):
         return self
 
 
+class EntityType(str, Enum):
+    COMPANY = "Company"
+    PERSON = "Person"
+    TECHNOLOGY = "Technology"
+    PROJECT = "Project"
+    EVENT = "Event"
+
+
+class EntityAlias(DomainModel):
+    alias: str = Field(min_length=1)
+    normalized_alias: str = Field(min_length=1)
+    context_key: str | None = None
+    supporting_claim_ids: list[str] = Field(default_factory=list)
+    supporting_evidence_ids: list[str] = Field(default_factory=list)
+    governance_id: str = Field(min_length=1)
+    governance_status: GovernanceDecisionStatus
+    created_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def _alias_requires_governed_support(self) -> "EntityAlias":
+        if not self.supporting_claim_ids or not self.supporting_evidence_ids:
+            raise ValueError("entity alias requires supporting Claim and Evidence identifiers")
+        if self.governance_status is not GovernanceDecisionStatus.PASS:
+            raise ValueError("entity alias requires PASS governance")
+        return self
+
+
+class EntityRecord(DomainModel):
+    entity_id: str = Field(default_factory=new_id, min_length=1)
+    entity_type: EntityType
+    canonical_name: str = Field(min_length=1)
+    normalized_name: str = Field(min_length=1)
+    context_key: str | None = None
+    aliases: list[EntityAlias] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
 class Executive(DomainModel):
     executive_id: str = Field(default_factory=new_id, min_length=1)
     full_name: str = Field(min_length=1)

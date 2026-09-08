@@ -10,7 +10,7 @@ from typing import Sequence, TypeVar
 from pydantic import BaseModel
 
 from strategic_intelligence.domain.models import (
-    AuditEvent, Case, Claim, ClaimEvidenceLink, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, TrackedCompany, WorkflowRun, WorkflowStage,
+    AuditEvent, Case, Claim, ClaimEvidenceLink, EntityRecord, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, TrackedCompany, WorkflowRun, WorkflowStage,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_
 CREATE TABLE IF NOT EXISTS cases (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS workflow_runs (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS tracked_companies (id TEXT PRIMARY KEY, normalized_name TEXT NOT NULL UNIQUE, insertion_order INTEGER NOT NULL UNIQUE, payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS entities (id TEXT PRIMARY KEY, entity_type TEXT NOT NULL, normalized_name TEXT NOT NULL, context_key TEXT, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS sources (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), url TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, url));
 CREATE TABLE IF NOT EXISTS evidence (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), source_id TEXT NOT NULL REFERENCES sources(id), content TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, source_id, content));
 CREATE TABLE IF NOT EXISTS claims (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), text TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, text));
@@ -91,6 +92,35 @@ class SqliteRepository:
     def list_tracked_companies(self) -> list[TrackedCompany]:
         rows = self._connection.execute("SELECT payload FROM tracked_companies ORDER BY insertion_order").fetchall()
         return [self._load(TrackedCompany, row["payload"]) for row in rows]
+
+    def save_entity(self, entity: EntityRecord) -> EntityRecord:
+        with self._connection:
+            self._connection.execute(
+                "INSERT INTO entities(id, entity_type, normalized_name, context_key, payload) VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET entity_type=excluded.entity_type, normalized_name=excluded.normalized_name, context_key=excluded.context_key, payload=excluded.payload",
+                (entity.entity_id, entity.entity_type.value, entity.normalized_name, entity.context_key, self._dump(entity)),
+            )
+        return entity
+
+    def get_entity(self, entity_id: str) -> EntityRecord | None:
+        return self._get("entities", EntityRecord, entity_id)
+
+    def find_entities(self, entity_type: str, normalized_name: str, context_key: str | None = None) -> list[EntityRecord]:
+        if context_key is None:
+            rows = self._connection.execute(
+                "SELECT payload FROM entities WHERE entity_type = ? AND normalized_name = ? AND context_key IS NULL ORDER BY rowid",
+                (entity_type, normalized_name),
+            ).fetchall()
+        else:
+            rows = self._connection.execute(
+                "SELECT payload FROM entities WHERE entity_type = ? AND normalized_name = ? AND context_key = ? ORDER BY rowid",
+                (entity_type, normalized_name, context_key),
+            ).fetchall()
+        return [self._load(EntityRecord, row["payload"]) for row in rows]
+
+    def list_entities(self) -> list[EntityRecord]:
+        rows = self._connection.execute("SELECT payload FROM entities ORDER BY rowid").fetchall()
+        return [self._load(EntityRecord, row["payload"]) for row in rows]
 
     def save_audit_event(self, event: AuditEvent) -> AuditEvent:
         with self._connection:
