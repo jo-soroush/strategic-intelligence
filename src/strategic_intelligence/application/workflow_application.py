@@ -17,6 +17,8 @@ from strategic_intelligence.application.company_research import CompanyResearchS
 from strategic_intelligence.application.evidence_layer import EvidenceLayerService
 from strategic_intelligence.application.executive_research import ExecutiveResearchService
 from strategic_intelligence.application.follow_up_research import FollowUpResearchService
+from strategic_intelligence.application.graph_persistence import GraphPersistenceService
+from strategic_intelligence.application.graph_rag import EvidenceBackedGraphRAG, GraphProvenance, GraphQuestion, GraphRAGResult, GraphRAGStatus
 from strategic_intelligence.application.research_planning import ResearchPlanner
 from strategic_intelligence.application.strategic_analysis import StrategicAnalysisService
 from strategic_intelligence.application.source_acquisition import PublicSourceRetriever
@@ -28,16 +30,18 @@ from strategic_intelligence.harness.workflow_executor import WorkflowExecutionRe
 from strategic_intelligence.infrastructure.sqlite_repository import SqliteRepository
 from strategic_intelligence.observability.audit import AuditReport, AuditTrail, ObservedLLMProvider, ObservedSearchProvider
 from strategic_intelligence.providers.factory import Providers, build_providers
+from strategic_intelligence.domain.models import GraphNode, RelationshipRecord, TrackedCompany
 
 
 class WorkflowApplication:
     """Application-owned entry point for executing or resuming the V1 workflow."""
 
-    def __init__(self, executor: WorkflowExecutor, repository: SqliteRepository, audit: AuditTrail, memory: CompanyMemoryService) -> None:
+    def __init__(self, executor: WorkflowExecutor, repository: SqliteRepository, audit: AuditTrail, memory: CompanyMemoryService, graph_rag: EvidenceBackedGraphRAG | None = None) -> None:
         self._executor = executor
         self._repository = repository
         self._audit = audit
         self._memory = memory
+        self._graph_rag = graph_rag
 
     @classmethod
     def from_environment(cls) -> "WorkflowApplication":
@@ -78,7 +82,37 @@ class WorkflowApplication:
             BriefGeneratorService(repository),
             audit=audit,
         )
-        return cls(executor, repository, audit, CompanyMemoryService(repository))
+        return cls(executor, repository, audit, CompanyMemoryService(repository), EvidenceBackedGraphRAG(repository, observed.llm))
+
+    def companies_in_memory(self) -> list[TrackedCompany]:
+        """Read ordered durable company memory without research side effects."""
+        return self._repository.list_tracked_companies()
+
+    def stored_company_result(self, tracked_company_id: str) -> WorkflowExecutionResult | None:
+        tracked = self._repository.get_tracked_company(tracked_company_id)
+        if tracked is None or tracked.active_run_id is None:
+            return None
+        run = self._repository.get_workflow_run(tracked.active_run_id)
+        if run is None or run.snapshot is None:
+            return None
+        return self._result_from_persisted_run(run)
+
+    def graph_nodes(self) -> list[GraphNode]:
+        return GraphPersistenceService(self._repository).rebuild()[0]
+
+    def graph_edges(self) -> list[RelationshipRecord]:
+        return GraphPersistenceService(self._repository).rebuild()[1]
+
+    def graph_provenance(self, relationship_id: str) -> tuple[GraphProvenance, ...]:
+        edge = self._repository.get_graph_edge(relationship_id)
+        if edge is None or self._graph_rag is None:
+            return ()
+        return self._graph_rag.provenance_for_relationship(edge)
+
+    def ask_graph(self, query: GraphQuestion) -> GraphRAGResult:
+        if self._graph_rag is None:
+            return GraphRAGResult(status=GraphRAGStatus.REJECTED, reason="GraphRAG is not configured")
+        return self._graph_rag.answer(query)
 
     def execute(self, payload: Mapping[str, object], *, as_of: date, refresh: bool = False) -> WorkflowExecutionResult:
         """Load active company memory first, or execute a new explicit run."""

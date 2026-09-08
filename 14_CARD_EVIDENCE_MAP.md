@@ -2016,11 +2016,41 @@ Refresh, or research side effects.
 
 ## V1.2-G07 — Graph Intelligence UI
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** G06
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
-Evidence: PENDING — no Graph Intelligence UI implementation.
+Evidence: Added bounded local UI routes and presentation in
+`ui/local_app.py`, with G07-facing read-only methods on
+`WorkflowApplication`. The UI provides Companies in Memory, Company
+Intelligence, Connections/Graph View, collapsed relationship evidence
+inspection, Ask Graph, and explicit Refresh Research.
+
+- Opening `/memory` and stored company intelligence reconstructs the active
+  persisted WorkflowRun through G02 memory and performs no research. Refresh
+  is a separate explicit `POST /refresh` action.
+- Graph View reads durable G05 nodes/edges, hides BLOCKed edges, and exposes
+  relation type, endpoint IDs, Claim, Evidence, Source, Governance, research
+  run, and temporal status through collapsed inspection details. Existing
+  provenance escaping and safe rendering remain in force.
+- Ask Graph constructs the typed G06 question and calls only its read-only
+  GraphRAG boundary. The page labels answers as stored memory/graph context;
+  no search, Refresh, or workflow execution is triggered by graph queries.
+- **Focused tests:** `tests/unit/test_graph_ui.py` plus the existing local UI
+  suite — 13 passed, covering read-only memory opening, explicit refresh,
+  graph/provenance inspection, Ask Graph routing, and preserved V1.1 UI trust
+  rendering.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 337 passed.
+- **Provider calls:** None during validation; tests use deterministic doubles.
+- **Critical Path:** PASS — persisted company memory → read-only Company
+  Intelligence → durable graph nodes/edges → safe relationship provenance
+  inspection → typed G06 Ask Graph/no-path boundary, with Refresh isolated to
+  its explicit action.
+
+**Exact Exit Gate Proof:** PASS — users can inspect stored company memory,
+relationships, and provenance; opening memory does not research; Refresh is
+explicit; and graph questions use bounded read-only GraphRAG without web or
+research side effects.
 
 ## V1.2-G08 — Evaluation and Portfolio Evidence
 

@@ -120,6 +120,10 @@ class EvidenceBackedGraphRAG:
         qualification = "Answer is limited to eligible PASS/CURRENT graph relationships and cited canonical evidence."
         return GraphRAGResult(GraphRAGStatus.ANSWERED, answer=answer, provenance=provenance, paths=paths, qualification=qualification)
 
+    def provenance_for_relationship(self, relationship: RelationshipRecord) -> tuple[GraphProvenance, ...]:
+        """Return safe canonical provenance for UI inspection without an LLM call."""
+        return self._supporting_provenance(((relationship,),))
+
     def _resolve_entities(self, query: GraphQuestion) -> tuple[str, ...]:
         if not query.entities:
             question = canonicalize_entity_label(query.question)

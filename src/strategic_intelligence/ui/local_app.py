@@ -10,7 +10,8 @@ from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
 
 from strategic_intelligence.application.workflow_application import WorkflowApplication
-from strategic_intelligence.domain.models import AnalysisItem, MeetingBrief, MeetingQuestion, MeetingTakeaway, Opportunity, QuickBrief, ResearchCategory, WorkflowError
+from strategic_intelligence.application.graph_rag import GraphEntityHint, GraphQuestion, GraphQueryCategory, GraphRAGResult, GraphRAGStatus
+from strategic_intelligence.domain.models import AnalysisItem, EntityType, GovernanceDecisionStatus, MeetingBrief, MeetingQuestion, MeetingTakeaway, Opportunity, QuickBrief, ResearchCategory, WorkflowError
 from strategic_intelligence.harness.workflow_executor import WorkflowExecutionResult
 from strategic_intelligence.observability.logging import configured_secret_values, redact_secrets
 
@@ -275,6 +276,107 @@ def _brief_preview() -> str:
     )
 
 
+def _memory_page(workflow: WorkflowApplication, selected: str | None = None) -> str:
+    companies = workflow.companies_in_memory()
+    cards: list[str] = []
+    for company in companies:
+        selected_marker = ' <span class="memory-active">Selected</span>' if company.tracked_company_id == selected else ""
+        cards.append(
+            '<article class="memory-card">'
+            f'<h3>{_text(company.display_name)}{selected_marker}</h3>'
+            f'<p class="supporting-text">{len(company.run_ids)} stored research run(s) · memory-first</p>'
+            f'<a class="quiet-action" href="/memory?tracked={_text(company.tracked_company_id)}">Open stored intelligence</a>'
+            "</article>"
+        )
+    listing = "".join(cards) or '<p class="empty">No companies are in memory yet. Prepare a brief to create the first stored record.</p>'
+    selected_result = workflow.stored_company_result(selected) if selected else None
+    selected_markup = ""
+    if selected_result is not None:
+        case = selected_result.state.case_context
+        refresh_fields = "" if case is None else (
+            f'<input type="hidden" name="company_name" value="{_text(case.company_name)}">'
+            f'<input type="hidden" name="executive_name" value="{_text(case.executive_name)}">'
+            f'<input type="hidden" name="meeting_goal" value="{_text(case.meeting_goal)}">'
+        )
+        selected_markup = (
+            '<section class="stored-intelligence"><div class="section-heading"><div><p class="eyebrow">Company Intelligence</p>'
+            f'<h2>{_text(case.company_name if case else "Stored intelligence")}</h2>'
+            '<p class="supporting-text">Loaded from durable memory. Opening this view does not research.</p></div>'
+            f'<form method="post" action="/refresh" class="refresh-form">{refresh_fields}<button type="submit">Refresh research</button></form></div>'
+            f'{render_result(selected_result)}</section>'
+        )
+    return (
+        '<section class="tool-page"><p class="eyebrow">Companies in Memory</p><h1>Stored company intelligence.</h1>'
+        '<p class="lede">Open governed runs from local memory, inspect connections, or choose Refresh research explicitly.</p>'
+        f'<div class="memory-grid">{listing}</div>{selected_markup}'
+        '<p class="tool-links"><a href="/graph">Open Graph View</a></p></section>'
+    )
+
+
+def _graph_page(workflow: WorkflowApplication) -> str:
+    nodes = workflow.graph_nodes()
+    edges = [edge for edge in workflow.graph_edges() if edge.governance_status is not GovernanceDecisionStatus.BLOCK]
+    node_markup = "".join(
+        f'<li class="graph-node"><strong>{_text(node.canonical_name)}</strong><span>{_text(node.entity_type.value)} · {_text(node.entity_id)}</span></li>'
+        for node in nodes
+    ) or '<li class="empty">No persisted graph nodes are available.</li>'
+    edge_markup: list[str] = []
+    for edge in edges:
+        provenance = workflow.graph_provenance(edge.relationship_id)
+        evidence_markup = "".join(
+            f'<li>Claim <code>{_text(item.claim_id)}</code> · Evidence <code>{_text(item.evidence_id)}</code> · '
+            f'Source {_text(item.source_title)} ({_text(item.source_url)}) · '
+            f'Governance {_text(item.governance_id)}: {_text(item.governance_status.value)} · '
+            f'Claim text: {_display_text(item.claim_text)} · Evidence: {_display_text(item.evidence_text)}</li>'
+            for item in provenance
+        ) or '<li class="empty">No safe supporting provenance is available.</li>'
+        edge_markup.append(
+            '<details class="graph-edge"><summary>'
+            f'{_text(edge.relation_type.value)} · {_text(edge.source_entity_id)} → {_text(edge.target_entity_id)} · '
+            f'{_text(edge.temporal_status.value)}</summary>'
+            f'<p>Relationship <code>{_text(edge.relationship_id)}</code> · Run <code>{_text(edge.research_run_id)}</code> · '
+            f'Governance {_text(edge.governance_status.value)}</p><ul>{evidence_markup}</ul></details>'
+        )
+    return (
+        '<section class="tool-page"><p class="eyebrow">Graph View</p><h1>Connections, with their proof.</h1>'
+        '<p class="lede">Persisted nodes and governed relationships only. Historical or ineligible edges remain inspectable but are not usable answers.</p>'
+        '<div class="graph-layout"><section class="graph-panel"><h2>Nodes</h2><ul class="graph-nodes">' + node_markup +
+        '</ul></section><section class="graph-panel"><h2>Relationships</h2>' + "".join(edge_markup) +
+        ('<p class="empty">No persisted relationships are available.</p>' if not edge_markup else '') +
+        '</section></div><p class="tool-links"><a href="/memory">Back to Companies in Memory</a></p></section>'
+    )
+
+
+def _ask_result(result: GraphRAGResult) -> str:
+    if result.status is GraphRAGStatus.ANSWERED:
+        provenance = "".join(
+            f'<li>Relationship <code>{_text(item.relationship_id)}</code> · Claim <code>{_text(item.claim_id)}</code> · '
+            f'Evidence <code>{_text(item.evidence_id)}</code> · Source {_text(item.source_title)}</li>'
+            for item in result.provenance
+        )
+        return f'<section class="ask-result"><h2>Graph answer</h2><p>{_display_text(result.answer or "", clamp=False)}</p><p class="qualification">{_text(result.qualification or "")}</p><details><summary>Evidence and provenance</summary><ul>{provenance}</ul></details></section>'
+    tone = "notice" if result.status is GraphRAGStatus.NO_PATH else "notice error"
+    return f'<section class="{tone}" role="status"><strong>{_text(result.status.value.replace("_", " ").title())}.</strong> {_text(result.reason or "No answer was returned.")}</section>'
+
+
+def _ask_page(result: GraphRAGResult | None = None) -> str:
+    answer = "" if result is None else _ask_result(result)
+    return (
+        '<section class="tool-page"><p class="eyebrow">Ask Graph</p><h1>Ask what the stored graph supports.</h1>'
+        '<p class="lede">Answers use persisted memory and governed graph evidence only. This does not search the web or refresh research.</p>'
+        '<form method="post" action="/ask-graph" class="ask-form"><label for="graph_question">Question</label><textarea id="graph_question" name="question" required rows="3"></textarea>'
+        '<label for="graph_category">Query category</label><select id="graph_category" name="category">' +
+        "".join(f'<option value="{_text(category.value)}">{_text(category.value.replace("_", " ").title())}</option>' for category in GraphQueryCategory) +
+        '</select><label for="graph_entity_1">First entity label</label><input id="graph_entity_1" name="entity_label_1" required>'
+        '<label for="graph_entity_type_1">First entity type</label><select id="graph_entity_type_1" name="entity_type_1">' +
+        "".join(f'<option>{_text(entity_type.value)}</option>' for entity_type in EntityType) +
+        '</select><label for="graph_entity_2">Second entity label (optional)</label><input id="graph_entity_2" name="entity_label_2">'
+        '<label for="graph_entity_type_2">Second entity type</label><select id="graph_entity_type_2" name="entity_type_2">' +
+        "".join(f'<option>{_text(entity_type.value)}</option>' for entity_type in EntityType) +
+        '</select><button type="submit">Ask stored graph</button></form>' + answer + '</section>'
+    )
+
+
 def _errors(errors: Iterable[WorkflowError]) -> str:
     rendered = "".join(
         f"<li><strong>{_text(error.error_code.value)}</strong> at {_text(error.stage.value if error.stage else 'unknown stage')}: {_text(redact_secrets(error.message, configured_secret_values()))}</li>"
@@ -368,6 +470,8 @@ def _page(body: str) -> bytes:
     @media (max-width:480px) { .preview-grid { grid-template-columns:1fr; } .brand-name { font-size:1.55rem; } }
     main { width:min(1480px,92vw); padding-top:24px; } .brand-header { margin-bottom:26px; } .entry-layout { gap:22px; } .case-form-card { padding:clamp(24px,2.6vw,34px); } .case-form-card .lede { margin-bottom:18px; } fieldset { gap:10px; } label { margin-top:8px; } input,textarea { padding:11px 13px; } textarea { min-height:84px; } .form-support { margin-top:22px; padding-top:16px; } button { margin-top:22px; padding:14px 20px; } .context-panel,.panel-visual { min-height:500px; } .preview-section { margin-top:28px; }
     @media (max-width:760px) { main { width:calc(100% - 32px); padding-top:24px; } .context-panel,.panel-visual { min-height:460px; } }
+    .tool-page { margin-top:22px; } .tool-page h1 { max-width:none; font-size:clamp(2rem,4vw,3.4rem); } .tool-links { margin-top:26px; } .tool-links a,.quiet-action { color:var(--accent); font-weight:750; } .memory-grid { display:grid; gap:16px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:28px 0; } .memory-card,.graph-panel,.ask-form,.ask-result,.stored-intelligence { background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 10px 26px #18313d0b; padding:20px; } .memory-card h3 { margin-bottom:4px; } .memory-active { background:var(--accent-soft); border-radius:999px; color:var(--accent); font-size:.7rem; margin-left:7px; padding:4px 8px; } .section-heading { align-items:flex-start; display:flex; gap:20px; justify-content:space-between; } .refresh-form { min-width:180px; } .refresh-form button { margin-top:0; padding:11px 15px; } .stored-intelligence .result { border:0; box-shadow:none; margin-top:18px; padding:0; } .graph-layout { display:grid; gap:18px; grid-template-columns:minmax(220px,.8fr) minmax(0,1.6fr); margin-top:26px; } .graph-nodes { list-style:none; margin:0; padding:0; } .graph-node { border-bottom:1px solid var(--line); display:grid; gap:2px; padding:12px 0; } .graph-node span { color:var(--muted); font-size:.8rem; } .graph-edge { border-top:1px solid var(--line); padding:13px 0; } .graph-edge summary { color:var(--accent); cursor:pointer; font-weight:750; } .graph-edge p,.graph-edge li { color:var(--muted); font-size:.84rem; } .graph-edge ul { padding-left:18px; } .ask-form { display:grid; gap:9px; margin-top:24px; max-width:720px; } select { background:#fff; border:1px solid #a5b9c1; border-radius:11px; color:var(--ink); font:inherit; padding:11px 13px; } select:focus { outline:3px solid #9bd0cb; outline-offset:2px; border-color:var(--accent); } .ask-result { margin-top:22px; max-width:900px; } .qualification { color:var(--muted); font-size:.9rem; } .ask-result details { border-top:1px solid var(--line); padding-top:13px; } .ask-result li { color:var(--muted); font-size:.86rem; margin:6px 0; }
+    @media (max-width:760px) { .memory-grid,.graph-layout { grid-template-columns:1fr; } .section-heading { display:block; } .refresh-form { margin-top:16px; } }
     """
     script = """
     document.addEventListener('DOMContentLoaded', function () {
@@ -398,16 +502,42 @@ class LocalUi:
         if method == "GET" and path == f"/assets/{_MEETING_ROOM_ASSET}":
             return self._asset_response(start_response)
         if method == "GET":
+            if path == "/memory":
+                if self._workflow is None:
+                    return self._respond(start_response, "503 Service Unavailable", _page(self._startup_message()))
+                selected = parse_qs(str(environ.get("QUERY_STRING", ""))).get("tracked", [None])[0]
+                return self._respond(start_response, "200 OK", _page(_memory_page(self._workflow, selected)))
+            if path == "/graph":
+                if self._workflow is None:
+                    return self._respond(start_response, "503 Service Unavailable", _page(self._startup_message()))
+                return self._respond(start_response, "200 OK", _page(_graph_page(self._workflow)))
+            if path == "/ask-graph":
+                return self._respond(start_response, "200 OK", _page(_ask_page()))
             return self._respond(start_response, "200 OK", _page(self._startup_message() + _form()))
         if method != "POST":
             return self._respond(start_response, "405 Method Not Allowed", _page("<p>Method not allowed.</p>"))
         if self._workflow is None:
             return self._respond(start_response, "503 Service Unavailable", _page(self._startup_message() + _form()))
+        if path == "/ask-graph":
+            values, error = self._ask_payload(environ)
+            if error:
+                return self._respond(start_response, "400 Bad Request", _page(_ask_page(GraphRAGResult(GraphRAGStatus.REJECTED, reason=error))))
+            try:
+                entities = []
+                if values.get("entity_label_1"):
+                    entities.append(GraphEntityHint(values["entity_label_1"], EntityType(values["entity_type_1"])))
+                if values.get("entity_label_2"):
+                    entities.append(GraphEntityHint(values["entity_label_2"], EntityType(values["entity_type_2"])))
+                query = GraphQuestion(question=values["question"], category=GraphQueryCategory(values["category"]), entities=tuple(entities))
+                result = self._workflow.ask_graph(query)
+            except (KeyError, TypeError, ValueError):
+                result = GraphRAGResult(GraphRAGStatus.REJECTED, reason="Invalid graph question.")
+            return self._respond(start_response, "200 OK", _page(_ask_page(result)))
         payload, values, error = self._payload(environ)
         if error:
             return self._respond(start_response, "400 Bad Request", _page(f"<p>{_text(error)}</p>" + _form(values)))
         try:
-            result = self._workflow.execute(payload, as_of=date.today())
+            result = self._workflow.refresh(payload, as_of=date.today()) if path == "/refresh" else self._workflow.execute(payload, as_of=date.today())
         except Exception:
             return self._respond(start_response, "503 Service Unavailable", _page("<p>Local workflow is unavailable. Check approved local configuration.</p>" + _form(values)))
         return self._respond(start_response, "200 OK", _page(_form(values) + render_result(result)))
@@ -445,6 +575,27 @@ class LocalUi:
         values = {name: parsed.get(name, [""])[0] for name in _FORM_FIELDS}
         payload = {name: value for name, value in values.items() if value or name in {"company_name", "executive_name", "meeting_goal"}}
         return payload, values, None
+
+    @staticmethod
+    def _ask_payload(environ: Mapping[str, object]) -> tuple[dict[str, str], str | None]:
+        raw_length = environ.get("CONTENT_LENGTH", "0")
+        try:
+            length = int(str(raw_length) or "0")
+        except ValueError:
+            return {}, "Invalid graph question."
+        if length < 0 or length > _MAX_FORM_BYTES:
+            return {}, "Graph question is too large."
+        stream = environ.get("wsgi.input")
+        if not hasattr(stream, "read"):
+            return {}, "Invalid graph question."
+        try:
+            parsed = parse_qs(stream.read(length).decode("utf-8"), keep_blank_values=True, strict_parsing=True)
+        except (UnicodeDecodeError, ValueError):
+            return {}, "Invalid graph question."
+        values = {name: parsed.get(name, [""])[0] for name in ("question", "category", "entity_label_1", "entity_type_1", "entity_label_2", "entity_type_2")}
+        if not values["question"] or not values["category"] or not values["entity_label_1"]:
+            return {}, "Question and a first entity are required."
+        return values, None
 
     def _startup_message(self) -> str:
         return "" if self._startup_error is None else f"<p>{_text(self._startup_error)}</p>"
