@@ -10,7 +10,7 @@ from typing import Sequence, TypeVar
 from pydantic import BaseModel
 
 from strategic_intelligence.domain.models import (
-    AuditEvent, Case, Claim, ClaimEvidenceLink, EntityRecord, Evidence, FollowUpResearchAttempt, GovernanceDecision, Source, TrackedCompany, WorkflowRun, WorkflowStage,
+    AuditEvent, Case, Claim, ClaimEvidenceLink, EntityRecord, Evidence, FollowUpResearchAttempt, GovernanceDecision, GraphNode, RelationshipRecord, Source, TrackedCompany, WorkflowRun, WorkflowStage,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -20,13 +20,15 @@ class CheckpointRejectedError(ValueError):
     """Raised when a checkpoint's required persisted records are absent."""
 
 
-_SCHEMA_VERSION = "002_company_memory"
+_SCHEMA_VERSION = "003_graph_projection"
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS cases (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS workflow_runs (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS tracked_companies (id TEXT PRIMARY KEY, normalized_name TEXT NOT NULL UNIQUE, insertion_order INTEGER NOT NULL UNIQUE, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS entities (id TEXT PRIMARY KEY, entity_type TEXT NOT NULL, normalized_name TEXT NOT NULL, context_key TEXT, payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS graph_nodes (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS graph_edges (id TEXT PRIMARY KEY, canonical_key TEXT NOT NULL UNIQUE, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS sources (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), url TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, url));
 CREATE TABLE IF NOT EXISTS evidence (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), source_id TEXT NOT NULL REFERENCES sources(id), content TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, source_id, content));
 CREATE TABLE IF NOT EXISTS claims (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), text TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(case_id, text));
@@ -121,6 +123,53 @@ class SqliteRepository:
     def list_entities(self) -> list[EntityRecord]:
         rows = self._connection.execute("SELECT payload FROM entities ORDER BY rowid").fetchall()
         return [self._load(EntityRecord, row["payload"]) for row in rows]
+
+    def save_graph_node(self, node: GraphNode) -> GraphNode:
+        with self._connection:
+            self._connection.execute(
+                "INSERT INTO graph_nodes(id, payload) VALUES (?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET payload=excluded.payload",
+                (node.entity_id, self._dump(node)),
+            )
+        return node
+
+    def get_graph_node(self, entity_id: str) -> GraphNode | None:
+        return self._get("graph_nodes", GraphNode, entity_id)
+
+    def list_graph_nodes(self) -> list[GraphNode]:
+        rows = self._connection.execute("SELECT payload FROM graph_nodes ORDER BY rowid").fetchall()
+        return [self._load(GraphNode, row["payload"]) for row in rows]
+
+    def save_graph_edge(self, relationship: RelationshipRecord, canonical_key: str) -> RelationshipRecord:
+        existing = self._connection.execute(
+            "SELECT id, payload FROM graph_edges WHERE canonical_key = ?", (canonical_key,)
+        ).fetchone()
+        if existing is not None and existing["id"] != relationship.relationship_id:
+            raise ValueError("duplicate canonical graph edge")
+        prior = self._connection.execute(
+            "SELECT payload FROM graph_edges WHERE id = ?", (relationship.relationship_id,)
+        ).fetchone()
+        if prior is not None and self._dump(relationship) != prior["payload"]:
+            raise ValueError("relationship identifier already has different graph payload")
+        with self._connection:
+            self._connection.execute(
+                "INSERT INTO graph_edges(id, canonical_key, payload) VALUES (?, ?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET canonical_key=excluded.canonical_key, payload=excluded.payload",
+                (relationship.relationship_id, canonical_key, self._dump(relationship)),
+            )
+        return relationship
+
+    def get_graph_edge(self, relationship_id: str) -> RelationshipRecord | None:
+        return self._get("graph_edges", RelationshipRecord, relationship_id)
+
+    def list_graph_edges(self) -> list[RelationshipRecord]:
+        rows = self._connection.execute("SELECT payload FROM graph_edges ORDER BY rowid").fetchall()
+        return [self._load(RelationshipRecord, row["payload"]) for row in rows]
+
+    def graph_edge_exists_by_key(self, canonical_key: str) -> bool:
+        return self._connection.execute(
+            "SELECT 1 FROM graph_edges WHERE canonical_key = ?", (canonical_key,)
+        ).fetchone() is not None
 
     def save_audit_event(self, event: AuditEvent) -> AuditEvent:
         with self._connection:

@@ -333,6 +333,16 @@ class RelationshipRecord(DomainModel):
         return self
 
 
+class GraphNode(DomainModel):
+    """Restart-safe projection of one canonical resolved entity."""
+
+    entity_id: str = Field(min_length=1)
+    entity_type: EntityType
+    canonical_name: str = Field(min_length=1)
+    normalized_name: str = Field(min_length=1)
+    projected_at: datetime = Field(default_factory=utc_now)
+
+
 class Executive(DomainModel):
     executive_id: str = Field(default_factory=new_id, min_length=1)
     full_name: str = Field(min_length=1)

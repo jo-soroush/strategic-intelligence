@@ -1936,11 +1936,44 @@ temporally classified; ineligible or BLOCKed material cannot become usable.
 
 ## V1.2-G05 — Knowledge Graph Persistence
 
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 **Dependencies:** G04
-**Exit Gate:** PENDING
+**Exit Gate:** PASS
 
-Evidence: PENDING — no graph projection or persistence implementation.
+Evidence: Implemented local SQLite graph projection in
+`infrastructure/sqlite_repository.py` and
+`application/graph_persistence.py`. Graph nodes are projections of persisted
+G03 `EntityRecord`s and graph edges retain the complete G04
+`RelationshipRecord`; canonical Claim/Evidence/Source/Verification/Governance
+records remain the source of truth.
+
+- Projection is incremental and idempotent. Canonical edge keys reject duplicate
+  semantic edges while allowing distinct research-run history and preserving
+  superseded/stale/conflicting records.
+- Restart reconstruction reads durable graph nodes/edges without research or
+  provider activity. Projection re-validates G04 provenance, entity pairs,
+  same-run Claim/Evidence/Source SUPPORTS proof, verification, governance, and
+  temporal status before persistence.
+- Integrity checks detect orphan edges/nodes, canonical entity drift, invalid
+  provenance, duplicate canonical keys, and relationships no longer eligible
+  under canonical trust rules. BLOCKed material cannot be projected or become
+  usable retrieval.
+- Minimal traversal exposes neighbors and paths bounded to the G01 maximum of
+  three edges. Only PASS + CURRENT + usable relationships are traversable;
+  GraphRAG answer generation and UI remain deferred.
+- **Focused tests:** `tests/unit/test_graph_persistence.py` plus the G04
+  extraction suite — 8 passed, covering idempotent projection, restart-safe
+  reconstruction, duplicate/orphan/provenance rejection, integrity checks,
+  temporal filtering, and the three-hop bound.
+- **Regression:** `.venv/bin/python -m pytest -q` — PASS, 330 passed.
+- **Provider calls:** None.
+- **Critical Path:** PASS — persisted G03 entities + G04 governed relationship
+  → canonical revalidation → SQLite node/edge projection → close/reopen →
+  integrity check and bounded traversal.
+
+**Exact Exit Gate Proof:** PASS — incremental projection is durable,
+idempotent, restart-safe, and reconciliation-capable without introducing a
+second source of truth.
 
 ## V1.2-G06 — Evidence-backed GraphRAG
 
