@@ -22,11 +22,9 @@ _EXECUTIVE_CATEGORIES = frozenset({
     ResearchCategory.PUBLIC_ACTIVITY,
 })
 _STOP_WORDS = frozenset({"about", "and", "for", "from", "into", "meeting", "the", "this", "with"})
-_PROFESSIONAL_TERMS = frozenset({
-    "article", "business", "company", "conference", "director", "executive",
-    "focus", "interview", "leader", "leadership", "professional", "project",
-    "publication", "responsibilities", "responsibility", "role", "speaker",
-    "strategy", "talk",
+_GENERIC_COMPANY_TERMS = frozenset({
+    "ai", "co", "company", "corp", "corporation", "group", "inc", "lab", "labs",
+    "limited", "llc", "ltd", "org", "organization", "systems", "technologies",
 })
 _EXCLUDED_PERSONAL_MARKERS = (
     "home address", "lives at", "private relationship", "family details",
@@ -172,6 +170,10 @@ class ExecutiveResearchService:
                     "extracted_content": acquired.content.text,
                     "content_origin": ContentOrigin.PUBLIC_PAGE,
                 })
+                if not self._is_acquired_relevant(case, finding, result.publisher):
+                    rejected_count += 1
+                    identity_rejected += 1
+                    continue
             content_key = _content_key(finding.extracted_content)
             if content_key in seen_content:
                 rejected_count += 1
@@ -238,7 +240,7 @@ class ExecutiveResearchService:
         corpus = _terms(corpus_text)
         if not _terms(case.executive_name).issubset(corpus):
             return None, "identity"
-        if not self._is_professionally_relevant(case, task, corpus):
+        if not self._is_professionally_relevant(case, corpus_text, result.url):
             return None, "relevance"
         return RawFinding(
             case_id=case.case_id,
@@ -253,13 +255,16 @@ class ExecutiveResearchService:
         ), None
 
     @staticmethod
-    def _is_professionally_relevant(case: Case, task: ResearchTask, corpus: set[str]) -> bool:
-        company_context_terms = _terms(case.company_name) - _terms(case.executive_name)
-        return bool(
-            corpus & company_context_terms
-            or corpus & _terms(case.meeting_goal)
-            or corpus & _terms(task.category.value.replace("_", " "))
-            or corpus & _PROFESSIONAL_TERMS
+    def _is_professionally_relevant(case: Case, corpus_text: str, result_url: str) -> bool:
+        return _company_identity_supported(case, corpus_text, result_url)
+
+    @staticmethod
+    def _is_acquired_relevant(case: Case, finding: RawFinding, publisher: str | None) -> bool:
+        page_text = " ".join(filter(None, (finding.title, finding.extracted_content)))
+        page_terms = _terms(page_text)
+        return (
+            _terms(case.executive_name).issubset(page_terms)
+            and _company_identity_supported(case, page_text, finding.source_url, publisher=publisher)
         )
 
     @staticmethod
@@ -285,6 +290,76 @@ class ExecutiveResearchService:
 
 def _terms(value: str) -> set[str]:
     return {term for term in re.findall(r"[a-z0-9]+", value.casefold()) if len(term) > 2 and term not in _STOP_WORDS}
+
+
+def _normalized_words(value: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+", value.casefold())
+
+
+def _matches_company_domain(company_website: str | None, result_url: str) -> bool:
+    if not company_website:
+        return False
+    expected = (urlsplit(company_website).hostname or "").casefold().removeprefix("www.")
+    actual = (urlsplit(result_url).hostname or "").casefold().removeprefix("www.")
+    return bool(expected) and (actual == expected or actual.endswith(f".{expected}"))
+
+
+def _company_identity_supported(case: Case, content_text: str, source_url: str, *, publisher: str | None = None) -> bool:
+    # Match the C07 policy: the official host and its subdomains are strong
+    # anchors, while off-domain name matches need a literal official-domain tie.
+    if _matches_company_domain(case.company_website, source_url):
+        return True
+
+    content_terms = _terms(content_text)
+    company_terms = _terms(case.company_name)
+    meaningful_company_terms = company_terms - _GENERIC_COMPANY_TERMS
+    publisher_terms = _terms(publisher or "")
+    name_signal = bool(
+        _contains_company_phrase(content_text, case.company_name)
+        or (
+            len(meaningful_company_terms) >= 2
+            and meaningful_company_terms.issubset(content_terms | publisher_terms)
+            and bool(meaningful_company_terms & content_terms)
+        )
+    )
+    if not name_signal:
+        return False
+    if not case.company_website:
+        return True
+    return (
+        _contains_official_domain_reference(content_text, case.company_website)
+        or _contains_official_domain_reference(publisher or "", case.company_website)
+    )
+
+
+def _contains_official_domain_reference(text: str, company_website: str | None) -> bool:
+    if not company_website:
+        return False
+    host = (urlsplit(company_website).hostname or "").casefold().removeprefix("www.")
+    host_words = _normalized_words(host)
+    if not host_words:
+        return False
+    corpus_words = _normalized_words(text)
+    return any(
+        corpus_words[index:index + len(host_words)] == host_words
+        for index in range(len(corpus_words) - len(host_words) + 1)
+    )
+
+
+def _contains_company_phrase(text: str, company_name: str) -> bool:
+    words = _normalized_words(company_name)
+    if not words:
+        return False
+    last = words[-1]
+    variants = {last}
+    if last in {"lab", "labs"}:
+        variants.add("labs" if last == "lab" else "lab")
+    corpus_words = _normalized_words(text)
+    return any(
+        corpus_words[index:index + len(words) - 1] == words[:-1]
+        and corpus_words[index + len(words) - 1] in variants
+        for index in range(len(corpus_words) - len(words) + 1)
+    )
 
 
 def _contains_excluded_personal_data(value: str) -> bool:

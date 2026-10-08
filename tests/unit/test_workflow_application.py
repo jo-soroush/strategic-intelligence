@@ -108,7 +108,7 @@ def test_public_application_facade_preserves_governed_gaps_and_omission_disclosu
             return [SearchResult(
                 title=f"Ava Example at Example Co {self.calls}",
                 url=f"https://public.example.org/news-{self.calls}",
-                snippet=f"Example Co public announcement {self.calls}.",
+                snippet=f"Example Co, profiled at example.test, public announcement {self.calls}.",
                 publisher="Public News", published_at=date(2026, 8, 1),
             )]
 

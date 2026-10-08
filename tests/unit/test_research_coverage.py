@@ -72,7 +72,7 @@ def test_canonical_exclusions_deduplicate_harmless_variants_but_not_distinct_res
     duplicate = "https://sources.example.test/report"
     distinct = "https://sources.example.test/report?page=2"
     retriever = _Retriever({
-        distinct: "Public professional report This distinct page contains enough substantive enterprise AI strategy and delivery context to support a finding.",
+        distinct: "Public professional report Example Co This distinct page contains enough substantive enterprise AI strategy and delivery context to support a finding.",
     })
     provider = FakeSearchProvider([
         SearchResult("Example Co report", "https://SOURCES.example.test/report#summary", "Example Co enterprise AI report"),

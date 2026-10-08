@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from typing import Sequence
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -190,13 +191,23 @@ class ResearchPlanner:
         return None
 
     def _task(self, case: Case, template: _TaskTemplate, priority: int) -> ResearchTask:
-        subject = case.company_name if template.target_type is TargetType.COMPANY else case.executive_name
-        context = f" Context: {case.extra_context}" if case.extra_context else ""
+        host = _company_host(case.company_website)
+        if template.target_type is TargetType.COMPANY:
+            identity = f'"{case.company_name}"'
+        else:
+            identity = f'"{case.executive_name}" "{case.company_name}"'
+        query_parts = [identity]
+        if host:
+            query_parts.append(host)
+        query_parts.append(template.topic)
+        query_parts.append(f"for {case.meeting_goal}")
+        if case.extra_context:
+            query_parts.append(f"Context: {case.extra_context}")
         return ResearchTask(
             case_id=case.case_id,
             target_type=template.target_type,
             category=template.category,
-            query=f"{subject}: {template.topic} for {case.meeting_goal}.{context}",
+            query=" ".join(query_parts),
             priority=priority,
             max_attempts=self._attempt_budget_per_task,
         )
@@ -208,3 +219,12 @@ class ResearchPlanner:
     @staticmethod
     def _rejected(error: PlanningError) -> ResearchPlanningResult:
         return ResearchPlanningResult(status=PlanningStatus.REJECTED, errors=[error])
+
+
+def _company_host(company_website: str | None) -> str | None:
+    if not company_website:
+        return None
+    value = company_website.strip()
+    parsed = urlsplit(value if "://" in value else f"//{value}")
+    host = (parsed.hostname or "").casefold().rstrip(".").removeprefix("www.")
+    return host or None

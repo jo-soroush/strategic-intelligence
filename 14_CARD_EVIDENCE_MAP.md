@@ -684,6 +684,17 @@ explicit coverage requirements, skips covered work, retains unresolved
 high-priority gaps, and reports completion only when coverage—not result
 count—proves every required category is covered or not relevant.
 
+### Post-Completion Query Enrichment Repair (2026-10-08)
+
+Company task queries now include the quoted Case company name and normalized
+official host when available; executive task queries include the quoted
+executive and company names plus that host. Both preserve category topic,
+meeting goal, and optional Case context. The planner remains deterministic and
+does not execute search; C07/C08 retain one provider search call per task.
+Focused planning tests pass (8), the planning/research/workflow focused suite
+passes (44), and the full suite passes (321). No schema, category, retry, or
+provider-call behavior changed.
+
 # V1-C07 — Company Research
 
 **Status:** COMPLETE
@@ -843,6 +854,18 @@ company task reliably produces a bounded, traceable, meeting-relevant raw
 finding with preserved source provenance; empty, duplicate, blocked,
 irrelevant, malformed, and unavailable outcomes remain explicit rather than
 being promoted to verified Evidence.
+
+### Post-Completion Relevance Repair (2026-10-08)
+
+The deterministic company identity check treats the configured official host
+and its valid subdomains as a sufficient identity anchor. Off-domain results
+require a company-name signal plus a literal reference to the configured host
+in final content or publisher; generic tokens alone do not qualify. When no
+company website is configured, the bounded name-based fallback remains. The
+same check runs again after page acquisition against the final URL, title, body,
+and publisher before a RawFinding is retained. Focused company research tests
+cover weak-token, CERN ALICE, ALICE Receptionist, and acquired-page identity
+cases. C07 and C08 now use this same deterministic anchoring policy.
 
 
 # V1-C08 — Executive Research
@@ -1011,6 +1034,19 @@ a bounded, traceable, public-professional-meeting-relevant raw finding or an
 explicit gap. Privacy, identity, personal-data, malformed, duplicate, empty,
 and unavailable outcomes cannot become Evidence, a verified Claim, or an
 inferred executive priority.
+
+### Post-Completion Relevance Repair (2026-10-08)
+
+Executive retention requires the full executive name plus the C07 company
+identity check. The configured official host and valid subdomains are sufficient
+anchors; off-domain company-name evidence must also include a literal reference
+to the configured host in final content or publisher. With no configured
+company website, the bounded name-based fallback remains. After acquisition,
+the final URL, title, and body are revalidated for both the full executive name
+and anchored company association before a RawFinding is retained. C07 and C08
+therefore apply symmetric official-domain anchoring. Focused executive
+regressions reject Apollo Capital, Lund University, and unanchored same-name
+matches while retaining corroborated off-domain and official-subdomain results.
 
 
 # V1-C09 — Evidence Layer
