@@ -194,7 +194,7 @@ def test_follow_up_official_evidence_routes_to_current_pass_and_brief(tmp_path: 
         def search(self, query):
             self.calls += 1
             url = "https://public.example.org/news" if self.calls == 1 else "https://example.test/official"
-            return [SearchResult("Example Co research", url, "Example Co opened a research lab.", publisher="Example Co", published_at=date(2026, 8, 1))]
+            return [SearchResult("Example Co research", url, "Example Co, profiled at example.test, opened a research lab.", publisher="Example Co", published_at=date(2026, 8, 1))]
 
     provider = DiscoveryThenOfficial()
     result = _executor(tmp_path, provider, task_budget=1)[0].execute(_payload(), as_of=AS_OF)
@@ -210,7 +210,7 @@ def test_resolved_resumed_verification_does_not_invoke_follow_up_again(tmp_path:
         def search(self, query):
             self.calls += 1
             url = "https://public.example.org/news" if self.calls == 1 else "https://example.test/official"
-            return [SearchResult("Example Co research", url, "Example Co opened a research lab.", publisher="Example Co", published_at=date(2026, 8, 1))]
+            return [SearchResult("Example Co research", url, "Example Co, profiled at example.test, opened a research lab.", publisher="Example Co", published_at=date(2026, 8, 1))]
     executor, repository = _executor(tmp_path, DiscoveryThenOfficial(), task_budget=1)
     completed = executor.execute(_payload(), as_of=AS_OF)
     attempts_before = repository._connection.execute("SELECT COUNT(*) FROM follow_up_attempts").fetchone()[0]

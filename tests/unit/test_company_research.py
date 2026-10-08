@@ -6,10 +6,26 @@ from strategic_intelligence.application.company_research import (
     CompanyResearchErrorCode, CompanyResearchService, CompanyResearchStatus,
 )
 from strategic_intelligence.application.research_planning import PlanningStatus, ResearchPlanner
+from strategic_intelligence.application.source_acquisition import PublicSourceContent, SourceAcquisitionResult
 from strategic_intelligence.domain.models import Case, ResearchCategory, ResearchTask, TargetType
 from strategic_intelligence.providers.contracts import ProviderError, ProviderErrorCode, SearchQuery, SearchResult
 from strategic_intelligence.providers.fakes import FakeSearchProvider
 from strategic_intelligence.infrastructure.sqlite_repository import SqliteRepository
+
+
+class _FakeSourceRetriever:
+    def __init__(self, pages: dict[str, tuple[str, str, str | None]]) -> None:
+        self.pages = pages
+
+    def retrieve(self, url: str) -> SourceAcquisitionResult:
+        title, text, final_url = self.pages[url]
+        return SourceAcquisitionResult(content=PublicSourceContent(
+            requested_url=url,
+            final_url=final_url or url,
+            title=title,
+            text=text,
+            publication_date=None,
+        ))
 
 
 def _case() -> Case:
@@ -79,7 +95,7 @@ def test_empty_duplicate_blocked_and_irrelevant_results_are_explicit_and_bounded
         SearchResult("Example Co projects", "https://example.test/project", "Example Co AI project for partners"),
         SearchResult("Example Co projects copy", "https://example.test/project", "Example Co AI project for partners"),
         SearchResult("Blocked Example Co project", "https://blocked.example.test/project", "Example Co project", provider_metadata={"access_status": "BLOCKED"}),
-        SearchResult("Unrelated cooking", "https://other.example.test/recipe", "Simple cooking tips"),
+        SearchResult("Unrelated cooking", "https://cooking.test/recipe", "Simple cooking tips"),
     ])
 
     result = CompanyResearchService(provider, max_results_per_task=4).research(case, task)
@@ -95,6 +111,186 @@ def test_empty_duplicate_blocked_and_irrelevant_results_are_explicit_and_bounded
     assert empty.status is CompanyResearchStatus.NOT_FOUND
     assert empty.findings == []
     assert empty.attempts_used == 1
+
+
+def test_alice_labs_requires_company_identity_not_a_weak_token() -> None:
+    case = _case().model_copy(update={
+        "case_id": "case",
+        "company_name": "Alice Labs",
+        "company_website": "https://alicelabs.example",
+    })
+    provider = FakeSearchProvider([
+        SearchResult("Alice announces a workshop", "https://events.example/alice", "Alice shares an unrelated community event."),
+        SearchResult("Labs workshop", "https://events.example/labs", "A local lab is hosting a public workshop."),
+        SearchResult("Alice Labs launches partner research", "https://news.alicelabs.example/alice-labs", "Alice Labs announced a research partnership."),
+    ])
+
+    result = CompanyResearchService(provider, max_results_per_task=3).research(case, _task())
+
+    assert result.status is CompanyResearchStatus.PARTIAL
+    assert result.rejected_result_count == 2
+    assert [finding.title for finding in result.findings] == ["Alice Labs launches partner research"]
+
+
+def test_official_domain_and_its_subdomains_anchor_company_identity() -> None:
+    case = _case().model_copy(update={
+        "case_id": "case",
+        "company_name": "Alice Labs",
+        "company_website": "https://alicelabs.ai/en/",
+    })
+    provider = FakeSearchProvider([
+        SearchResult("Alice Labs", "https://alicelabs.ai/en/about", "Alice Labs official company page."),
+        SearchResult("Alice Labs careers", "https://careers.alicelabs.ai/jobs", "Open roles at Alice Labs."),
+    ])
+
+    result = CompanyResearchService(provider, max_results_per_task=2).research(case, _task())
+
+    assert result.status is CompanyResearchStatus.COMPLETED
+    assert {finding.source_url for finding in result.findings} == {
+        "https://alicelabs.ai/en/about",
+        "https://careers.alicelabs.ai/jobs",
+    }
+
+
+def test_same_name_unrelated_domains_are_rejected_without_corroboration() -> None:
+    case = _case().model_copy(update={
+        "case_id": "case",
+        "company_name": "Alice Labs",
+        "company_website": "https://alicelabs.ai/en/",
+    })
+    provider = FakeSearchProvider([
+        SearchResult(
+            "Alice Labs - Strategic Management Consulting",
+            "https://alice-labs.com/",
+            "Alice Labs was founded to fill a gap for innovative strategy consulting.",
+        ),
+        SearchResult(
+            "Alice Lab by Alice Cheng",
+            "https://aliceklab.com/",
+            "Alice Lab by Alice Cheng, Chief Event Orchestrator and Business Relationship Cultivator.",
+        ),
+        SearchResult(
+            "The Alice Lab",
+            "https://alicelab.world/",
+            "The Alice Lab research program at York University, led by its director.",
+        ),
+    ])
+
+    result = CompanyResearchService(provider, max_results_per_task=3).research(case, _task())
+
+    assert result.status is CompanyResearchStatus.NOT_FOUND
+    assert result.findings == []
+    assert result.rejected_result_count == 3
+
+
+def test_third_party_coverage_strongly_tied_to_official_domain_is_accepted() -> None:
+    case = _case().model_copy(update={
+        "case_id": "case",
+        "company_name": "Alice Labs",
+        "company_website": "https://alicelabs.ai/en/",
+    })
+    provider = FakeSearchProvider([SearchResult(
+        "Alice Labs raises funding",
+        "https://technews.example/alice-labs-funding",
+        "Alice Labs, profiled at alicelabs.ai, announced new funding for its research program.",
+    )])
+
+    result = CompanyResearchService(provider).research(case, _task())
+
+    assert result.status is CompanyResearchStatus.COMPLETED
+    assert len(result.findings) == 1
+    assert result.findings[0].source_url == "https://technews.example/alice-labs-funding"
+
+
+def test_bare_name_mention_on_unrelated_page_without_corroboration_is_rejected() -> None:
+    case = _case().model_copy(update={
+        "case_id": "case",
+        "company_name": "Alice Labs",
+        "company_website": "https://alicelabs.ai/en/",
+    })
+    provider = FakeSearchProvider([SearchResult(
+        "Companies to watch",
+        "https://blog.example/roundup",
+        "Alice Labs is one of many companies mentioned in this unrelated roundup article.",
+    )])
+
+    result = CompanyResearchService(provider).research(case, _task())
+
+    assert result.status is CompanyResearchStatus.NOT_FOUND
+    assert result.findings == []
+
+
+def test_acquired_company_page_requires_official_domain_or_corroboration() -> None:
+    case = _case().model_copy(update={
+        "case_id": "case",
+        "company_name": "Alice Labs",
+        "company_website": "https://alice-labs.example",
+    })
+    unrelated_pages = {
+        "https://source.example/cern": (
+            "CERN ALICE detector",
+            "CERN ALICE detector research describes particle collisions, detector systems, and physics data from international experiments around the world.",
+            None,
+        ),
+        "https://source.example/receptionist": (
+            "ALICE Receptionist platform",
+            "ALICE Receptionist provides automated call handling, appointment scheduling, and customer communications for organizations and offices.",
+            None,
+        ),
+    }
+    unrelated_provider = FakeSearchProvider([
+        SearchResult("Alice Labs research", url, "Alice Labs publishes company-specific research and services.", publisher="Alice Labs newsroom")
+        for url in unrelated_pages
+    ])
+
+    rejected = CompanyResearchService(
+        unrelated_provider,
+        max_results_per_task=2,
+        source_retriever=_FakeSourceRetriever(unrelated_pages),
+    ).research(case, _task())
+
+    assert rejected.status is CompanyResearchStatus.NOT_FOUND
+    assert rejected.findings == []
+    assert rejected.rejected_result_count == 2
+
+    off_domain_url = "https://source.example/alice-lab"
+    off_domain_provider = FakeSearchProvider([SearchResult(
+        "Alice Labs partner research",
+        off_domain_url,
+        "Alice Labs conducts research with industry partners.",
+    )])
+    off_domain = CompanyResearchService(
+        off_domain_provider,
+        source_retriever=_FakeSourceRetriever({off_domain_url: (
+            "Alice Lab partner research",
+            "Alice Lab partner research explains its research program, partner collaborations, and recent delivery outcomes across the company.",
+            None,
+        )}),
+    ).research(case, _task())
+
+    assert off_domain.status is CompanyResearchStatus.NOT_FOUND
+    assert off_domain.findings == []
+
+    corroborated_url = "https://source.example/alice-lab-corroborated"
+    corroborated_provider = FakeSearchProvider([SearchResult(
+        "Alice Labs partner research",
+        corroborated_url,
+        "Alice Labs, the team behind alice-labs.example, conducts research with industry partners.",
+    )])
+    corroborated = CompanyResearchService(
+        corroborated_provider,
+        source_retriever=_FakeSourceRetriever({corroborated_url: (
+            "Alice Lab partner research",
+            "Alice Lab partner research explains its research program, partner collaborations, and "
+            "recent delivery outcomes. Learn more at alice-labs.example.",
+            None,
+        )}),
+    ).research(case, _task())
+
+    assert corroborated.status is CompanyResearchStatus.COMPLETED
+    assert len(corroborated.findings) == 1
+    assert corroborated.findings[0].title == "Alice Lab partner research"
+    assert corroborated.findings[0].content_origin.value == "PUBLIC_PAGE"
 
 
 def test_invalid_task_malformed_results_and_provider_failures_fail_closed() -> None:

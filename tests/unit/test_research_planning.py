@@ -71,6 +71,34 @@ def test_deterministic_planning_keeps_order_and_content_stable() -> None:
     assert _signatures(first.plan) == _signatures(second.plan)
 
 
+def test_company_and_executive_queries_include_identity_host_topic_and_goal() -> None:
+    case = _case().model_copy(update={
+        "company_name": "Alice lab",
+        "executive_name": "Henrik Andersson",
+        "meeting_goal": "meet and greet",
+        "extra_context": "discuss partnerships",
+        "company_website": "https://www.alicelabs.ai/about",
+    })
+    result = ResearchPlanner().plan(case)
+
+    assert result.plan is not None
+    company = next(task for task in result.plan.tasks if task.target_type is TargetType.COMPANY and task.category is ResearchCategory.STRATEGY)
+    executive = next(task for task in result.plan.tasks if task.target_type is TargetType.EXECUTIVE and task.category is ResearchCategory.EXECUTIVE_ROLE)
+    assert company.query == '"Alice lab" alicelabs.ai strategy and direction for meet and greet Context: discuss partnerships'
+    assert executive.query == '"Henrik Andersson" "Alice lab" alicelabs.ai current role and responsibilities for meet and greet Context: discuss partnerships'
+
+
+def test_queries_remain_useful_without_a_company_website() -> None:
+    case = _case().model_copy(update={"company_website": None})
+    result = ResearchPlanner().plan(case)
+
+    assert result.plan is not None
+    company = next(task for task in result.plan.tasks if task.target_type is TargetType.COMPANY and task.category is ResearchCategory.STRATEGY)
+    executive = next(task for task in result.plan.tasks if task.target_type is TargetType.EXECUTIVE and task.category is ResearchCategory.EXECUTIVE_ROLE)
+    assert company.query == '"Example Co" strategy and direction for prepare an AI partnership meeting Context: focus on responsible AI consulting'
+    assert executive.query == '"Ava Example" "Example Co" current role and responsibilities for prepare an AI partnership meeting Context: focus on responsible AI consulting'
+
+
 def test_coverage_aware_planning_skips_covered_work_and_retains_high_priority_gaps() -> None:
     case = _case()
     covered = ResearchCoverage(

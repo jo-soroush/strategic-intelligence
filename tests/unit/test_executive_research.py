@@ -6,10 +6,26 @@ from strategic_intelligence.application.executive_research import (
     ExecutiveResearchErrorCode, ExecutiveResearchService, ExecutiveResearchStatus,
 )
 from strategic_intelligence.application.research_planning import PlanningStatus, ResearchPlanner
+from strategic_intelligence.application.source_acquisition import PublicSourceContent, SourceAcquisitionResult
 from strategic_intelligence.domain.models import Case, ResearchCategory, ResearchTask, TargetType
 from strategic_intelligence.infrastructure.sqlite_repository import SqliteRepository
 from strategic_intelligence.providers.contracts import ProviderError, ProviderErrorCode, SearchQuery, SearchResult
 from strategic_intelligence.providers.fakes import FakeSearchProvider
+
+
+class _FakeSourceRetriever:
+    def __init__(self, pages: dict[str, tuple[str, str, str | None]]) -> None:
+        self.pages = pages
+
+    def retrieve(self, url: str) -> SourceAcquisitionResult:
+        title, text, final_url = self.pages[url]
+        return SourceAcquisitionResult(content=PublicSourceContent(
+            requested_url=url,
+            final_url=final_url or url,
+            title=title,
+            text=text,
+            publication_date=None,
+        ))
 
 
 def _case() -> Case:
@@ -76,10 +92,10 @@ def test_privacy_identity_relevance_and_duplicates_are_rejected_before_retention
     provider = FakeSearchProvider([
         SearchResult("Ava Example interview", "https://example.test/interview", "Ava Example discusses Example Co strategy and partnerships."),
         SearchResult("Ava Example interview copy", "https://example.test/interview", "Ava Example discusses Example Co strategy and partnerships."),
-        SearchResult("Ava Example family", "https://private.example.test/ava", "Ava Example shares family details and children."),
-        SearchResult("Ava Example personal profile", "https://private.example.test/profile", "Ava Example discusses religion and personal routines."),
-        SearchResult("Ava Other role", "https://other.example.test/ava", "Ava Other is a director at Another Co."),
-        SearchResult("Ava Example cooking", "https://other.example.test/cooking", "Ava Example shares cooking ideas."),
+        SearchResult("Ava Example family", "https://private.invalid/ava", "Ava Example shares family details and children."),
+        SearchResult("Ava Example personal profile", "https://private.invalid/profile", "Ava Example discusses religion and personal routines."),
+        SearchResult("Ava Other role", "https://other.invalid/ava", "Ava Other is a director at Another Co."),
+        SearchResult("Ava Example cooking", "https://other.invalid/cooking", "Ava Example shares cooking ideas."),
     ])
 
     result = ExecutiveResearchService(provider, max_results_per_task=6).research(_case(), _task())
@@ -91,6 +107,118 @@ def test_privacy_identity_relevance_and_duplicates_are_rejected_before_retention
     assert result.rejected_result_count == 5
     assert len(provider.calls) == 1
     assert provider.calls[0].limit == 6
+
+
+def test_same_name_executive_requires_alice_labs_context() -> None:
+    case = _case().model_copy(update={
+        "company_name": "Alice Labs",
+        "executive_name": "Henrik Andersson",
+        "company_website": "https://alicelabs.example",
+    })
+    provider = FakeSearchProvider([
+        SearchResult(
+            "Henrik Andersson joins Apollo Capital",
+            "https://apollo.example/henrik-andersson",
+            "Henrik Andersson is a director and business leader at Apollo Capital.",
+        ),
+        SearchResult(
+            "Henrik Andersson appointed at Alice Labs",
+            "https://news.example/henrik-andersson-alice-labs",
+            "Henrik Andersson leads strategy at Alice Labs; company details at alicelabs.example.",
+        ),
+    ])
+
+    result = ExecutiveResearchService(provider, max_results_per_task=2).research(case, _task())
+
+    assert result.status is ExecutiveResearchStatus.PARTIAL
+    assert result.identity_rejected_result_count == 0
+    assert result.rejected_result_count == 1
+    assert [finding.title for finding in result.findings] == ["Henrik Andersson appointed at Alice Labs"]
+
+
+def test_acquired_executive_page_requires_official_domain_anchoring() -> None:
+    case = _case().model_copy(update={
+        "company_name": "Alice Labs",
+        "executive_name": "Henrik Andersson",
+        "company_website": "https://alice-labs.example",
+    })
+    pages = {
+        "https://apollo.example/henrik": (
+            "Henrik Andersson at Apollo Capital",
+            "Henrik Andersson leads investment strategy at Apollo Capital, advising portfolio companies on business growth and financial planning.",
+            None,
+        ),
+        "https://lund.example/henrik": (
+            "Henrik Andersson at Lund University",
+            "Henrik Andersson is a researcher at Lund University studying organizational leadership and public sector innovation.",
+            None,
+        ),
+        "https://news.example/unanchored": (
+            "Henrik Andersson appointed at Alice Labs",
+            "Henrik Andersson leads strategy at Alice Labs and works on partnerships for the organization.",
+            None,
+        ),
+        "https://news.example/anchored": (
+            "Henrik Andersson appointed at Alice Labs",
+            "Henrik Andersson leads strategy at Alice Labs. Official company details are available at alice-labs.example.",
+            None,
+        ),
+        "https://team.alice-labs.example/henrik": (
+            "Henrik Andersson profile",
+            "Henrik Andersson leads strategy and partnerships for the company, supporting product teams and customer growth across the organization.",
+            None,
+        ),
+    }
+    unrelated_provider = FakeSearchProvider([
+        SearchResult(
+            "Henrik Andersson at Alice Labs",
+            url,
+            "Henrik Andersson leads strategy at Alice Labs and works on partnerships; company details at alice-labs.example.",
+            publisher="Alice Labs newsroom",
+        )
+        for url in pages
+    ])
+
+    result = ExecutiveResearchService(
+        unrelated_provider,
+        max_results_per_task=5,
+        max_acquisitions_per_task=5,
+        max_candidate_acquisitions_per_task=5,
+        source_retriever=_FakeSourceRetriever(pages),
+    ).research(case, _task())
+
+    assert result.status is ExecutiveResearchStatus.PARTIAL
+    assert result.identity_rejected_result_count == 3
+    assert {finding.source_url for finding in result.findings} == {
+        "https://news.example/anchored",
+        "https://team.alice-labs.example/henrik",
+    }
+    assert all(finding.content_origin.value == "PUBLIC_PAGE" for finding in result.findings)
+
+
+def test_official_domain_name_fallback_remains_available_without_configured_website() -> None:
+    case = _case().model_copy(update={
+        "company_name": "Alice Labs",
+        "executive_name": "Henrik Andersson",
+        "company_website": None,
+    })
+    url = "https://news.example/henrik"
+    provider = FakeSearchProvider([SearchResult(
+        "Henrik Andersson at Alice Labs",
+        url,
+        "Henrik Andersson leads strategy at Alice Labs.",
+    )])
+    retriever = _FakeSourceRetriever({url: (
+        "Henrik Andersson at Alice Labs",
+        "Henrik Andersson leads strategy at Alice Labs, overseeing partnerships and company planning.",
+        None,
+    )})
+
+    result = ExecutiveResearchService(provider, source_retriever=retriever).research(case, _task())
+
+    assert result.status is ExecutiveResearchStatus.COMPLETED
+    assert len(provider.calls) == 1
+    assert result.findings[0].source_url == url
 
 
 def test_invalid_task_malformed_timeout_and_empty_results_fail_closed() -> None:
